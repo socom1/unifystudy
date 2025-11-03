@@ -1,0 +1,67 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+* {
+  padding: 0;
+  margin: 0;
+  font-family: "Fira Code", monospace;
+}
+
+.flex {
+  display: flex;
+}
+
+li {
+  list-style: none;
+}
+
+.navf #nav {
+  width: 100vw;
+  height: 100px;
+}
+.navf #nav .flexcontainer {
+  flex-direction: row;
+  justify-content: space-around;
+}
+.navf #nav .flexcontainer .left {
+  width: 50vw;
+  padding-top: 2rem;
+}
+.navf #nav .flexcontainer .left .logo {
+  padding-left: -1rem;
+  font-family: "Fira Code", monospace;
+  font-size: 30px;
+  color: #4b6c82;
+}
+.navf #nav .flexcontainer .right {
+  height: 60px;
+  width: 20vw;
+}
+.navf #nav .flexcontainer .right .menuToggle {
+  padding-left: 10px;
+  padding-top: 35px;
+}
+.navf #nav .flexcontainer .right .menuToggle .toggle {
+  background-color: transparent;
+  height: -moz-fit-content;
+  height: fit-content;
+  border: none;
+}
+.navf #nav .flexcontainer .right .menuToggle .toggle .l1,
+.navf #nav .flexcontainer .right .menuToggle .toggle .l2,
+.navf #nav .flexcontainer .right .menuToggle .toggle .l3 {
+  margin-top: 5px;
+  height: 4px;
+  border-radius: 15px;
+  display: block;
+  width: 40px;
+  background-color: #f2f2f2;
+  transition: ease-in 0.5s;
+}
+.navf #nav .flexcontainer .right .menuToggle .toggle:hover {
+  cursor: pointer;
+}
+.navf #nav .flexcontainer .right .menuToggle .toggle:hover span {
+  transition: ease-in 0.5s;
+  background-color: #4b6c82;
+}/*# sourceMappingURL=navs.css.map */

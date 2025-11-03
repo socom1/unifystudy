@@ -1,0 +1,50 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+* {
+  padding: 0;
+  margin: 0;
+  font-family: "Fira Code", monospace;
+}
+
+.flex {
+  display: flex;
+}
+
+li {
+  list-style: none;
+}
+
+.app .flex-container #navm {
+  transition: ease 1s;
+  position: absolute;
+  transform: translateY(-1300px);
+  height: 100vh;
+  width: 100vw;
+  background-color: #1e1e1e;
+  z-index: 1;
+}
+.app .flex-container #navm .menu {
+  flex-direction: column;
+  align-items: center;
+}
+.app .flex-container #navm .menu li {
+  margin-top: 100px;
+  color: #afd4ed;
+  text-decoration: none;
+  font-size: 30px;
+  transition: ease 1s;
+}
+.app .flex-container #navm .menu li:hover {
+  color: #4b6c82;
+  transition: ease 1s;
+}
+.app .flex-container #navm.active {
+  transition: ease 1s;
+  display: default;
+  opacity: 1;
+  transform: translateY(120px);
+  height: 100vh;
+  width: 100vw;
+  background-color: #1e1e1e;
+}/*# sourceMappingURL=navm.css.map */

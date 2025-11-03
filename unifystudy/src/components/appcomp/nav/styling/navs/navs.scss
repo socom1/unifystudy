@@ -1,0 +1,84 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+$aC: #4b6c82;
+$asC: #afd4ed;
+$bC: #1e1e1e;
+$wC: #f2f2f2;
+$rC: #bf4040;
+$gC: #40bf46;
+$fB: rgb(19, 19, 19);
+
+* {
+  padding: 0;
+  margin: 0;
+  // font-family: "Poppins", sans-serif;
+  font-family: "Fira Code", monospace;
+}
+
+.flex {
+  display: flex;
+}
+
+li {
+  list-style: none;
+}
+
+.navf {
+  #nav {
+    width: 100vw;
+    height: 100px;
+    .flexcontainer {
+      flex-direction: row;
+      justify-content: space-around;
+
+      .left {
+        width: 50vw;
+        padding-top: 2rem;
+        .logo {
+          padding-left: -1rem;
+          font-family: "Fira Code", monospace;
+          font-size: 30px;
+          color: #4b6c82;
+        }
+      }
+
+      .right {
+        height: 60px;
+        width: 20vw;
+
+        .menuToggle {
+          padding-left: 10px;
+          padding-top: 35px;
+          .toggle {
+            // height: 2px;
+            background-color: transparent;
+            height: fit-content;
+            border: none;
+            .l1,
+            .l2,
+            .l3 {
+              margin-top: 5px;
+              height: 4px;
+              border-radius: 15px;
+              display: block;
+              width: 40px;
+              background-color: $wC;
+              transition: ease-in 0.5s;
+            }
+          }
+
+          .toggle:hover {
+            cursor: pointer;
+            span {
+              transition: ease-in 0.5s;
+
+              background-color: $aC;
+            }
+          }
+        }
+      }
+    }
+  }
+}

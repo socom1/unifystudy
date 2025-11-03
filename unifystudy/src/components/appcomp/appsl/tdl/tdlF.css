@@ -1,0 +1,221 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+* {
+  padding: 0;
+  margin: 0;
+  font-family: "Fira Code", monospace;
+}
+
+.flex {
+  display: flex;
+}
+
+li {
+  list-style: none;
+}
+
+.containerflex {
+  flex-direction: row;
+  justify-content: center;
+  width: 100vw;
+}
+.containerflex #submitI {
+  margin-top: 25px;
+  height: 40px;
+  background-color: rgb(19, 19, 19);
+  border-radius: 10px;
+  width: 390px;
+  padding: 5px;
+}
+.containerflex #submitI .flexC {
+  padding-top: 2.5px;
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.containerflex #submitI .flexC form {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.containerflex #submitI .flexC button {
+  border-radius: 10px;
+  height: 30px;
+  border: none;
+  margin-right: 10px;
+  font-weight: 500;
+  background-color: #1e1e1e;
+  color: #4b6c82;
+  width: 30px;
+  font-size: 14px;
+  transition: ease 1s;
+}
+.containerflex #submitI .flexC button:hover {
+  background-color: #4b6c82;
+  color: #f2f2f2;
+  cursor: pointer;
+  transition: ease 1s;
+}
+.containerflex #submitI .flexC input {
+  border-radius: 5px;
+  border: none;
+  color: #afd4ed;
+  background-color: #1e1e1e;
+  padding-left: 3px;
+  margin-left: 10px;
+  height: 30px;
+  width: 330px;
+  outline: none;
+}
+.containerflex #submitI .flexC input::-moz-placeholder {
+  background-color: none;
+  color: #afd4ed;
+}
+.containerflex #submitI .flexC input::placeholder {
+  background-color: none;
+  color: #afd4ed;
+}
+
+.appL {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+  height: 550px;
+  margin-top: 20px;
+}
+.appL h3 {
+  color: #afd4ed;
+  font-weight: 500;
+  padding-left: 15px;
+  padding-top: 7px;
+  font-size: 14px;
+}
+.appL #taskS {
+  margin-top: 10px;
+  height: 80vh;
+  width: 400px;
+  border-radius: 10px;
+  background-color: rgb(19, 19, 19);
+}
+.appL #taskS #taskListTD .listC {
+  flex-direction: row;
+  justify-content: space-between;
+  display: flex;
+  width: 100%;
+  margin-top: 10px;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+.appL #taskS #taskListTD .listC .divS {
+  width: -moz-min-content;
+  width: min-content;
+  overflow: hidden;
+}
+.appL #taskS #taskListTD .listC .divS span {
+  padding-left: 15px;
+  color: #f2f2f2;
+  font-size: 14px;
+  transition: ease 1s;
+}
+.appL #taskS #taskListTD .listC .divS span .line {
+  opacity: 0;
+  width: 70vw;
+  display: block;
+  transition: ease 1s;
+  height: 2px;
+  border-radius: 15px;
+  transform: translateX(14px) translateY(-10px);
+  background-color: #bf4040;
+}
+.appL #taskS #taskListTD .listC .lOption {
+  position: absolute;
+  transform: translateX(300px) translateY(-20px);
+  pointer-events: none;
+  opacity: 0;
+  background-color: #4b6c82;
+  transition: ease 1s;
+  width: -moz-fit-content;
+  width: fit-content;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+.appL #taskS #taskListTD .listC .lOption .flexcL {
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  text-align: right;
+}
+.appL #taskS #taskListTD .listC .lOption .flexcL button {
+  border: none;
+  background-color: #1e1e1e;
+  color: #afd4ed;
+  transition: ease 1s;
+  height: 20px;
+}
+.appL #taskS #taskListTD .listC .lOption .flexcL button:hover {
+  background-color: #afd4ed;
+  color: #1e1e1e;
+  transition: ease 1s;
+}
+.appL #taskS #taskListTD .listC .lOption.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(300px) translateY(30px);
+  transition: ease 1s;
+}
+.appL #taskS #taskListTD .listC .lOption.active button {
+  cursor: pointer;
+  transition: ease 1s;
+}
+.appL #taskS #taskListTD .listC .buttonS button .span1 {
+  display: block;
+  height: 2px;
+  width: 8px;
+  transition: ease 1s;
+  transform: rotate(-48deg);
+  background-color: #afd4ed;
+}
+.appL #taskS #taskListTD .listC .buttonS button .span2 {
+  transform: translateX(-4px) translateY(-2px) rotate(48deg);
+  display: block;
+  height: 2px;
+  width: 8px;
+  transition: ease 1s;
+  background-color: #afd4ed;
+}
+.appL #taskS #taskListTD .listC .buttonS:hover .span1,
+.appL #taskS #taskListTD .listC .buttonS:hover .span2 {
+  background-color: #4b6c82;
+  cursor: pointer;
+  transition: ease 1s;
+}
+.appL #taskS #taskListTD .listC .buttonS.active .span1 {
+  transform: rotate(45deg);
+}
+.appL #taskS #taskListTD .listC .buttonS.active .span2 {
+  transform: translateX(-4px) translateY(-2px) rotate(-230deg);
+}
+.appL #taskS #taskListTD .listC .divS:hover {
+  cursor: pointer;
+}
+.appL #taskS #taskListTD .listC .divS:hover span {
+  cursor: pointer;
+  transition: ease 1s;
+  color: #afd4ed;
+}
+.appL #taskS #taskListTD .listC .divS:hover span .line {
+  cursor: pointer;
+  opacity: 1;
+  transition: ease 1s;
+}
+.appL #taskS #taskListTD .listC .buttonS button {
+  width: 30px;
+  height: 30px;
+  background-color: transparent;
+  color: #afd4ed;
+  border: none;
+}/*# sourceMappingURL=tdlF.css.map */
