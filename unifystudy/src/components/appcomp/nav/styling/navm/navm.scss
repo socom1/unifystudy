@@ -28,17 +28,20 @@ li {
 .app {
   .flex-container {
     #navm {
-      transition: ease 1s;
+      transition: ease 0.3s;
       position: absolute;
-      transform: translateY(-1300px);
+      // transform: translateY(-1300px);
       height: 100vh;
       width: 100vw;
+      pointer-events: none;
+      opacity: 0;
       background-color: $bC;
       z-index: 1;
 
       .menu {
         flex-direction: column;
         align-items: center;
+        margin-top: 10vh;
 
         li {
           margin-top: 100px;
@@ -57,10 +60,11 @@ li {
     }
 
     #navm.active {
-      transition: ease 1s;
+      pointer-events: all;
+      transition: ease 0.3s;
       display: default;
       opacity: 1;
-      transform: translateY(120px);
+      // transform: translateY(0px);
       height: 100vh;
       width: 100vw;
       background-color: $bC;

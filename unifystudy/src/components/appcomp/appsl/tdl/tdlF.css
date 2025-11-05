@@ -1,9 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 * {
-  padding: 0;
   margin: 0;
+  padding: 0;
   font-family: "Fira Code", monospace;
 }
 
@@ -15,32 +14,109 @@ li {
   list-style: none;
 }
 
-.containerflex {
+.folderView,
+.appL {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+}
+
+.titleC {
+  width: 80vw;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.titleC .backB {
+  background-color: #1e1e1e;
+  border: none;
+  border-radius: 15px;
+  color: #f2f2f2;
+  padding: 5px 10px;
+  font-weight: 500;
+}
+.titleC .backB:hover {
+  color: #4b6c82;
+  transition: ease 0.3s;
+  cursor: pointer;
+}
+
+.folderView h2 {
+  color: #afd4ed;
+  font-weight: 500;
+  padding-left: 15px;
+  padding-top: 7px;
+  font-size: 14px;
+}
+.folderView ul#taskListTD {
+  width: 400px;
+}
+.folderView ul#taskListTD li .listC {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  position: relative;
+}
+.folderView ul#taskListTD li .listC .divS span {
+  color: #f2f2f2;
+  font-size: 14px;
+  padding-left: 15px;
+}
+.folderView ul#taskListTD li .listC .divS input {
+  border: none;
+  background-color: #1e1e1e;
+}
+.folderView ul#taskListTD li .listC button {
+  border-radius: 5px;
+  border: none;
+  background-color: #1e1e1e;
+  color: #4b6c82;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.folderView ul#taskListTD li .listC button:hover {
+  background-color: #4b6c82;
+  color: #f2f2f2;
+}
+
+/* ------------------------ */
+/* Task list view styling */
+/* ------------------------ */
+.appL h2 {
+  color: #afd4ed;
+  font-weight: 500;
+  padding-left: 15px;
+  padding-top: 7px;
+  font-size: 16px;
+}
+.appL .containerflex {
   flex-direction: row;
   justify-content: center;
   width: 100vw;
 }
-.containerflex #submitI {
+.appL .containerflex #submitI {
   margin-top: 25px;
   height: 40px;
   background-color: rgb(19, 19, 19);
   border-radius: 10px;
-  width: 390px;
+  width: 78vw;
   padding: 5px;
 }
-.containerflex #submitI .flexC {
+.appL .containerflex #submitI .flexC {
   padding-top: 2.5px;
   width: 100%;
   flex-direction: row;
   justify-content: space-around;
 }
-.containerflex #submitI .flexC form {
+.appL .containerflex #submitI .flexC form {
   width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-.containerflex #submitI .flexC button {
+.appL .containerflex #submitI .flexC button {
   border-radius: 10px;
   height: 30px;
   border: none;
@@ -50,15 +126,14 @@ li {
   color: #4b6c82;
   width: 30px;
   font-size: 14px;
-  transition: ease 1s;
+  transition: all 0.3s ease;
 }
-.containerflex #submitI .flexC button:hover {
+.appL .containerflex #submitI .flexC button:hover {
   background-color: #4b6c82;
   color: #f2f2f2;
   cursor: pointer;
-  transition: ease 1s;
 }
-.containerflex #submitI .flexC input {
+.appL .containerflex #submitI .flexC input {
   border-radius: 5px;
   border: none;
   color: #afd4ed;
@@ -66,156 +141,148 @@ li {
   padding-left: 3px;
   margin-left: 10px;
   height: 30px;
-  width: 330px;
+  width: 50vw;
   outline: none;
 }
-.containerflex #submitI .flexC input::-moz-placeholder {
-  background-color: none;
+.appL .containerflex #submitI .flexC input::-moz-placeholder {
   color: #afd4ed;
 }
-.containerflex #submitI .flexC input::placeholder {
-  background-color: none;
+.appL .containerflex #submitI .flexC input::placeholder {
   color: #afd4ed;
-}
-
-.appL {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100vw;
-  height: 550px;
-  margin-top: 20px;
-}
-.appL h3 {
-  color: #afd4ed;
-  font-weight: 500;
-  padding-left: 15px;
-  padding-top: 7px;
-  font-size: 14px;
 }
 .appL #taskS {
+  height: 70vh;
   margin-top: 10px;
-  height: 80vh;
-  width: 400px;
+  width: 80vw;
   border-radius: 10px;
   background-color: rgb(19, 19, 19);
 }
 .appL #taskS #taskListTD .listC {
-  flex-direction: row;
-  justify-content: space-between;
   display: flex;
-  width: 100%;
+  justify-content: space-between;
   margin-top: 10px;
-  height: -moz-fit-content;
-  height: fit-content;
+  position: relative;
 }
 .appL #taskS #taskListTD .listC .divS {
-  width: -moz-min-content;
-  width: min-content;
+  width: -moz-fit-content;
+  width: fit-content;
   overflow: hidden;
 }
 .appL #taskS #taskListTD .listC .divS span {
   padding-left: 15px;
   color: #f2f2f2;
   font-size: 14px;
+  transition: color 0.3s ease;
+}
+.appL #taskS #taskListTD .listC .divS input {
+  margin-left: 15px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  color: #afd4ed;
+  border: none;
+  background-color: #1e1e1e;
   transition: ease 1s;
 }
-.appL #taskS #taskListTD .listC .divS span .line {
+.appL #taskS #taskListTD .listC .divS input:focus {
+  outline: none;
+}
+.appL #taskS #taskListTD .listC .divS .lineTitle {
   opacity: 0;
   width: 70vw;
   display: block;
-  transition: ease 1s;
   height: 2px;
   border-radius: 15px;
   transform: translateX(14px) translateY(-10px);
   background-color: #bf4040;
+  transition: opacity 0.3s ease;
 }
-.appL #taskS #taskListTD .listC .lOption {
-  position: absolute;
-  transform: translateX(300px) translateY(-20px);
-  pointer-events: none;
-  opacity: 0;
-  background-color: #4b6c82;
-  transition: ease 1s;
-  width: -moz-fit-content;
-  width: fit-content;
-  height: -moz-fit-content;
-  height: fit-content;
-}
-.appL #taskS #taskListTD .listC .lOption .flexcL {
-  width: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: left;
-  text-align: right;
-}
-.appL #taskS #taskListTD .listC .lOption .flexcL button {
-  border: none;
-  background-color: #1e1e1e;
-  color: #afd4ed;
-  transition: ease 1s;
-  height: 20px;
-}
-.appL #taskS #taskListTD .listC .lOption .flexcL button:hover {
-  background-color: #afd4ed;
-  color: #1e1e1e;
-  transition: ease 1s;
-}
-.appL #taskS #taskListTD .listC .lOption.active {
+.appL #taskS #taskListTD .listC .divS .lineTitle.active {
   opacity: 1;
-  pointer-events: all;
-  transform: translateX(300px) translateY(30px);
-  transition: ease 1s;
 }
-.appL #taskS #taskListTD .listC .lOption.active button {
+.appL #taskS #taskListTD .listC .divS:hover span {
   cursor: pointer;
-  transition: ease 1s;
 }
-.appL #taskS #taskListTD .listC .buttonS button .span1 {
-  display: block;
-  height: 2px;
-  width: 8px;
-  transition: ease 1s;
-  transform: rotate(-48deg);
-  background-color: #afd4ed;
-}
-.appL #taskS #taskListTD .listC .buttonS button .span2 {
-  transform: translateX(-4px) translateY(-2px) rotate(48deg);
-  display: block;
-  height: 2px;
-  width: 8px;
-  transition: ease 1s;
-  background-color: #afd4ed;
-}
-.appL #taskS #taskListTD .listC .buttonS:hover .span1,
-.appL #taskS #taskListTD .listC .buttonS:hover .span2 {
-  background-color: #4b6c82;
-  cursor: pointer;
-  transition: ease 1s;
-}
-.appL #taskS #taskListTD .listC .buttonS.active .span1 {
-  transform: rotate(45deg);
-}
-.appL #taskS #taskListTD .listC .buttonS.active .span2 {
-  transform: translateX(-4px) translateY(-2px) rotate(-230deg);
+.appL #taskS #taskListTD .listC .divS:hover span .lineTitle {
+  opacity: 1;
 }
 .appL #taskS #taskListTD .listC .divS:hover {
   cursor: pointer;
 }
 .appL #taskS #taskListTD .listC .divS:hover span {
-  cursor: pointer;
-  transition: ease 1s;
   color: #afd4ed;
 }
-.appL #taskS #taskListTD .listC .divS:hover span .line {
+.appL #taskS #taskListTD .listC .lOption {
+  transform: translateY(-10px) translateX(10px);
+  position: absolute;
+  top: 30px;
+  right: 25px;
+  padding: 3px 7px;
+  pointer-events: none;
+  opacity: 0;
+  background-color: #1e1e1e;
+  width: -moz-fit-content;
+  width: fit-content;
+  height: -moz-fit-content;
+  height: fit-content;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.appL #taskS #taskListTD .listC .lOption .flexcL {
+  display: flex;
+  flex-direction: column;
+  align-items: right;
+}
+.appL #taskS #taskListTD .listC .lOption .flexcL button {
+  border: none;
+  background-color: #1e1e1e;
+  color: #afd4ed;
+  height: 20px;
+  margin: 2px 0;
+  transition: all 0.3s ease;
+}
+.appL #taskS #taskListTD .listC .lOption .flexcL button:hover {
+  background-color: #afd4ed;
+  color: #1e1e1e;
   cursor: pointer;
+}
+.appL #taskS #taskListTD .listC .lOption.active {
   opacity: 1;
-  transition: ease 1s;
+  pointer-events: all;
+  transform: translateY(-5px) translateX(10px);
+}
+.appL #taskS #taskListTD .listC .buttonS {
+  transition: ease 0.3s;
 }
 .appL #taskS #taskListTD .listC .buttonS button {
   width: 30px;
   height: 30px;
   background-color: transparent;
-  color: #afd4ed;
   border: none;
+}
+.appL #taskS #taskListTD .listC .buttonS button .span1,
+.appL #taskS #taskListTD .listC .buttonS button .span2 {
+  display: block;
+  height: 2px;
+  width: 8px;
+  background-color: #afd4ed;
+  transition: all 0.3s ease;
+}
+.appL #taskS #taskListTD .listC .buttonS button .span1 {
+  transform: rotate(-48.5deg) translateX(5px) translateY(2.5px);
+}
+.appL #taskS #taskListTD .listC .buttonS button .span2 {
+  transform: translateX(1.1px) translateY(-4px) rotate(48.5deg);
+}
+.appL #taskS #taskListTD .listC .buttonS:hover .span1, .appL #taskS #taskListTD .listC .buttonS:hover .span2 {
+  background-color: #4b6c82;
+  cursor: pointer;
+}
+.appL #taskS #taskListTD .listC .buttonS.active {
+  transform: translateX(-2px);
+  transition: ease 0.3s;
+}
+.appL #taskS #taskListTD .listC .buttonS.active .span1 {
+  transform: translateX(7px) translateY(-1.8px) rotate(48.5deg);
+}
+.appL #taskS #taskListTD .listC .buttonS.active .span2 {
+  transform: translateX(2.9px) translateY(-4px) rotate(-48.5deg);
 }/*# sourceMappingURL=tdlF.css.map */

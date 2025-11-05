@@ -16,17 +16,19 @@ li {
 }
 
 .app .flex-container #navm {
-  transition: ease 1s;
+  transition: ease 0.3s;
   position: absolute;
-  transform: translateY(-1300px);
   height: 100vh;
   width: 100vw;
+  pointer-events: none;
+  opacity: 0;
   background-color: #1e1e1e;
   z-index: 1;
 }
 .app .flex-container #navm .menu {
   flex-direction: column;
   align-items: center;
+  margin-top: 10vh;
 }
 .app .flex-container #navm .menu li {
   margin-top: 100px;
@@ -40,10 +42,10 @@ li {
   transition: ease 1s;
 }
 .app .flex-container #navm.active {
-  transition: ease 1s;
+  pointer-events: all;
+  transition: ease 0.3s;
   display: default;
   opacity: 1;
-  transform: translateY(120px);
   height: 100vh;
   width: 100vw;
   background-color: #1e1e1e;

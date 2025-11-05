@@ -34,11 +34,12 @@ li {
   color: #4b6c82;
 }
 .navf #nav .flexcontainer .right {
-  height: 60px;
-  width: 20vw;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 .navf #nav .flexcontainer .right .menuToggle {
-  padding-left: 10px;
+  width: -moz-fit-content;
+  width: fit-content;
   padding-top: 35px;
 }
 .navf #nav .flexcontainer .right .menuToggle .toggle {

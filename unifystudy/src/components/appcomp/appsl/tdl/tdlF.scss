@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 
 $aC: #4b6c82;
@@ -9,95 +8,55 @@ $wC: #f2f2f2;
 $rC: #bf4040;
 $gC: #40bf46;
 $fB: rgb(19, 19, 19);
+$font-primary: "Fira Code", monospace;
 
 * {
-  padding: 0;
   margin: 0;
-  // font-family: "Poppins", sans-serif;
-  font-family: "Fira Code", monospace;
+  padding: 0;
+  font-family: $font-primary;
 }
 
 .flex {
   display: flex;
 }
-
 li {
   list-style: none;
 }
 
-.containerflex {
-  flex-direction: row;
-  justify-content: center;
-  width: 100vw;
-  #submitI {
-    margin-top: 25px;
-    height: 40px;
-    background-color: $fB;
-    border-radius: 10px;
-    width: 390px;
-    padding: 5px;
-    .flexC {
-      padding-top: 2.5px;
-      width: 100%;
-      flex-direction: row;
-      justify-content: space-around;
-
-      form {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-      }
-
-      button {
-        border-radius: 10px;
-        height: 30px;
-        border: none;
-        margin-right: 10px;
-        font-weight: 500;
-        background-color: $bC;
-        color: $aC;
-        width: 30px;
-        font-size: 14px;
-        transition: ease 1s;
-      }
-
-      button:hover {
-        background-color: $aC;
-        color: $wC;
-        cursor: pointer;
-        transition: ease 1s;
-      }
-
-      input {
-        border-radius: 5px;
-        border: none;
-        color: $asC;
-        background-color: $bC;
-        padding-left: 3px;
-        margin-left: 10px;
-        height: 30px;
-        width: 330px;
-        outline: none;
-      }
-
-      input::placeholder {
-        background-color: none;
-        color: $asC;
-      }
-    }
-  }
-}
-
+.folderView,
 .appL {
+  // margin-top: 3%;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100vw;
-  height: 550px;
-  margin-top: 20px;
+}
 
-  h3 {
+.titleC {
+  width: 80vw;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+
+  .backB {
+    background-color: $bC;
+    border: none;
+    border-radius: 15px;
+    color: $wC;
+    padding: 5px 10px;
+
+    font-weight: 500;
+  }
+
+  .backB:hover {
+    color: $aC;
+    transition: ease 0.3s;
+    cursor: pointer;
+  }
+}
+
+.folderView {
+  h2 {
     color: $asC;
     font-weight: 500;
     padding-left: 15px;
@@ -105,73 +64,225 @@ li {
     font-size: 14px;
   }
 
-  #taskS {
-    margin-top: 10px;
-    height: 80vh;
+  ul#taskListTD {
     width: 400px;
-    border-radius: 10px;
-    background-color: rgb(19, 19, 19);
-    #taskListTD {
+    li {
       .listC {
-        flex-direction: row;
-        justify-content: space-between;
         display: flex;
-        width: 100%;
+        justify-content: space-between;
         margin-top: 10px;
-        height: fit-content;
+        position: relative;
 
         .divS {
-          width: min-content;
+          span {
+            color: $wC;
+            font-size: 14px;
+            padding-left: 15px;
+          }
+
+          input {
+            border: none;
+            background-color: $bC;
+          }
+        }
+
+        button {
+          border-radius: 5px;
+          border: none;
+          background-color: $bC;
+          color: $aC;
+          padding: 5px 10px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        button:hover {
+          background-color: $aC;
+          color: $wC;
+        }
+      }
+    }
+  }
+}
+
+/* ------------------------ */
+/* Task list view styling */
+/* ------------------------ */
+
+.appL {
+  h2 {
+    color: $asC;
+    font-weight: 500;
+    padding-left: 15px;
+    padding-top: 7px;
+    font-size: 16px;
+  }
+
+  .containerflex {
+    flex-direction: row;
+    justify-content: center;
+    width: 100vw;
+
+    #submitI {
+      margin-top: 25px;
+      height: 40px;
+      background-color: $fB;
+      border-radius: 10px;
+      width: 78vw;
+      padding: 5px;
+
+      .flexC {
+        padding-top: 2.5px;
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+
+        form {
+          width: 100%;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+        }
+
+        button {
+          border-radius: 10px;
+          height: 30px;
+          border: none;
+          margin-right: 10px;
+          font-weight: 500;
+          background-color: $bC;
+          color: $aC;
+          width: 30px;
+          font-size: 14px;
+          transition: all 0.3s ease;
+        }
+
+        button:hover {
+          background-color: $aC;
+          color: $wC;
+          cursor: pointer;
+        }
+
+        input {
+          border-radius: 5px;
+          border: none;
+          color: $asC;
+          background-color: $bC;
+          padding-left: 3px;
+          margin-left: 10px;
+          height: 30px;
+          width: 50vw;
+          outline: none;
+        }
+
+        input::placeholder {
+          color: $asC;
+        }
+      }
+    }
+  }
+
+  #taskS {
+    height: 70vh;
+    margin-top: 10px;
+    width: 80vw;
+    border-radius: 10px;
+    background-color: $fB;
+
+    #taskListTD {
+      .listC {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        position: relative;
+
+        .divS {
+          width: fit-content;
           overflow: hidden;
           span {
             padding-left: 15px;
             color: $wC;
             font-size: 14px;
-            transition: ease 1s;
+            transition: color 0.3s ease;
+          }
 
-            .line {
-              opacity: 0;
-              width: 70vw;
-              display: block;
-              transition: ease 1s;
-              height: 2px;
-              border-radius: 15px;
-              transform: translateX(14px) translateY(-10px);
-              background-color: $rC;
+          input {
+            margin-left: 15px;
+            // padding-left: 15px;
+            padding-top: 4px;
+            padding-bottom: 4px;
+            color: $asC;
+            border: none;
+            background-color: $bC;
+            transition: ease 1s;
+          }
+
+          input:focus {
+            outline: none;
+          }
+
+          .lineTitle {
+            opacity: 0;
+            width: 70vw;
+            display: block;
+            height: 2px;
+            border-radius: 15px;
+            transform: translateX(14px) translateY(-10px);
+            background-color: $rC;
+            transition: opacity 0.3s ease;
+          }
+
+          .lineTitle.active {
+            opacity: 1;
+          }
+
+          &:hover span {
+            cursor: pointer;
+            .lineTitle {
+              opacity: 1;
             }
           }
         }
 
+        .divS:hover {
+          cursor: pointer;
+
+          span {
+            color: $asC;
+          }
+        }
+
         .lOption {
+          transform: translateY(-10px) translateX(10px);
           position: absolute;
-          transform: translateX(300px) translateY(-20px);
+          top: 30px;
+          right: 25px;
+          padding: 3px 7px;
           pointer-events: none;
           opacity: 0;
-          background-color: $aC;
-          transition: ease 1s;
+          background-color: $bC;
           width: fit-content;
           height: fit-content;
+          transition: opacity 0.3s ease, transform 0.3s ease;
+
           .flexcL {
-            width: 80px;
             display: flex;
             flex-direction: column;
-            align-items: left;
-            text-align: right;
+            align-items: right;
 
             button {
-              // width: 50px;
               border: none;
               background-color: $bC;
               color: $asC;
-              transition: ease 1s;
-              // border-radius: 2px;
               height: 20px;
-            }
+              margin: 2px 0;
+              transition: all 0.3s ease;
 
-            button:hover {
-              background-color: $asC;
-              color: $bC;
-              transition: ease 1s;
+              &:hover {
+                background-color: $asC;
+                color: $bC;
+                cursor: pointer;
+              }
             }
           }
         }
@@ -179,78 +290,49 @@ li {
         .lOption.active {
           opacity: 1;
           pointer-events: all;
-          transform: translateX(300px) translateY(30px);
-          transition: ease 1s;
-          button {
-            cursor: pointer;
-            transition: ease 1s;
-          }
+          transform: translateY(-5px) translateX(10px);
         }
 
         .buttonS {
-          button {
-            .span1 {
-              display: block;
-              height: 2px;
-              width: 8px;
-              transition: ease 1s;
-
-              transform: rotate(-48deg);
-              background-color: $asC;
-            }
-
-            .span2 {
-              transform: translateX(-4px) translateY(-2px) rotate(48deg);
-              display: block;
-              height: 2px;
-              width: 8px;
-              transition: ease 1s;
-              background-color: $asC;
-            }
-          }
-        }
-
-        .buttonS:hover {
-          .span1,
-          .span2 {
-            background-color: $aC;
-            cursor: pointer;
-            transition: ease 1s;
-          }
-        }
-
-        .buttonS.active {
-          .span1 {
-            transform: rotate(45deg);
-          }
-
-          .span2 {
-            transform: translateX(-4px) translateY(-2px) rotate(-230deg);
-          }
-        }
-
-        .divS:hover {
-          cursor: pointer;
-          span {
-            cursor: pointer;
-            transition: ease 1s;
-            color: $asC;
-
-            .line {
-              cursor: pointer;
-              opacity: 1;
-              transition: ease 1s;
-            }
-          }
-        }
-
-        .buttonS {
+          transition: ease 0.3s;
           button {
             width: 30px;
             height: 30px;
             background-color: transparent;
-            color: $asC;
             border: none;
+
+            .span1,
+            .span2 {
+              display: block;
+              height: 2px;
+              width: 8px;
+              background-color: $asC;
+              transition: all 0.3s ease;
+            }
+
+            .span1 {
+              transform: rotate(-48.5deg) translateX(5px) translateY(2.5px);
+            }
+            .span2 {
+              transform: translateX(1.1px) translateY(-4px) rotate(48.5deg);
+            }
+          }
+
+          &:hover .span1,
+          &:hover .span2 {
+            background-color: $aC;
+            cursor: pointer;
+          }
+        }
+
+        .buttonS.active {
+          transform: translateX(-2px);
+          transition: ease 0.3s;
+          .span1 {
+            transform: translateX(7px) translateY(-1.8px) rotate(48.5deg);
+          }
+          .span2 {
+            transform: translateX(2.9px) translateY(-4px) rotate(-48.5deg);
           }
         }
       }

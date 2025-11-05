@@ -45,11 +45,11 @@ li {
       }
 
       .right {
-        height: 60px;
-        width: 20vw;
+        // height: 60px;
+        width: fit-content;
 
         .menuToggle {
-          padding-left: 10px;
+          width: fit-content;
           padding-top: 35px;
           .toggle {
             // height: 2px;
