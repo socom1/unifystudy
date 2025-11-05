@@ -115,7 +115,7 @@ li {
     font-weight: 500;
     padding-left: 15px;
     padding-top: 7px;
-    font-size: 16px;
+    font-size: 22px;
   }
 
   .containerflex {
@@ -125,7 +125,7 @@ li {
 
     #submitI {
       margin-top: 25px;
-      height: 40px;
+      height: 47px;
       background-color: $fB;
       border-radius: 10px;
       width: 78vw;
@@ -146,14 +146,14 @@ li {
 
         button {
           border-radius: 10px;
-          height: 30px;
+          height: 38px;
           border: none;
           margin-right: 10px;
           font-weight: 500;
           background-color: $bC;
           color: $aC;
-          width: 30px;
-          font-size: 14px;
+          width: 38px;
+          font-size: 20px;
           transition: all 0.3s ease;
         }
 
@@ -168,8 +168,7 @@ li {
           border: none;
           color: $asC;
           background-color: $bC;
-          padding-left: 3px;
-          margin-left: 10px;
+          padding: 4px;
           height: 30px;
           width: 50vw;
           outline: none;
@@ -191,9 +190,9 @@ li {
 
     #taskListTD {
       .listC {
+        margin-top: 10%;
         display: flex;
         justify-content: space-between;
-        margin-top: 10px;
         position: relative;
 
         .divS {
@@ -202,7 +201,7 @@ li {
           span {
             padding-left: 15px;
             color: $wC;
-            font-size: 14px;
+            font-size: 16px;
             transition: color 0.3s ease;
           }
 
@@ -289,6 +288,7 @@ li {
 
         .lOption.active {
           opacity: 1;
+          z-index: 1000;
           pointer-events: all;
           transform: translateY(-5px) translateX(10px);
         }

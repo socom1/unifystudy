@@ -89,7 +89,7 @@ li {
   font-weight: 500;
   padding-left: 15px;
   padding-top: 7px;
-  font-size: 16px;
+  font-size: 22px;
 }
 .appL .containerflex {
   flex-direction: row;
@@ -98,7 +98,7 @@ li {
 }
 .appL .containerflex #submitI {
   margin-top: 25px;
-  height: 40px;
+  height: 47px;
   background-color: rgb(19, 19, 19);
   border-radius: 10px;
   width: 78vw;
@@ -118,14 +118,14 @@ li {
 }
 .appL .containerflex #submitI .flexC button {
   border-radius: 10px;
-  height: 30px;
+  height: 38px;
   border: none;
   margin-right: 10px;
   font-weight: 500;
   background-color: #1e1e1e;
   color: #4b6c82;
-  width: 30px;
-  font-size: 14px;
+  width: 38px;
+  font-size: 20px;
   transition: all 0.3s ease;
 }
 .appL .containerflex #submitI .flexC button:hover {
@@ -138,8 +138,7 @@ li {
   border: none;
   color: #afd4ed;
   background-color: #1e1e1e;
-  padding-left: 3px;
-  margin-left: 10px;
+  padding: 4px;
   height: 30px;
   width: 50vw;
   outline: none;
@@ -158,9 +157,9 @@ li {
   background-color: rgb(19, 19, 19);
 }
 .appL #taskS #taskListTD .listC {
+  margin-top: 10%;
   display: flex;
   justify-content: space-between;
-  margin-top: 10px;
   position: relative;
 }
 .appL #taskS #taskListTD .listC .divS {
@@ -171,7 +170,7 @@ li {
 .appL #taskS #taskListTD .listC .divS span {
   padding-left: 15px;
   color: #f2f2f2;
-  font-size: 14px;
+  font-size: 16px;
   transition: color 0.3s ease;
 }
 .appL #taskS #taskListTD .listC .divS input {
@@ -246,6 +245,7 @@ li {
 }
 .appL #taskS #taskListTD .listC .lOption.active {
   opacity: 1;
+  z-index: 1000;
   pointer-events: all;
   transform: translateY(-5px) translateX(10px);
 }

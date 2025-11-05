@@ -1,0 +1,305 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+* {
+  padding: 0;
+  margin: 0;
+  font-family: "Fira Code", monospace;
+}
+
+.deact {
+  opacity: 0.5;
+  color: rgb(19, 19, 19);
+  pointer-events: none;
+  transition: ease 1s;
+}
+
+.flex {
+  display: flex;
+}
+
+li {
+  list-style: none;
+  transition: ease 1s;
+}
+
+.flexcontainer {
+  width: 100vw;
+  flex-direction: row;
+  justify-content: center;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+.flexcontainer #duration {
+  margin-top: 25px;
+  height: 40px;
+  background-color: rgb(19, 19, 19);
+  border-radius: 10px;
+  width: 80%;
+  padding: 2px;
+}
+.flexcontainer #duration .flexcontainer {
+  width: 80vw;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.flexcontainer #duration .flexcontainer ol {
+  list-style: inside;
+}
+.flexcontainer #duration .flexcontainer li:hover {
+  cursor: pointer;
+}
+.flexcontainer #duration .flexcontainer #left1 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  width: 300px;
+}
+.flexcontainer #duration .flexcontainer #left1 .xS {
+  opacity: 0;
+  pointer-events: none;
+  transition: ease 1s;
+  transform: translateY(12px);
+}
+.flexcontainer #duration .flexcontainer #left1 .xS .l2 {
+  display: block;
+  background-color: #bf4040;
+  height: 2px;
+  width: 19px;
+  opacity: 0;
+  transition: ease 1s;
+  border-radius: 15px;
+}
+.flexcontainer #duration .flexcontainer #left1 .xS.active {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  opacity: 1;
+  pointer-events: all;
+  transition: ease 1s;
+  transform: translate(5px, -35px) rotate(180deg);
+}
+.flexcontainer #duration .flexcontainer #left1 .xS.active .l2 {
+  transform: translateX(5px) translateY(13px);
+}
+.flexcontainer #duration .flexcontainer #left1 .xS:hover {
+  cursor: pointer;
+}
+.flexcontainer #duration .flexcontainer #left1 .xS:hover .l2 {
+  opacity: 1;
+  transition: ease 1s;
+}
+.flexcontainer #duration .flexcontainer #left1 button {
+  border-radius: 10px;
+  height: 40px;
+  border: none;
+  font-weight: 500;
+  background-color: transparent;
+  color: #4b6c82;
+  width: 40px;
+  font-size: 14px;
+  transition: ease 1s;
+}
+.flexcontainer #duration .flexcontainer #left1 button:hover {
+  background-color: #4b6c82;
+  color: #f2f2f2;
+  cursor: pointer;
+  transition: ease 1s;
+}
+.flexcontainer #duration .flexcontainer #left1 button.selected {
+  border: 2px solid #4b6c82;
+}
+.flexcontainer #duration .flexcontainer #left1 .used {
+  border: 2px solid #4b6c82;
+  transition: ease 1s;
+}
+.flexcontainer #duration .flexcontainer #left1 .nonactive {
+  border: 2px solid transparent;
+  transition: ease 1s;
+}
+.flexcontainer #duration .flexcontainer .right {
+  width: -moz-fit-content;
+  width: fit-content;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100px;
+}
+.flexcontainer #duration .flexcontainer .right button {
+  height: 40px;
+  color: #4b6c82;
+  font-size: 14px;
+  background-color: transparent;
+  width: -moz-fit-content;
+  width: fit-content;
+  border: none;
+  border-radius: 10px;
+  transition: ease 1s;
+}
+.flexcontainer #duration .flexcontainer .right button:hover {
+  color: #afd4ed;
+  cursor: pointer;
+  transition: ease 1s;
+}
+.flexcontainer #duration .flexcontainer .right button.close:hover {
+  transition: ease 1s;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.addAmount {
+  transform: translateY(-40px);
+  opacity: 0;
+  transition: ease 1s;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  pointer-events: none;
+}
+.addAmount #enam {
+  z-index: 1000;
+  border-radius: 10px;
+  border: none;
+  color: white;
+  background-color: rgb(19, 19, 19);
+  padding: 15px;
+  height: 10px;
+  outline: none;
+  width: 220px;
+  font-size: 13px;
+  font-family: "Fira Code", monospace;
+}
+.addAmount button {
+  margin-left: 5px;
+  border: none;
+  background-color: rgb(19, 19, 19);
+  text-align: center;
+  height: 40px;
+  width: 40px;
+  color: #4b6c82;
+  font-size: 16px;
+  color: #f2f2f2;
+  border-radius: 10px;
+}
+
+.addAmount.active {
+  transform: translateY(20px);
+  transition: ease 1s;
+  opacity: 1;
+  pointer-events: all;
+}
+
+#app {
+  padding-top: 15vh;
+  width: 100vw;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+#app .flexcontainer {
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+#app .flexcontainer .timer {
+  margin-top: 20px;
+  flex-direction: column;
+  align-items: center;
+}
+#app .flexcontainer .timer #time {
+  font-size: 130px;
+  font-family: "Fira Code", monospace;
+  color: #4b6c82;
+}
+#app .flexcontainer .timer .bL {
+  width: 350px;
+  flex-direction: row;
+  justify-content: space-around;
+  margin-top: 30px;
+}
+#app .flexcontainer .timer .bL button {
+  border-radius: 50px;
+  border: 2px solid transparent;
+  background-color: rgb(19, 19, 19);
+  color: #f2f2f2;
+  height: 60px;
+  width: 60px;
+  transition: ease 1s;
+}
+#app .flexcontainer .timer .bL button .pW {
+  display: none;
+}
+#app .flexcontainer .timer .bL button .pB {
+  display: default;
+}
+#app .flexcontainer .timer .bL button img {
+  height: 30px;
+}
+#app .flexcontainer .timer .bL button:hover {
+  background-color: #f2f2f2;
+  border: none;
+  color: #1e1e1e;
+  transition: ease 1s;
+}
+#app .flexcontainer .timer .bL #start {
+  height: 80px;
+  width: 80px;
+}
+#app .flexcontainer .timer .bL button.stopped {
+  background-color: #4b6c82;
+  transition: ease 1s;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+#app .flexcontainer .timer .bL button.stopped .pW {
+  display: block;
+  transition: ease 1s;
+}
+#app .flexcontainer .timer .bL button.stopped .pB {
+  display: none;
+  transition: ease 1s;
+}
+#app .flexcontainer .timer .bL button.started {
+  background-color: #4b6c82;
+  transition: ease 1s;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+#app .flexcontainer .timer .bL button.started .pW {
+  display: block;
+  transition: ease 1s;
+}
+#app .flexcontainer .timer .bL button.started .pB {
+  display: none;
+  transition: ease 1s;
+}
+#app .numberbreak {
+  margin-top: 50px;
+  width: 80vw;
+  height: 200px;
+  border-radius: 10px;
+  background-color: #2e2e2e;
+}
+#app .numberbreak h3 {
+  color: black;
+  font-weight: 500;
+  padding-top: 1rem;
+  padding-left: 1rem;
+}
+#app h1 {
+  color: #f2f2f2;
+  font-weight: 400;
+}/*# sourceMappingURL=pomodoro.css.map */
