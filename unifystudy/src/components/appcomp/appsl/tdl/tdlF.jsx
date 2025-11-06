@@ -17,7 +17,11 @@ const TdlF = () => {
   const [activeFIndex, setActiveFIndex] = useState(null);
   const [lineActive, setLineActive] = useState(null);
 
-  // ---------------- LOCAL STORAGE ----------------
+  const [editingFolderId, setEditingFolderId] = useState(null);
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editFolderText, setEditFolderText] = useState("");
+  const [editTaskText, setEditTaskText] = useState("");
+
   useEffect(() => {
     localStorage.setItem("folders", JSON.stringify(folders));
   }, [folders]);
@@ -29,7 +33,6 @@ const TdlF = () => {
     }
   }, [tasks, activeIndex]);
 
-  // ---------------- CLOSE MENUS WHEN CLICKING OUTSIDE ----------------
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".lOption") && !e.target.closest(".buttonS")) {
@@ -41,7 +44,6 @@ const TdlF = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // ---------------- NAVIGATION ----------------
   const enterFolder = (folder) => {
     setCurrentFolder(folder);
     setTasks(folder.tasks || []);
@@ -56,7 +58,6 @@ const TdlF = () => {
     setActiveFIndex(null);
   };
 
-  // ---------------- ADD / DELETE ----------------
   const handleAddFolder = (e) => {
     e.preventDefault();
     if (!folderInput.trim()) return;
@@ -105,7 +106,26 @@ const TdlF = () => {
     );
   };
 
-  // ---------------- ANIMATION VARIANTS ----------------
+  const applyFolderEdit = (id) => {
+    setFolders((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, text: editFolderText } : f))
+    );
+    setEditingFolderId(null);
+  };
+
+  const applyTaskEdit = (id) => {
+    const updatedTasks = tasks.map((t) =>
+      t.id === id ? { ...t, text: editTaskText } : t
+    );
+    setTasks(updatedTasks);
+    setFolders((prev) =>
+      prev.map((f) =>
+        f.id === currentFolder.id ? { ...f, tasks: updatedTasks } : f
+      )
+    );
+    setEditingTaskId(null);
+  };
+
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
     visible: { opacity: 1, y: 0 },
@@ -121,9 +141,6 @@ const TdlF = () => {
   return (
     <div className="relative overflow-hidden">
       <AnimatePresence mode="wait">
-        {/* ------------------------ */}
-        {/* Folder List View */}
-        {/* ------------------------ */}
         {currentFolder === null && (
           <motion.div
             key="folder-view"
@@ -146,6 +163,9 @@ const TdlF = () => {
                     placeholder="Add New Folder"
                     value={folderInput}
                     onChange={(e) => setFolderInput(e.target.value)}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                   />
                   <button type="submit">+</button>
                 </div>
@@ -166,9 +186,29 @@ const TdlF = () => {
                     >
                       <div className="listC">
                         <div className="divS">
-                          <span onClick={() => enterFolder(folder)}>
-                            {folder.text}
-                          </span>
+                          {editingFolderId === folder.id ? (
+                            <input
+                              type="text"
+                              value={editFolderText}
+                              onChange={(e) =>
+                                setEditFolderText(e.target.value)
+                              }
+                              onBlur={() => applyFolderEdit(folder.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  applyFolderEdit(folder.id);
+                                }
+                              }}
+                              autoFocus
+                              autoCorrect="off"
+                              autoCapitalize="off"
+                              spellCheck="false"
+                            />
+                          ) : (
+                            <span onClick={() => enterFolder(folder)}>
+                              {folder.text}
+                            </span>
+                          )}
                         </div>
 
                         <span
@@ -199,7 +239,15 @@ const TdlF = () => {
                             >
                               Delete
                             </button>
-                            <button className="listFinished">Edit Name</button>
+                            <button
+                              className="listFinished"
+                              onClick={() => {
+                                setEditingFolderId(folder.id);
+                                setEditFolderText(folder.text);
+                              }}
+                            >
+                              Edit Name
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -211,9 +259,6 @@ const TdlF = () => {
           </motion.div>
         )}
 
-        {/* ------------------------ */}
-        {/* Task View */}
-        {/* ------------------------ */}
         {currentFolder !== null && (
           <motion.div
             key="task-view"
@@ -238,6 +283,9 @@ const TdlF = () => {
                     placeholder="Add New Task"
                     value={taskInput}
                     onChange={(e) => setTaskInput(e.target.value)}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                   />
                   <button type="submit">+</button>
                 </div>
@@ -258,13 +306,31 @@ const TdlF = () => {
                     >
                       <div className="listC">
                         <div className="divS">
-                          <span
-                            onClick={() =>
-                              setLineActive(lineActive === i ? null : i)
-                            }
-                          >
-                            {item.text}
-                          </span>
+                          {editingTaskId === item.id ? (
+                            <input
+                              type="text"
+                              value={editTaskText}
+                              onChange={(e) => setEditTaskText(e.target.value)}
+                              onBlur={() => applyTaskEdit(item.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  applyTaskEdit(item.id);
+                                }
+                              }}
+                              autoFocus
+                              autoCorrect="off"
+                              autoCapitalize="off"
+                              spellCheck="false"
+                            />
+                          ) : (
+                            <span
+                              onClick={() =>
+                                setLineActive(lineActive === i ? null : i)
+                              }
+                            >
+                              {item.text}
+                            </span>
+                          )}
                           <span
                             className={`lineItem ${
                               activeIndex === i ? "active" : ""
@@ -299,7 +365,15 @@ const TdlF = () => {
                             >
                               Delete
                             </button>
-                            <button className="listFinished">Edit Name</button>
+                            <button
+                              className="listFinished"
+                              onClick={() => {
+                                setEditingTaskId(item.id);
+                                setEditTaskText(item.text);
+                              }}
+                            >
+                              Edit Name
+                            </button>
                           </div>
                         </div>
                       </div>
