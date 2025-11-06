@@ -51,7 +51,6 @@ li {
     height: 40px;
     background-color: $fB;
     border-radius: 10px;
-    // max-width: 600px;
     width: 80%;
     padding: 2px;
 
@@ -213,12 +212,10 @@ input::-webkit-inner-spin-button {
   transition: ease 1s;
   display: flex;
   flex-direction: row;
-  //   background-color: $fB;
   justify-content: center;
   pointer-events: none;
-  // z-index: 1001;
   #enam {
-    z-index: 1000;
+    z-index: 1;
     border-radius: 10px;
     border: none;
     color: white;

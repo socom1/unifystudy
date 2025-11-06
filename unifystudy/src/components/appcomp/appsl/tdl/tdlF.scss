@@ -129,10 +129,10 @@ li {
       background-color: $fB;
       border-radius: 10px;
       width: 78vw;
-      padding: 5px;
+      padding: 8px 5px 8px 5px;
 
       .flexC {
-        padding-top: 2.5px;
+        padding-top: 4px;
         width: 100%;
         flex-direction: row;
         justify-content: space-around;
@@ -182,15 +182,64 @@ li {
   }
 
   #taskS {
-    height: 70vh;
+    min-height: 67vh;
+    height: fit-content;
     margin-top: 10px;
+    padding-bottom: 12px;
     width: 80vw;
     border-radius: 10px;
     background-color: $fB;
 
     #taskListTD {
+      .aS {
+        flex-direction: row;
+        justify-content: space-around;
+        width: 100%;
+        padding-top: 10px;
+
+        .clearActiveBtn {
+          // position: absolute;
+          // bottom: 5vh;
+          // left: 60px;
+          border: none;
+          // transform: translateX(2px) translateY(10px);
+          background-color: transparent;
+          color: $aC;
+          font-size: 16px;
+          padding: 5px 10px;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .clearActiveBtn:hover {
+          // background-color: $aC;
+          color: $wC;
+        }
+
+        .deleteActiveBtn {
+          // position: absolute;
+          // bottom: 5vh;
+          // left: 60px;
+          border: none;
+          // transform: translateX(2px) translateY(10px);
+          background-color: transparent;
+          color: $aC;
+          font-size: 16px;
+          padding: 5px 10px;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .deleteActiveBtn:hover {
+          // background-color: $aC;
+          color: $wC;
+        }
+      }
+
       .listC {
-        margin-top: 10%;
+        margin-top: 8%;
         display: flex;
         justify-content: space-between;
         position: relative;
@@ -226,6 +275,12 @@ li {
             color: $wC;
             font-size: 16px;
             transition: color 0.3s ease;
+          }
+
+          span.activeText {
+            color: $aC;
+            text-decoration: line-through;
+            transition: ease 0.3s;
           }
 
           input {

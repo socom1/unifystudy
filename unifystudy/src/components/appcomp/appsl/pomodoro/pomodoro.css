@@ -161,7 +161,7 @@ input::-webkit-inner-spin-button {
   pointer-events: none;
 }
 .addAmount #enam {
-  z-index: 1000;
+  z-index: 1;
   border-radius: 10px;
   border: none;
   color: white;

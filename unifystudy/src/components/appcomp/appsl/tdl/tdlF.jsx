@@ -59,6 +59,16 @@ const TdlF = () => {
     setActiveFIndex(null);
   };
 
+  const deleteAllFinishedTasks = () => {
+    const updatedTasks = tasks.filter((t) => !t.isActive);
+    setTasks(updatedTasks);
+    setFolders((prev) =>
+      prev.map((f) =>
+        f.id === currentFolder.id ? { ...f, tasks: updatedTasks } : f
+      )
+    );
+  };
+
   const handleAddFolder = (e) => {
     e.preventDefault();
     if (!folderInput.trim()) return;
@@ -125,6 +135,16 @@ const TdlF = () => {
       )
     );
     setEditingTaskId(null);
+  };
+
+  const clearAllActiveTasks = () => {
+    const updatedTasks = tasks.map((t) => ({ ...t, isActive: false }));
+    setTasks(updatedTasks);
+    setFolders((prev) =>
+      prev.map((f) =>
+        f.id === currentFolder.id ? { ...f, tasks: updatedTasks } : f
+      )
+    );
   };
 
   const itemVariants = {
@@ -297,6 +317,21 @@ const TdlF = () => {
             <div id="taskS">
               <ul id="taskListTD">
                 <AnimatePresence>
+                  <div className="aS flex">
+                    <button
+                      onClick={clearAllActiveTasks}
+                      className="clearActiveBtn"
+                    >
+                      DeSelect <span style={{ color: "#afd4ed" }}>()</span>
+                    </button>
+                    <button
+                      onClick={deleteAllFinishedTasks}
+                      className="deleteActiveBtn"
+                    >
+                      Delete <span style={{ color: "#afd4ed" }}>()</span>
+                    </button>
+                  </div>
+
                   {tasks.map((item, i) => (
                     <motion.li
                       key={item.id}
@@ -309,9 +344,26 @@ const TdlF = () => {
                       <div className="listC">
                         <div className="divS">
                           <button
-                            className={`finish ${finishTask ? "active" : ""}`}
-                            onClick={() => setFinishTask(!finishTask)}
+                            className={`finish ${
+                              item.isActive ? "active" : ""
+                            }`}
+                            onClick={() => {
+                              const updatedTasks = tasks.map((t) =>
+                                t.id === item.id
+                                  ? { ...t, isActive: !t.isActive }
+                                  : t
+                              );
+                              setTasks(updatedTasks);
+                              setFolders((prev) =>
+                                prev.map((f) =>
+                                  f.id === currentFolder.id
+                                    ? { ...f, tasks: updatedTasks }
+                                    : f
+                                )
+                              );
+                            }}
                           ></button>
+
                           {editingTaskId === item.id ? (
                             <input
                               type="text"
@@ -330,6 +382,7 @@ const TdlF = () => {
                             />
                           ) : (
                             <span
+                              className={item.isActive ? "activeText" : ""}
                               onClick={() =>
                                 setLineActive(lineActive === i ? null : i)
                               }

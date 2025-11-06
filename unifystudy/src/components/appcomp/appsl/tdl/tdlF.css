@@ -102,10 +102,10 @@ li {
   background-color: rgb(19, 19, 19);
   border-radius: 10px;
   width: 78vw;
-  padding: 5px;
+  padding: 8px 5px 8px 5px;
 }
 .appL .containerflex #submitI .flexC {
-  padding-top: 2.5px;
+  padding-top: 4px;
   width: 100%;
   flex-direction: row;
   justify-content: space-around;
@@ -150,14 +150,49 @@ li {
   color: #afd4ed;
 }
 .appL #taskS {
-  height: 70vh;
+  min-height: 67vh;
+  height: -moz-fit-content;
+  height: fit-content;
   margin-top: 10px;
+  padding-bottom: 12px;
   width: 80vw;
   border-radius: 10px;
   background-color: rgb(19, 19, 19);
 }
+.appL #taskS #taskListTD .aS {
+  flex-direction: row;
+  justify-content: space-around;
+  width: 100%;
+  padding-top: 10px;
+}
+.appL #taskS #taskListTD .aS .clearActiveBtn {
+  border: none;
+  background-color: transparent;
+  color: #4b6c82;
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.appL #taskS #taskListTD .aS .clearActiveBtn:hover {
+  color: #f2f2f2;
+}
+.appL #taskS #taskListTD .aS .deleteActiveBtn {
+  border: none;
+  background-color: transparent;
+  color: #4b6c82;
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.appL #taskS #taskListTD .aS .deleteActiveBtn:hover {
+  color: #f2f2f2;
+}
 .appL #taskS #taskListTD .listC {
-  margin-top: 10%;
+  margin-top: 8%;
   display: flex;
   justify-content: space-between;
   position: relative;
@@ -190,6 +225,11 @@ li {
   color: #f2f2f2;
   font-size: 16px;
   transition: color 0.3s ease;
+}
+.appL #taskS #taskListTD .listC .divS span.activeText {
+  color: #4b6c82;
+  text-decoration: line-through;
+  transition: ease 0.3s;
 }
 .appL #taskS #taskListTD .listC .divS input {
   margin-left: 15px;
