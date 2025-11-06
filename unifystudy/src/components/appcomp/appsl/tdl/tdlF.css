@@ -163,9 +163,27 @@ li {
   position: relative;
 }
 .appL #taskS #taskListTD .listC .divS {
-  width: -moz-fit-content;
-  width: fit-content;
+  padding-left: 10px;
+  height: 40px;
+  width: fit-conten;
   overflow: hidden;
+}
+.appL #taskS #taskListTD .listC .divS .finish {
+  transform: translateY(6px);
+  border: solid #4b6c82 2px;
+  height: 27px;
+  width: 27px;
+  background-color: transparent;
+  border-radius: 5px;
+  transition: ease 0.3s;
+}
+.appL #taskS #taskListTD .listC .divS .finish.active {
+  background-color: #4b6c82;
+  transition: ease 0.3s;
+}
+.appL #taskS #taskListTD .listC .divS .finish:hover {
+  color: #4b6c82;
+  cursor: pointer;
 }
 .appL #taskS #taskListTD .listC .divS span {
   padding-left: 15px;
@@ -211,7 +229,7 @@ li {
   color: #afd4ed;
 }
 .appL #taskS #taskListTD .listC .lOption {
-  transform: translateY(-10px) translateX(10px);
+  transform: translateY(-10px) translateX(12px);
   position: absolute;
   top: 30px;
   right: 25px;
@@ -250,6 +268,7 @@ li {
   transform: translateY(-5px) translateX(10px);
 }
 .appL #taskS #taskListTD .listC .buttonS {
+  transform: translateY(7.5px);
   transition: ease 0.3s;
 }
 .appL #taskS #taskListTD .listC .buttonS button {
@@ -261,13 +280,13 @@ li {
 .appL #taskS #taskListTD .listC .buttonS button .span1,
 .appL #taskS #taskListTD .listC .buttonS button .span2 {
   display: block;
-  height: 2px;
-  width: 8px;
+  height: 3px;
+  width: 9px;
   background-color: #afd4ed;
   transition: all 0.3s ease;
 }
 .appL #taskS #taskListTD .listC .buttonS button .span1 {
-  transform: rotate(-48.5deg) translateX(5px) translateY(2.5px);
+  transform: rotate(-48.5deg) translateX(5px) translateY(4px);
 }
 .appL #taskS #taskListTD .listC .buttonS button .span2 {
   transform: translateX(1.1px) translateY(-4px) rotate(48.5deg);
@@ -277,12 +296,12 @@ li {
   cursor: pointer;
 }
 .appL #taskS #taskListTD .listC .buttonS.active {
-  transform: translateX(-2px);
+  transform: translateX(-1px);
   transition: ease 0.3s;
 }
 .appL #taskS #taskListTD .listC .buttonS.active .span1 {
-  transform: translateX(7px) translateY(-1.8px) rotate(48.5deg);
+  transform: translateX(7px) translateY(-1px) rotate(48.5deg);
 }
 .appL #taskS #taskListTD .listC .buttonS.active .span2 {
-  transform: translateX(2.9px) translateY(-4px) rotate(-48.5deg);
-}/*# sourceMappingURL=tdlF.css.map */
+  transform: translateX(2px) translateY(-4px) rotate(-48.5deg);
+}/*# sourceMappingURL=TdlF.css.map */

@@ -196,8 +196,31 @@ li {
         position: relative;
 
         .divS {
-          width: fit-content;
+          padding-left: 10px;
+          height: 40px;
+          width: fit-conten;
           overflow: hidden;
+
+          .finish {
+            transform: translateY(6px);
+            border: solid $aC 2px;
+            height: 27px;
+            width: 27px;
+            background-color: transparent;
+            border-radius: 5px;
+            transition: ease 0.3s;
+          }
+
+          .finish.active {
+            background-color: $aC;
+            transition: ease 0.3s;
+          }
+
+          .finish:hover {
+            color: $aC;
+            cursor: pointer;
+          }
+
           span {
             padding-left: 15px;
             color: $wC;
@@ -252,7 +275,7 @@ li {
         }
 
         .lOption {
-          transform: translateY(-10px) translateX(10px);
+          transform: translateY(-10px) translateX(12px);
           position: absolute;
           top: 30px;
           right: 25px;
@@ -294,6 +317,7 @@ li {
         }
 
         .buttonS {
+          transform: translateY(7.5px);
           transition: ease 0.3s;
           button {
             width: 30px;
@@ -304,14 +328,14 @@ li {
             .span1,
             .span2 {
               display: block;
-              height: 2px;
-              width: 8px;
+              height: 3px;
+              width: 9px;
               background-color: $asC;
               transition: all 0.3s ease;
             }
 
             .span1 {
-              transform: rotate(-48.5deg) translateX(5px) translateY(2.5px);
+              transform: rotate(-48.5deg) translateX(5px) translateY(4px);
             }
             .span2 {
               transform: translateX(1.1px) translateY(-4px) rotate(48.5deg);
@@ -326,13 +350,13 @@ li {
         }
 
         .buttonS.active {
-          transform: translateX(-2px);
+          transform: translateX(-1px);
           transition: ease 0.3s;
           .span1 {
-            transform: translateX(7px) translateY(-1.8px) rotate(48.5deg);
+            transform: translateX(7px) translateY(-1px) rotate(48.5deg);
           }
           .span2 {
-            transform: translateX(2.9px) translateY(-4px) rotate(-48.5deg);
+            transform: translateX(2px) translateY(-4px) rotate(-48.5deg);
           }
         }
       }

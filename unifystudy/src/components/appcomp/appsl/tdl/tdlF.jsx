@@ -12,6 +12,7 @@ const TdlF = () => {
   const [folderInput, setFolderInput] = useState("");
   const [taskInput, setTaskInput] = useState("");
   const [tasks, setTasks] = useState([]);
+  const [finishTask, setFinishTask] = useState(false);
 
   const [activeIndex, setActiveIndex] = useState(null);
   const [activeFIndex, setActiveFIndex] = useState(null);
@@ -186,6 +187,7 @@ const TdlF = () => {
                     >
                       <div className="listC">
                         <div className="divS">
+                          <div className="flag"></div>
                           {editingFolderId === folder.id ? (
                             <input
                               type="text"
@@ -306,6 +308,10 @@ const TdlF = () => {
                     >
                       <div className="listC">
                         <div className="divS">
+                          <button
+                            className={`finish ${finishTask ? "active" : ""}`}
+                            onClick={() => setFinishTask(!finishTask)}
+                          ></button>
                           {editingTaskId === item.id ? (
                             <input
                               type="text"
@@ -365,6 +371,7 @@ const TdlF = () => {
                             >
                               Delete
                             </button>
+
                             <button
                               className="listFinished"
                               onClick={() => {
