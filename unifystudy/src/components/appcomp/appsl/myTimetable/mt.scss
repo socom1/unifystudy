@@ -1,15 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-$aC: #4b6c82;
-$asC: #afd4ed;
-$bC: #1e1e1e;
-$wC: #f2f2f2;
-$fB: rgb(19, 19, 19);
-=======
-=======
->>>>>>> Stashed changes
 /* ============================================================
    🎨 COLOR VARIABLES — CODING THEME
    ============================================================ */
@@ -18,10 +8,6 @@ $asC: #afd4ed; // Secondary accent
 $bC: #1e1e1e; // Background (dark)
 $wC: #f2f2f2; // White text
 $fB: rgb(19, 19, 19); // Form background
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
 * {
   margin: 0;
@@ -30,11 +16,6 @@ $fB: rgb(19, 19, 19); // Form background
   font-family: "Fira Code", monospace;
 }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
 /* ---------------------------
    CSS variables — single source of truth
    --------------------------- */
@@ -47,25 +28,16 @@ $fB: rgb(19, 19, 19); // Form background
 /* ============================================================
    🗓️ CALENDAR CONTAINER
    ============================================================ */
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 .calendar-container {
   padding: 1rem;
   overflow-x: auto;
   background-color: $bC;
   color: $wC;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
   min-height: 100vh;
 }
 
 /* ============================================================
-   NAV / FORM (same as before)
+   NAV / FORM
    ============================================================ */
 .calendar-nav {
   display: flex;
@@ -100,10 +72,6 @@ $fB: rgb(19, 19, 19); // Form background
       transform: scale(0.98);
     }
   }
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 }
 
 .event-form {
@@ -115,29 +83,14 @@ $fB: rgb(19, 19, 19); // Form background
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
->>>>>>> Stashed changes
-=======
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
->>>>>>> Stashed changes
 
   .form-group {
     display: flex;
     flex-direction: column;
 
     label {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-      font-size: 0.9rem;
-=======
       font-size: 0.85rem;
->>>>>>> Stashed changes
-=======
-      font-size: 0.85rem;
->>>>>>> Stashed changes
       color: $aC;
       margin-bottom: 0.25rem;
     }
@@ -146,14 +99,6 @@ $fB: rgb(19, 19, 19); // Form background
     select {
       color: $asC;
       background-color: $bC;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-      padding: 0.25rem 0.5rem;
-      border: none;
-      border-radius: 4px;
-=======
-=======
->>>>>>> Stashed changes
       padding: 0.35rem 0.6rem;
       border: none;
       border-radius: 4px;
@@ -164,10 +109,6 @@ $fB: rgb(19, 19, 19); // Form background
         background: lighten($bC, 5%);
         color: $wC;
       }
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     }
   }
 
@@ -178,20 +119,6 @@ $fB: rgb(19, 19, 19); // Form background
     border: none;
     border-radius: 4px;
     cursor: pointer;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  }
-
-  input:focus,
-  select:focus,
-  button:focus {
-    outline: none;
-  }
-}
-
-=======
-=======
->>>>>>> Stashed changes
     font-weight: 500;
     transition: transform 0.12s ease, box-shadow 0.12s ease;
 
@@ -208,10 +135,6 @@ $fB: rgb(19, 19, 19); // Form background
 /* ============================================================
    GRID: use the CSS variables to keep everything consistent
    ============================================================ */
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 .calendar-wrapper {
   position: relative;
   overflow: hidden;
@@ -219,41 +142,6 @@ $fB: rgb(19, 19, 19); // Form background
 
 .calendar-grid {
   display: grid;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  grid-template-columns: 60px repeat(7, 1fr);
-  grid-template-rows: 40px repeat(12, 60px);
-  position: relative;
-  grid-template-rows: 40px repeat(12, 70px);
-  border-left: none;
-  border-right: none;
-  background-color: $bC;
-}
-
-.calendar-header {
-  display: contents;
-
-  .time-column-header {
-    grid-column: 1;
-    color: $asC;
-    text-align: center;
-    line-height: 40px;
-  }
-
-  .day-header {
-    color: $asC;
-    text-align: center;
-    line-height: 40px;
-  }
-}
-
-.grid-cell {
-  padding: 4px;
-}
-
-=======
-=======
->>>>>>> Stashed changes
   grid-template-columns: var(--time-col-width) repeat(7, 1fr);
   grid-template-rows: var(--header-height) repeat(12, var(--row-height));
   background-color: $bC;
@@ -276,7 +164,6 @@ $fB: rgb(19, 19, 19); // Form background
   background: rgba(255, 255, 255, 0.01);
 }
 
-/* day header cells */
 .day-header {
   color: $asC;
   text-align: center;
@@ -285,110 +172,32 @@ $fB: rgb(19, 19, 19); // Form background
   background: rgba(255, 255, 255, 0.01);
 }
 
-/* time column (left) — uses same row height variable */
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+/* Time column */
 .time-column {
   display: grid;
   grid-column: 1;
   grid-row: 2 / span 12;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  grid-template-rows: repeat(12, 60px);
-=======
   grid-template-rows: repeat(12, var(--row-height));
->>>>>>> Stashed changes
-=======
-  grid-template-rows: repeat(12, var(--row-height));
->>>>>>> Stashed changes
   z-index: 2;
 
   .time-slot {
     text-align: center;
     color: $asC;
     font-size: 0.8rem;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    line-height: 60px;
-  }
-}
-
-.days-grid {
-  display: contents;
-
-  .grid-cell {
-    border-top: none;
-  }
-
-  .event-box:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    transform: scale(1.02);
-  }
-
-  .event-box {
-    padding: 12px 14px;
-    position: absolute;
-    width: calc((100% - 60px) / 7 - 8px);
-    left: 60px;
-    transform: translateX(calc(var(--col-index) * ((100% - 60px) / 7) + 4px));
-    z-index: 3;
-
-    background-color: $asC;
-    color: $bC;
-    font-size: 0.9rem;
-    padding: 8px 10px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    transition: all 0.3s ease-in-out;
-
-    span {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-
-    .delete-btn {
-      position: absolute;
-      top: 4px;
-      right: 6px;
-      border: none;
-      background: transparent;
-      color: white;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-  }
-
-  .vertical-line {
-    position: absolute;
-    top: 0;
-    width: 2px;
-    border-radius: 2px;
-    height: 100%;
-    background-color: rgba($aC, 0.5);
-    z-index: 0;
-=======
-=======
->>>>>>> Stashed changes
     line-height: var(--row-height);
     border-top: 1px solid rgba($asC, 0.08);
     background: rgba(255, 255, 255, 0.01);
   }
 }
 
-/* grid cells for the day/hour intersections */
+/* grid cells */
 .grid-cell {
   border-top: 1px solid rgba($asC, 0.06);
   border-right: 1px solid rgba($asC, 0.04);
   background: transparent;
 }
 
-/* ============================================================
-   VERTICAL LINES (styled here; positioned by JSX)
-   ============================================================ */
+/* vertical day lines */
 .day-line {
   position: absolute;
   top: 0;
@@ -400,16 +209,16 @@ $fB: rgb(19, 19, 19); // Form background
 }
 
 /* ============================================================
-   EVENT BOXES (grid-placed)
+   EVENT BOXES
    ============================================================ */
 .event-box {
-  position: relative; /* grid-placed, not absolute */
-  margin: 4px 6px; /* horizontal gap so adjacent boxes don't touch */
+  position: relative;
+  margin: 4px 6px;
   border-radius: 10px;
   padding: 10px;
   font-size: 0.9rem;
   color: $bC;
-  background-color: rgba($asC, 0.85); /* slight transparency */
+  background-color: rgba($asC, 0.85);
   backdrop-filter: blur(6px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   transition: transform 0.16s ease, box-shadow 0.16s ease,
@@ -466,7 +275,7 @@ $fB: rgb(19, 19, 19); // Form background
 }
 
 /* ============================================================
-   RESPONSIVE BREAKPOINTS
+   RESPONSIVE
    ============================================================ */
 @media (max-width: 1024px) {
   :root {
@@ -476,27 +285,10 @@ $fB: rgb(19, 19, 19); // Form background
   .event-box {
     font-size: 0.85rem;
     border-radius: 8px;
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
   }
 }
 
 @media (max-width: 768px) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  .event-form {
-    flex-direction: column;
-    align-items: stretch;
-
-    .form-group {
-      width: 100%;
-    }
-
-=======
-=======
->>>>>>> Stashed changes
   :root {
     --time-col-width: 50px;
     --row-height: 60px;
@@ -511,6 +303,7 @@ $fB: rgb(19, 19, 19); // Form background
     align-items: stretch;
     gap: 0.5rem;
   }
+
   .calendar-nav button {
     width: 100%;
   }
@@ -518,39 +311,14 @@ $fB: rgb(19, 19, 19); // Form background
   .event-form {
     flex-direction: column;
     align-items: stretch;
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
     button {
       width: 100%;
     }
   }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  .calendar-container {
-    padding: 0.5rem;
-    overflow-x: auto;
-  }
-
   .calendar-grid {
-    min-width: 600px;
-  }
-
-  .event-box {
-    font-size: 0.75rem;
-    padding: 4px 6px;
-    border-radius: 6px;
-    width: calc((100% - 60px) / 7 - 8px);
-=======
-=======
->>>>>>> Stashed changes
-  /* Make the whole grid horizontally scrollable on small screens */
-  .calendar-grid {
-    min-width: calc(
-      var(--time-col-width) + 7 * 110px
-    ); /* rough per-day width for mobile */
+    min-width: calc(var(--time-col-width) + 7 * 110px);
     overflow-x: auto;
   }
 
@@ -558,16 +326,11 @@ $fB: rgb(19, 19, 19); // Form background
     font-size: 0.78rem;
     padding: 8px;
     margin: 3px 5px;
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
   }
 
   .delete-btn {
     font-size: 0.7rem;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+    padding: 3px 5px;
   }
 
   .time-slot {
@@ -579,11 +342,5 @@ $fB: rgb(19, 19, 19); // Form background
   .time-column-header {
     font-size: 0.8rem;
     line-height: 35px;
-=======
-    padding: 3px 5px;
->>>>>>> Stashed changes
-=======
-    padding: 3px 5px;
->>>>>>> Stashed changes
   }
 }
