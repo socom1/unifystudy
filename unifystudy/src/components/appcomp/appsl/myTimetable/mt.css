@@ -1,4 +1,18 @@
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
+=======
+=======
+>>>>>>> Stashed changes
+@charset "UTF-8";
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
+/* ============================================================
+   🎨 COLOR VARIABLES — CODING THEME
+   ============================================================ */
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 * {
   margin: 0;
   padding: 0;
@@ -6,11 +20,77 @@
   font-family: "Fira Code", monospace;
 }
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> Stashed changes
+/* ---------------------------
+   CSS variables — single source of truth
+   --------------------------- */
+:root {
+  --time-col-width: 60px;
+  --header-height: 40px;
+  --row-height: 70px; /* height per hour row */
+}
+
+/* ============================================================
+   🗓️ CALENDAR CONTAINER
+   ============================================================ */
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 .calendar-container {
   padding: 1rem;
   overflow-x: auto;
   background-color: #1e1e1e;
   color: #f2f2f2;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> Stashed changes
+  min-height: 100vh;
+}
+
+/* ============================================================
+   NAV / FORM (same as before)
+   ============================================================ */
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgb(19, 19, 19);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.calendar-nav h2 {
+  color: #afd4ed;
+  font-size: 1.1rem;
+}
+.calendar-nav button {
+  background: #4b6c82;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.calendar-nav button:hover {
+  transform: scale(1.04);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.calendar-nav button:active {
+  transform: scale(0.98);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 }
 
 .event-form {
@@ -22,13 +102,29 @@
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+>>>>>>> Stashed changes
+=======
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+>>>>>>> Stashed changes
 }
 .event-form .form-group {
   display: flex;
   flex-direction: column;
 }
 .event-form .form-group label {
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   font-size: 0.9rem;
+=======
+  font-size: 0.85rem;
+>>>>>>> Stashed changes
+=======
+  font-size: 0.85rem;
+>>>>>>> Stashed changes
   color: #4b6c82;
   margin-bottom: 0.25rem;
 }
@@ -36,9 +132,28 @@
 .event-form .form-group select {
   color: #afd4ed;
   background-color: #1e1e1e;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   padding: 0.25rem 0.5rem;
   border: none;
   border-radius: 4px;
+=======
+=======
+>>>>>>> Stashed changes
+  padding: 0.35rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.event-form .form-group input:focus,
+.event-form .form-group select:focus {
+  outline: none;
+  background: rgb(42.75, 42.75, 42.75);
+  color: #f2f2f2;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 }
 .event-form button {
   padding: 0.5rem 1rem;
@@ -47,6 +162,8 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 }
 .event-form input:focus,
 .event-form select:focus,
@@ -54,6 +171,27 @@
   outline: none;
 }
 
+=======
+=======
+>>>>>>> Stashed changes
+  font-weight: 500;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.event-form button:hover {
+  transform: scale(1.04);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.event-form button:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   GRID: use the CSS variables to keep everything consistent
+   ============================================================ */
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 .calendar-wrapper {
   position: relative;
   overflow: hidden;
@@ -61,6 +199,8 @@
 
 .calendar-grid {
   display: grid;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   grid-template-columns: 60px repeat(7, 1fr);
   grid-template-rows: 40px repeat(12, 60px);
   position: relative;
@@ -89,17 +229,66 @@
   padding: 4px;
 }
 
+=======
+=======
+>>>>>>> Stashed changes
+  grid-template-columns: var(--time-col-width) repeat(7, 1fr);
+  grid-template-rows: var(--header-height) repeat(12, var(--row-height));
+  background-color: #1e1e1e;
+  position: relative;
+  border-radius: 6px;
+  overflow: visible; /* allow shadows visible */
+}
+
+/* Header */
+.calendar-header {
+  display: contents;
+}
+
+.time-column-header {
+  grid-column: 1;
+  color: #afd4ed;
+  text-align: center;
+  line-height: var(--header-height);
+  border-bottom: 1px solid rgba(175, 212, 237, 0.18);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+/* day header cells */
+.day-header {
+  color: #afd4ed;
+  text-align: center;
+  line-height: var(--header-height);
+  border-bottom: 1px solid rgba(175, 212, 237, 0.12);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+/* time column (left) — uses same row height variable */
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 .time-column {
   display: grid;
   grid-column: 1;
   grid-row: 2/span 12;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   grid-template-rows: repeat(12, 60px);
+=======
+  grid-template-rows: repeat(12, var(--row-height));
+>>>>>>> Stashed changes
+=======
+  grid-template-rows: repeat(12, var(--row-height));
+>>>>>>> Stashed changes
   z-index: 2;
 }
 .time-column .time-slot {
   text-align: center;
   color: #afd4ed;
   font-size: 0.8rem;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   line-height: 60px;
 }
 
@@ -155,10 +344,134 @@
 }
 
 @media (max-width: 768px) {
+=======
+=======
+>>>>>>> Stashed changes
+  line-height: var(--row-height);
+  border-top: 1px solid rgba(175, 212, 237, 0.08);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+/* grid cells for the day/hour intersections */
+.grid-cell {
+  border-top: 1px solid rgba(175, 212, 237, 0.06);
+  border-right: 1px solid rgba(175, 212, 237, 0.04);
+  background: transparent;
+}
+
+/* ============================================================
+   VERTICAL LINES (styled here; positioned by JSX)
+   ============================================================ */
+.day-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: rgba(175, 212, 237, 0.12);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ============================================================
+   EVENT BOXES (grid-placed)
+   ============================================================ */
+.event-box {
+  position: relative; /* grid-placed, not absolute */
+  margin: 4px 6px; /* horizontal gap so adjacent boxes don't touch */
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.9rem;
+  color: #1e1e1e;
+  background-color: rgba(175, 212, 237, 0.85); /* slight transparency */
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+.event-box span {
+  display: block;
+  font-weight: 700;
+  color: #0b1620;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.event-box .event-details {
+  font-size: 0.78rem;
+  color: rgba(11, 22, 32, 0.8);
+  text-align: center;
+}
+.event-box:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  background-color: rgba(175, 212, 237, 0.9);
+}
+.event-box .delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: rgba(30, 30, 30, 0.28);
+  color: #f2f2f2;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  padding: 4px 6px;
+  cursor: pointer;
+  opacity: 0.95;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.event-box .delete-btn:hover {
+  transform: scale(1.08);
+  background: rgba(30, 30, 30, 0.5);
+}
+.event-box .delete-btn:active {
+  transform: scale(0.96);
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+@media (max-width: 1024px) {
+  :root {
+    --time-col-width: 50px;
+    --row-height: 60px;
+  }
+  .event-box {
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+}
+@media (max-width: 768px) {
+  :root {
+    --time-col-width: 50px;
+    --row-height: 60px;
+  }
+  .calendar-container {
+    padding: 0.5rem;
+  }
+  .calendar-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .calendar-nav button {
+    width: 100%;
+  }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
   .event-form {
     flex-direction: column;
     align-items: stretch;
   }
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   .event-form .form-group {
     width: 100%;
   }
@@ -189,5 +502,28 @@
   .time-column-header {
     font-size: 0.8rem;
     line-height: 35px;
+=======
+=======
+>>>>>>> Stashed changes
+  .event-form button {
+    width: 100%;
+  }
+  /* Make the whole grid horizontally scrollable on small screens */
+  .calendar-grid {
+    min-width: calc(var(--time-col-width) + 770px); /* rough per-day width for mobile */
+    overflow-x: auto;
+  }
+  .event-box {
+    font-size: 0.78rem;
+    padding: 8px;
+    margin: 3px 5px;
+  }
+  .delete-btn {
+    font-size: 0.7rem;
+    padding: 3px 5px;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
   }
 }/*# sourceMappingURL=mt.css.map */

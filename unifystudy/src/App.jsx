@@ -2,26 +2,34 @@ import React, { useState } from "react";
 import NavM from "./components/appcomp/nav/navM";
 import NavS from "./components/appcomp/nav/navS";
 import AppS from "./components/appcomp/appsl/AppS";
-
 import "./App.css";
 import "./components/appcomp/nav/styling/navm/navm.css";
 
 function App() {
   const [isActive, setIsActive] = useState(false);
-  const [activeComponent, setActiveComponent] = useState("todo");
+  const [activeComponent, setActiveComponent] = useState("signIn");
+  const [user, setUser] = useState(null);
 
-  // Show NavM only when toggled open
-  const showNavM = isActive;
-
-  // When a menu item is clicked, switch component and close NavM
+  // Handle navigation
   const handleSetActiveComponent = (component) => {
     setActiveComponent(component);
-    setIsActive(false); // Close menu after selection
+    setIsActive(false);
+  };
+
+  // Called when user logs in or signs up successfully
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    setActiveComponent("profile"); // redirect to profile
   };
 
   return (
     <div className="app">
-      <NavM isActive={isActive} setActiveComponent={handleSetActiveComponent} />
+      <NavM
+        isActive={isActive}
+        setActiveComponent={handleSetActiveComponent}
+        user={user} // pass user to NavM so it shows name
+      />
+
       <div className="container">
         <div className="navf">
           <NavS
@@ -29,7 +37,19 @@ function App() {
             activeComponent={activeComponent}
           />
         </div>
-        <AppS activeComponent={activeComponent} />
+
+        <AppS
+          activeComponent={activeComponent}
+          user={user}
+          onLoginSuccess={(user) => {
+            setUser(user);
+            setActiveComponent("profile");
+          }}
+          onSignOut={() => {
+            setUser(null);
+            setActiveComponent("signIn");
+          }}
+        />
       </div>
     </div>
   );

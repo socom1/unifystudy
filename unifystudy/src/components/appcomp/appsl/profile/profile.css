@@ -1,0 +1,90 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Fira Code", monospace;
+}
+
+.flex {
+  display: flex;
+}
+
+li {
+  list-style: none;
+}
+
+.profile-container {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: #1e1e1e;
+  color: #f2f2f2;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+.profile-container h2 {
+  color: #afd4ed;
+  margin-bottom: 1.5rem;
+}
+.profile-container .profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  font-family: "Fira Code", monospace;
+}
+.profile-container .profile-card p {
+  font-size: 1rem;
+  color: #afd4ed;
+}
+.profile-container .profile-card .profile-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.profile-container .profile-card .profile-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.profile-container .profile-card .profile-buttons button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.profile-container .profile-card .profile-buttons .sign-out-btn {
+  background-color: #3498db;
+  color: #fff;
+  border: none;
+}
+.profile-container .profile-card .profile-buttons .sign-out-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.profile-container .profile-card .profile-buttons .sign-out-btn:active {
+  transform: scale(0.98);
+}
+.profile-container .profile-card .profile-buttons .delete-account-btn {
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+}
+.profile-container .profile-card .profile-buttons .delete-account-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.profile-container .profile-card .profile-buttons .delete-account-btn:active {
+  transform: scale(0.98);
+}
+.profile-container .message {
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: #afd4ed;
+}/*# sourceMappingURL=profile.css.map */

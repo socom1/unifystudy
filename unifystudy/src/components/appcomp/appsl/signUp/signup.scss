@@ -1,0 +1,198 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+$aC: #4b6c82;
+$asC: #afd4ed;
+$bC: #1e1e1e;
+$wC: #f2f2f2;
+$rC: #bf4040;
+$gC: #40bf46;
+$fB: rgb(19, 19, 19);
+
+* {
+  padding: 0;
+  margin: 0;
+  // font-family: "Poppins", sans-serif;
+  font-family: "Fira Code", monospace;
+}
+
+.flex {
+  display: flex;
+}
+
+li {
+  list-style: none;
+}
+
+.signup-container {
+  max-width: 400px;
+  margin: 3rem auto;
+  height: 600px;
+  background: #1e1e1e;
+  color: #f2f2f2;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .signup-title {
+    color: #afd4ed;
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+  }
+
+  .signup-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      position: relative;
+
+      label {
+        margin-bottom: 0.3rem;
+        width: fit-content;
+        color: #4b6c82;
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+
+      input {
+        padding: 0.5rem 0.8rem;
+        border-radius: 4px;
+        border: none;
+        background: #2a2a2a;
+        color: #afd4ed;
+        font-family: "Fira Code", monospace;
+        font-size: 0.95rem;
+
+        &:focus {
+          outline: none;
+          background: #3a3a3a;
+        }
+      }
+
+      span {
+        color: $asC;
+      }
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      border: none;
+      background: #4b6c82;
+      color: black;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+      &:hover {
+        transform: scale(1.04);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+  }
+
+  .divider {
+    margin-top: 40px;
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid rgba(175, 212, 237, 0.3);
+    line-height: 0.1em;
+  }
+
+  h1 {
+    transform: translateY(25px);
+    font-size: 17px;
+    font-weight: 400;
+    color: #afd4ed;
+  }
+
+  .btn-google {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem;
+    background: #4285f4;
+    color: $bC;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: opacity 0.2s ease;
+
+    img.google-logo {
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+  .toggle-text {
+    margin-top: 3.6rem;
+    color: #afd4ed;
+    font-size: 0.9rem;
+
+    .toggle-btn {
+      color: #4b6c82;
+      cursor: pointer;
+      font-weight: 600;
+      margin-left: 0.25rem;
+    }
+  }
+
+  .error-msg,
+  .success-msg {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+    word-break: break-word;
+  }
+
+  .error-msg {
+    color: #e74c3c;
+  }
+
+  .success-msg {
+    color: #afd4ed;
+  }
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .signup-container {
+    margin: 2rem auto;
+    padding: 1.5rem;
+
+    .signup-title {
+      font-size: 1.5rem;
+    }
+
+    .signup-form button,
+    .btn-google {
+      font-size: 0.95rem;
+    }
+  }
+}
