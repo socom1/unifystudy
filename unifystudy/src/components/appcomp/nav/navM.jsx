@@ -7,12 +7,12 @@ const NavM = ({ isActive, setActiveComponent, user }) => {
       <div id="navm" className={`${isActive ? "active" : ""}`}>
         <ul className="menu flex">
           <li onClick={() => setActiveComponent(user ? "profile" : "signIn")}>
-            <span style={{ color: "#4b6c82" }}>02.</span>{" "}
+            <span style={{ color: "#4b6c82" }}>01.</span>{" "}
             {user ? user.displayName || user.email : "Sign In"}
           </li>
 
           <li onClick={() => setActiveComponent("home")}>
-            <span style={{ color: "#4b6c82" }}>01.</span> Home
+            <span style={{ color: "#4b6c82" }}>02.</span> Home
           </li>
 
           <li onClick={() => setActiveComponent("pomodoro")}>

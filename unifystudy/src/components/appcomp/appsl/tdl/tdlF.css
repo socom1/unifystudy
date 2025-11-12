@@ -98,7 +98,7 @@ li {
 }
 .appL .containerflex #submitI {
   margin-top: 25px;
-  height: 47px;
+  height: 65px;
   background-color: rgb(19, 19, 19);
   border-radius: 10px;
   width: 78vw;
@@ -139,7 +139,7 @@ li {
   color: #afd4ed;
   background-color: #1e1e1e;
   padding: 4px;
-  height: 30px;
+  height: 40px;
   width: 50vw;
   outline: none;
 }

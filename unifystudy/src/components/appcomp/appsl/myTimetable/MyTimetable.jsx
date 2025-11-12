@@ -1,8 +1,10 @@
+// src/components/myTimetable/WeeklyCalendar.jsx
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import "./mt.css"; // compiled from mt.scss
+import { db, auth } from "../firebase";
+import { ref, onValue, push, set, remove } from "firebase/database";
+import "./mt.css";
 
-// Theme / data
 const colors = ["#4b6c82", "#afd4ed", "#e79950", "#e94f4f"];
 const days = [
   "Monday",
@@ -13,7 +15,7 @@ const days = [
   "Saturday",
   "Sunday",
 ];
-const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8am–7pm
+const hours = Array.from({ length: 12 }, (_, i) => i + 8);
 
 export default function WeeklyCalendar() {
   const [events, setEvents] = useState([]);
@@ -23,45 +25,63 @@ export default function WeeklyCalendar() {
     day: "Monday",
     start: 8,
     end: 9,
-    color: "#4b6c82",
+    color: colors[0],
   });
+  const [userId, setUserId] = useState(null);
 
-  // Load stored events on mount
+  // ✅ Track logged-in user
   useEffect(() => {
-    const stored = localStorage.getItem("weeklyCalendarEvents");
-    if (stored) setEvents(JSON.parse(stored));
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) setUserId(user.uid);
+      else setUserId(null);
+    });
+    return unsubscribe;
   }, []);
 
-  // Save events to localStorage
+  // ✅ Load events from Firebase
   useEffect(() => {
-    localStorage.setItem("weeklyCalendarEvents", JSON.stringify(events));
-  }, [events]);
+    if (!userId) return;
 
+    const eventsRef = ref(db, `users/${userId}/events`);
+    const unsubscribe = onValue(eventsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Transform Firebase object into array with keys
+        const loadedEvents = Object.entries(data).map(([id, value]) => ({
+          id,
+          ...value,
+        }));
+        setEvents(loadedEvents);
+      } else {
+        setEvents([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
+  // ✅ Add event to Firebase
   const addEvent = (e) => {
     e.preventDefault();
+    if (!userId) return alert("Please log in first.");
     if (!form.title.trim() || form.end <= form.start) return;
-    setEvents((prev) => [...prev, { ...form }]);
-    setForm({ title: "", day: "Monday", start: 8, end: 9, color: "#4b6c82" });
+
+    const eventsRef = ref(db, `users/${userId}/events`);
+    const newEventRef = push(eventsRef);
+    set(newEventRef, form);
+
+    setForm({ title: "", day: "Monday", start: 8, end: 9, color: colors[0] });
     setIsFormOpen(false);
   };
 
-  const deleteEvent = (event) => {
-    setEvents((prev) =>
-      prev.filter(
-        (ev) =>
-          !(
-            ev.title === event.title &&
-            ev.day === event.day &&
-            ev.start === event.start &&
-            ev.end === event.end
-          )
-      )
-    );
+  // ✅ Delete event by Firebase key
+  const deleteEvent = (eventId) => {
+    if (!userId) return;
+    remove(ref(db, `users/${userId}/events/${eventId}`));
   };
 
   return (
     <div className="calendar-container">
-      {/* Top nav */}
       <div className="calendar-nav">
         <h2>Weekly Schedule</h2>
         <button onClick={() => setIsFormOpen((s) => !s)}>
@@ -69,7 +89,6 @@ export default function WeeklyCalendar() {
         </button>
       </div>
 
-      {/* Animated form */}
       <AnimatePresence>
         {isFormOpen && (
           <motion.form
@@ -86,10 +105,9 @@ export default function WeeklyCalendar() {
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Event title"
+                required
               />
             </div>
-
             <div className="form-group">
               <label>Day</label>
               <select
@@ -103,8 +121,7 @@ export default function WeeklyCalendar() {
                 ))}
               </select>
             </div>
-
-            <div className="form-group small">
+            <div className="form-group">
               <label>Start</label>
               <select
                 value={form.start}
@@ -119,8 +136,7 @@ export default function WeeklyCalendar() {
                 ))}
               </select>
             </div>
-
-            <div className="form-group small">
+            <div className="form-group">
               <label>End</label>
               <select
                 value={form.end}
@@ -135,8 +151,7 @@ export default function WeeklyCalendar() {
                 ))}
               </select>
             </div>
-
-            <div className="form-group small">
+            <div className="form-group">
               <label>Color</label>
               <select
                 value={form.color}
@@ -149,16 +164,14 @@ export default function WeeklyCalendar() {
                 ))}
               </select>
             </div>
-
             <button type="submit">Add</button>
           </motion.form>
         )}
       </AnimatePresence>
 
-      {/* Calendar grid */}
+      {/* Calendar Grid */}
       <div className="calendar-wrapper">
         <div className="calendar-grid">
-          {/* Header row */}
           <div className="calendar-header">
             <div className="time-column-header">Time</div>
             {days.map((day) => (
@@ -168,7 +181,6 @@ export default function WeeklyCalendar() {
             ))}
           </div>
 
-          {/* Time column */}
           <div className="time-column">
             {hours.map((hour) => (
               <div key={hour} className="time-slot">
@@ -177,16 +189,25 @@ export default function WeeklyCalendar() {
             ))}
           </div>
 
-          {/* Transparent cells */}
           {hours.map((hour) =>
             days.map((day) => (
               <div key={`${day}-${hour}`} className="grid-cell" />
             ))
           )}
 
+          {days.map((_, i) => (
+            <div
+              key={`vline-${i}`}
+              className="day-line"
+              style={{
+                left: `calc(var(--time-col-width, 60px) + ${i} * ((100% - var(--time-col-width, 60px)) / 7))`,
+              }}
+            />
+          ))}
+
           {/* Events */}
           <AnimatePresence>
-            {events.map((ev, idx) => {
+            {events.map((ev) => {
               const dayIndex = days.indexOf(ev.day);
               const startRow = ev.start - 7;
               const rowSpan = ev.end - ev.start;
@@ -194,7 +215,7 @@ export default function WeeklyCalendar() {
 
               return (
                 <motion.div
-                  key={`${ev.title}-${idx}-${ev.start}`}
+                  key={ev.id}
                   className="event-box"
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -212,7 +233,7 @@ export default function WeeklyCalendar() {
                   </div>
                   <button
                     className="delete-btn"
-                    onClick={() => deleteEvent(ev)}
+                    onClick={() => deleteEvent(ev.id)}
                   >
                     ✕
                   </button>

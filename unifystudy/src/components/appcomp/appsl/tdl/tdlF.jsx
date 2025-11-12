@@ -1,158 +1,211 @@
+// src/components/tdl/TdlF.jsx
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { db, auth } from ".././firebase";
+import { ref, set, push, remove, onValue, update } from "firebase/database";
 import "./tdlF.scss";
 
 const TdlF = () => {
+  const [userId, setUserId] = useState(null);
+  const [folders, setFolders] = useState([]);
   const [currentFolder, setCurrentFolder] = useState(null);
-  const [folders, setFolders] = useState(() => {
-    const saved = localStorage.getItem("folders");
-    return saved ? JSON.parse(saved) : [];
-  });
 
   const [folderInput, setFolderInput] = useState("");
   const [taskInput, setTaskInput] = useState("");
-  const [tasks, setTasks] = useState([]);
-  const [finishTask, setFinishTask] = useState(false);
-
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [activeFIndex, setActiveFIndex] = useState(null);
-  const [lineActive, setLineActive] = useState(null);
 
   const [editingFolderId, setEditingFolderId] = useState(null);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editFolderText, setEditFolderText] = useState("");
   const [editTaskText, setEditTaskText] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem("folders", JSON.stringify(folders));
-  }, [folders]);
+  const [activeIndex, setActiveIndex] = useState(null);
+  const [activeFIndex, setActiveFIndex] = useState(null);
 
+  // --- Track auth ---
   useEffect(() => {
-    if (activeIndex !== null && activeIndex >= tasks.length) {
-      setActiveIndex(null);
-      setActiveFIndex(null);
-    }
-  }, [tasks, activeIndex]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!e.target.closest(".lOption") && !e.target.closest(".buttonS")) {
-        setActiveIndex(null);
-        setActiveFIndex(null);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    const unsub = auth.onAuthStateChanged((user) => {
+      setUserId(user ? user.uid : null);
+    });
+    return () => unsub();
   }, []);
 
-  const enterFolder = (folder) => {
-    setCurrentFolder(folder);
-    setTasks(folder.tasks || []);
-    setActiveIndex(null);
-    setActiveFIndex(null);
+  // --- Load folders (and keep currentFolder in sync) ---
+  useEffect(() => {
+    if (!userId) return;
+    const foldersRef = ref(db, `users/${userId}/folders`);
+    const unsub = onValue(foldersRef, (snap) => {
+      const data = snap.val() || {};
+      // each folder stays as { id, text, tasks: { taskId: {text,isActive}, ... } }
+      const loaded = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+      setFolders(loaded);
+
+      // Keep currentFolder object fresh if open
+      if (currentFolder) {
+        const match = loaded.find((f) => f.id === currentFolder.id);
+        if (match) setCurrentFolder(match);
+      }
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // --- Add folder ---
+  const handleAddFolder = async (e) => {
+    e.preventDefault();
+    if (!folderInput.trim() || !userId) return;
+    try {
+      const newFolderRef = push(ref(db, `users/${userId}/folders`));
+      await set(newFolderRef, { text: folderInput, tasks: {} });
+      setFolderInput("");
+    } catch (err) {
+      console.error("Add folder failed:", err);
+    }
   };
 
+  // --- Delete folder ---
+  const handleDeleteFolder = async (id) => {
+    if (!userId) return;
+    try {
+      await remove(ref(db, `users/${userId}/folders/${id}`));
+      if (currentFolder?.id === id) setCurrentFolder(null);
+    } catch (err) {
+      console.error("Delete folder failed:", err);
+    }
+  };
+
+  // --- Edit folder name ---
+  const applyFolderEdit = async (id) => {
+    if (!editFolderText.trim() || !userId) {
+      setEditingFolderId(null);
+      return;
+    }
+    try {
+      await update(ref(db, `users/${userId}/folders/${id}`), {
+        text: editFolderText,
+      });
+      setEditingFolderId(null);
+    } catch (err) {
+      console.error("Edit folder failed:", err);
+    }
+  };
+
+  // --- Enter / Go back ---
+  const enterFolder = (folder) => {
+    // folder comes from current folders state so contains 'tasks' object
+    setCurrentFolder(folder);
+    setActiveIndex(null);
+    setActiveFIndex(null);
+    setEditingTaskId(null);
+    setEditTaskText("");
+  };
   const goBack = () => {
     setCurrentFolder(null);
-    setTasks([]);
     setActiveIndex(null);
     setActiveFIndex(null);
-  };
-
-  const deleteAllFinishedTasks = () => {
-    const updatedTasks = tasks.filter((t) => !t.isActive);
-    setTasks(updatedTasks);
-    setFolders((prev) =>
-      prev.map((f) =>
-        f.id === currentFolder.id ? { ...f, tasks: updatedTasks } : f
-      )
-    );
-  };
-
-  const handleAddFolder = (e) => {
-    e.preventDefault();
-    if (!folderInput.trim()) return;
-
-    const newFolder = {
-      id: Date.now(),
-      text: folderInput,
-      isActive: false,
-      tasks: [],
-    };
-    setFolders([...folders, newFolder]);
-    setFolderInput("");
-  };
-
-  const handleAddTask = (e) => {
-    e.preventDefault();
-    if (!taskInput.trim()) return;
-
-    const newTasks = [
-      ...tasks,
-      { id: Date.now(), text: taskInput, isActive: false },
-    ];
-    setTasks(newTasks);
-    setTaskInput("");
-
-    setFolders((prev) =>
-      prev.map((f) =>
-        f.id === currentFolder.id ? { ...f, tasks: newTasks } : f
-      )
-    );
-  };
-
-  const handleDeleteFolder = (id) => {
-    setFolders(folders.filter((folder) => folder.id !== id));
-  };
-
-  const handleDeleteTask = (id) => {
-    const newTasks = tasks.filter((t) => t.id !== id);
-    setTasks(newTasks);
-    setActiveIndex(null);
-    setActiveFIndex(null);
-    setFolders((prev) =>
-      prev.map((f) =>
-        f.id === currentFolder.id ? { ...f, tasks: newTasks } : f
-      )
-    );
-  };
-
-  const applyFolderEdit = (id) => {
-    setFolders((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, text: editFolderText } : f))
-    );
-    setEditingFolderId(null);
-  };
-
-  const applyTaskEdit = (id) => {
-    const updatedTasks = tasks.map((t) =>
-      t.id === id ? { ...t, text: editTaskText } : t
-    );
-    setTasks(updatedTasks);
-    setFolders((prev) =>
-      prev.map((f) =>
-        f.id === currentFolder.id ? { ...f, tasks: updatedTasks } : f
-      )
-    );
     setEditingTaskId(null);
+    setEditTaskText("");
   };
 
-  const clearAllActiveTasks = () => {
-    const updatedTasks = tasks.map((t) => ({ ...t, isActive: false }));
-    setTasks(updatedTasks);
-    setFolders((prev) =>
-      prev.map((f) =>
-        f.id === currentFolder.id ? { ...f, tasks: updatedTasks } : f
-      )
-    );
+  // --- Add task ---
+  const handleAddTask = async (e) => {
+    e.preventDefault();
+    if (!taskInput.trim() || !userId || !currentFolder) return;
+    try {
+      const tasksRef = ref(
+        db,
+        `users/${userId}/folders/${currentFolder.id}/tasks`
+      );
+      const newTaskRef = push(tasksRef);
+      await set(newTaskRef, { text: taskInput, isActive: false });
+      setTaskInput("");
+    } catch (err) {
+      console.error("Add task failed:", err);
+    }
   };
 
+  // --- Delete task ---
+  const handleDeleteTask = async (taskId) => {
+    if (!userId || !currentFolder) return;
+    try {
+      await remove(
+        ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`)
+      );
+      // close dropdown optionally
+      setActiveIndex(null);
+    } catch (err) {
+      console.error("Delete task failed:", err);
+    }
+  };
+
+  // --- Edit task ---
+  const applyTaskEdit = async (taskId) => {
+    if (!editTaskText.trim() || !userId || !currentFolder) {
+      setEditingTaskId(null);
+      return;
+    }
+    try {
+      await update(
+        ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`),
+        { text: editTaskText }
+      );
+      setEditingTaskId(null);
+      setEditTaskText("");
+    } catch (err) {
+      console.error("Edit task failed:", err);
+    }
+  };
+
+  // --- Toggle complete ---
+  const toggleTask = async (taskId, currentState) => {
+    if (!userId || !currentFolder) return;
+    try {
+      await update(
+        ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`),
+        {
+          isActive: !Boolean(currentState),
+        }
+      );
+    } catch (err) {
+      console.error("Toggle task failed:", err);
+    }
+  };
+
+  // --- Delete finished tasks (keeps behaviour close to yours) ---
+  const deleteAllFinishedTasks = async () => {
+    if (!userId || !currentFolder) return;
+    try {
+      const tasksRef = ref(
+        db,
+        `users/${userId}/folders/${currentFolder.id}/tasks`
+      );
+      // read once and remove
+      onValue(
+        tasksRef,
+        (snap) => {
+          const data = snap.val() || {};
+          Object.entries(data).forEach(([id, t]) => {
+            if (t.isActive)
+              remove(
+                ref(
+                  db,
+                  `users/${userId}/folders/${currentFolder.id}/tasks/${id}`
+                )
+              );
+          });
+        },
+        { onlyOnce: true }
+      );
+    } catch (err) {
+      console.error("Delete finished tasks failed:", err);
+    }
+  };
+
+  // animations
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
     visible: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -15 },
   };
-
   const pageVariants = {
     initial: { opacity: 0, x: 50 },
     animate: { opacity: 1, x: 0 },
@@ -162,7 +215,8 @@ const TdlF = () => {
   return (
     <div className="relative overflow-hidden">
       <AnimatePresence mode="wait">
-        {currentFolder === null && (
+        {/* FOLDER VIEW */}
+        {!currentFolder && (
           <motion.div
             key="folder-view"
             initial="initial"
@@ -184,9 +238,6 @@ const TdlF = () => {
                     placeholder="Add New Folder"
                     value={folderInput}
                     onChange={(e) => setFolderInput(e.target.value)}
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
                   />
                   <button type="submit">+</button>
                 </div>
@@ -207,7 +258,6 @@ const TdlF = () => {
                     >
                       <div className="listC">
                         <div className="divS">
-                          <div className="flag"></div>
                           {editingFolderId === folder.id ? (
                             <input
                               type="text"
@@ -218,13 +268,11 @@ const TdlF = () => {
                               onBlur={() => applyFolderEdit(folder.id)}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
+                                  e.preventDefault();
                                   applyFolderEdit(folder.id);
                                 }
                               }}
                               autoFocus
-                              autoCorrect="off"
-                              autoCapitalize="off"
-                              spellCheck="false"
                             />
                           ) : (
                             <span onClick={() => enterFolder(folder)}>
@@ -239,10 +287,10 @@ const TdlF = () => {
                           }`}
                         >
                           <button
-                            onClick={() => {
-                              setActiveFIndex(activeFIndex === i ? null : i);
-                              setActiveIndex(null);
-                            }}
+                            type="button"
+                            onClick={() =>
+                              setActiveFIndex(activeFIndex === i ? null : i)
+                            }
                           >
                             <span className="span1"></span>
                             <span className="span2"></span>
@@ -256,16 +304,18 @@ const TdlF = () => {
                         >
                           <div className="flexcL">
                             <button
+                              type="button"
                               className="listDelete"
                               onClick={() => handleDeleteFolder(folder.id)}
                             >
                               Delete
                             </button>
                             <button
+                              type="button"
                               className="listFinished"
                               onClick={() => {
                                 setEditingFolderId(folder.id);
-                                setEditFolderText(folder.text);
+                                setEditFolderText(folder.text || "");
                               }}
                             >
                               Edit Name
@@ -281,7 +331,8 @@ const TdlF = () => {
           </motion.div>
         )}
 
-        {currentFolder !== null && (
+        {/* TASK VIEW */}
+        {currentFolder && (
           <motion.div
             key="task-view"
             initial={{ opacity: 0, x: -50 }}
@@ -292,7 +343,7 @@ const TdlF = () => {
           >
             <div className="titleC flex">
               <h2>{currentFolder.text}</h2>
-              <button onClick={goBack} className="backB">
+              <button type="button" onClick={goBack} className="backB">
                 back()
               </button>
             </div>
@@ -305,9 +356,6 @@ const TdlF = () => {
                     placeholder="Add New Task"
                     value={taskInput}
                     onChange={(e) => setTaskInput(e.target.value)}
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
                   />
                   <button type="submit">+</button>
                 </div>
@@ -317,130 +365,120 @@ const TdlF = () => {
             <div id="taskS">
               <ul id="taskListTD">
                 <AnimatePresence>
-                  <div className="aS flex">
-                    <button
-                      onClick={clearAllActiveTasks}
-                      className="clearActiveBtn"
-                    >
-                      DeSelect <span style={{ color: "#afd4ed" }}>()</span>
-                    </button>
-                    <button
-                      onClick={deleteAllFinishedTasks}
-                      className="deleteActiveBtn"
-                    >
-                      Delete <span style={{ color: "#afd4ed" }}>()</span>
-                    </button>
-                  </div>
-
-                  {tasks.map((item, i) => (
-                    <motion.li
-                      key={item.id}
-                      variants={itemVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      transition={{ duration: 0.25 }}
-                    >
-                      <div className="listC">
-                        <div className="divS">
-                          <button
-                            className={`finish ${
-                              item.isActive ? "active" : ""
-                            }`}
-                            onClick={() => {
-                              const updatedTasks = tasks.map((t) =>
-                                t.id === item.id
-                                  ? { ...t, isActive: !t.isActive }
-                                  : t
-                              );
-                              setTasks(updatedTasks);
-                              setFolders((prev) =>
-                                prev.map((f) =>
-                                  f.id === currentFolder.id
-                                    ? { ...f, tasks: updatedTasks }
-                                    : f
-                                )
-                              );
-                            }}
-                          ></button>
-
-                          {editingTaskId === item.id ? (
-                            <input
-                              type="text"
-                              value={editTaskText}
-                              onChange={(e) => setEditTaskText(e.target.value)}
-                              onBlur={() => applyTaskEdit(item.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  applyTaskEdit(item.id);
+                  {currentFolder.tasks &&
+                  Object.keys(currentFolder.tasks).length > 0 ? (
+                    Object.entries(currentFolder.tasks).map(
+                      ([taskId, task], i) => (
+                        <motion.li
+                          key={taskId}
+                          variants={itemVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          transition={{ duration: 0.25 }}
+                        >
+                          <div className="listC">
+                            <div className="divS">
+                              <button
+                                type="button"
+                                className={`finish ${
+                                  task.isActive ? "active" : ""
+                                }`}
+                                onClick={() =>
+                                  toggleTask(taskId, task.isActive)
                                 }
-                              }}
-                              autoFocus
-                              autoCorrect="off"
-                              autoCapitalize="off"
-                              spellCheck="false"
-                            />
-                          ) : (
+                              ></button>
+
+                              {editingTaskId === taskId ? (
+                                <input
+                                  type="text"
+                                  value={editTaskText}
+                                  onChange={(e) =>
+                                    setEditTaskText(e.target.value)
+                                  }
+                                  onBlur={() => applyTaskEdit(taskId)}
+                                  onKeyDown={(e) => {
+                                    // Prevent outer form submit and apply edit on Enter
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      applyTaskEdit(taskId);
+                                    }
+                                  }}
+                                  autoFocus
+                                />
+                              ) : (
+                                <span
+                                  className={task.isActive ? "activeText" : ""}
+                                >
+                                  {task.text}
+                                </span>
+                              )}
+                            </div>
+
                             <span
-                              className={item.isActive ? "activeText" : ""}
-                              onClick={() =>
-                                setLineActive(lineActive === i ? null : i)
-                              }
+                              className={`buttonS ${
+                                activeIndex === i ? "active" : ""
+                              }`}
                             >
-                              {item.text}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveIndex(activeIndex === i ? null : i)
+                                }
+                              >
+                                <span className="span1"></span>
+                                <span className="span2"></span>
+                              </button>
                             </span>
-                          )}
-                          <span
-                            className={`lineItem ${
-                              activeIndex === i ? "active" : ""
-                            }`}
-                          ></span>
-                        </div>
 
-                        <span
-                          className={`buttonS ${
-                            activeIndex === i ? "active" : ""
-                          }`}
-                          onClick={() => {
-                            setActiveIndex(activeIndex === i ? null : i);
-                            setActiveFIndex(null);
-                          }}
-                        >
-                          <button>
-                            <span className="span1"></span>
-                            <span className="span2"></span>
-                          </button>
-                        </span>
-
-                        <div
-                          className={`lOption ${
-                            activeIndex === i ? "active" : ""
-                          }`}
-                        >
-                          <div className="flexcL">
-                            <button
-                              className="listDelete"
-                              onClick={() => handleDeleteTask(item.id)}
+                            <div
+                              className={`lOption ${
+                                activeIndex === i ? "active" : ""
+                              }`}
                             >
-                              Delete
-                            </button>
-
-                            <button
-                              className="listFinished"
-                              onClick={() => {
-                                setEditingTaskId(item.id);
-                                setEditTaskText(item.text);
-                              }}
-                            >
-                              Edit Name
-                            </button>
+                              <div className="flexcL">
+                                <button
+                                  type="button"
+                                  className="listDelete"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteTask(taskId);
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                                <button
+                                  type="button"
+                                  className="listFinished"
+                                  onClick={() => {
+                                    setEditingTaskId(taskId);
+                                    setEditTaskText(task.text || "");
+                                  }}
+                                >
+                                  Edit Name
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </motion.li>
-                  ))}
+                        </motion.li>
+                      )
+                    )
+                  ) : (
+                    <p>No tasks yet.</p>
+                  )}
                 </AnimatePresence>
               </ul>
+            </div>
+
+            <div className="aS flex">
+              <button
+                type="button"
+                onClick={deleteAllFinishedTasks}
+                className="deleteActiveBtn"
+              >
+                Delete <span style={{ color: "#afd4ed" }}>()</span>
+              </button>
             </div>
           </motion.div>
         )}

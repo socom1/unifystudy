@@ -55,6 +55,9 @@ li {
   font-weight: 500;
   font-size: 0.95rem;
 }
+.signup-container .signup-form .form-group .pass {
+  margin-top: 25px;
+}
 .signup-container .signup-form .form-group input {
   padding: 0.5rem 0.8rem;
   border-radius: 4px;
@@ -72,7 +75,7 @@ li {
   color: #afd4ed;
 }
 .signup-container .signup-form button {
-  margin-top: 20px;
+  margin-top: 35px;
   padding: 0.6rem 1rem;
   border-radius: 6px;
   border: none;

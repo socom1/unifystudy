@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import NavM from "./components/appcomp/nav/navM";
-import NavS from "./components/appcomp/nav/navS";
-import AppS from "./components/appcomp/appsl/AppS";
+import NavM from "./components/appcomp/nav/NavM";
+import NavS from "./components/appcomp/nav/NavS";
+import AppS from "./components/appcomp/appsl/appS";
 import "./App.css";
-import "./components/appcomp/nav/styling/navm/navm.css";
+// import "./components/appcomp/nav/styling/navm/navm.css";
 
 function App() {
   const [isActive, setIsActive] = useState(false);

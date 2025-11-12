@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { getAuth, deleteUser, signOut } from "firebase/auth";
-import "./Profile.css";
+import "./profile.css";
 
 const Profile = ({ user, onSignOut }) => {
   const [message, setMessage] = useState("");

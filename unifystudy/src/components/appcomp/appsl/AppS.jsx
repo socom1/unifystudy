@@ -18,7 +18,7 @@ const AppS = ({ activeComponent, user, onLoginSuccess, onSignOut }) => {
       case "pomodoro":
         return <Pomodoro />;
       case "timetable":
-        return <MyTimetable />;
+        return <MyTimetable user={user} />;
       case "signIn":
         return <SignUp onLoginSuccess={onLoginSuccess} />;
       case "profile":
