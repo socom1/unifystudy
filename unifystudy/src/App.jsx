@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import NavM from "./components/appcomp/nav/NavM";
 import NavS from "./components/appcomp/nav/NavS";
-import AppS from "./components/appcomp/appsl/appS";
+import AppS from "./components/appcomp/appsl/AppS";
 import "./App.css";
 // import "./components/appcomp/nav/styling/navm/navm.css";
 

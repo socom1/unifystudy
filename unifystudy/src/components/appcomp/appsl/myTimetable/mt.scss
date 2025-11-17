@@ -37,6 +37,346 @@ $fB: rgb(19, 19, 19); // Form background
 }
 
 /* ============================================================
+   NAV / FORM (same as before)
+   ============================================================ */
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: $fB;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+
+  h2 {
+    color: $asC;
+    font-size: 1.1rem;
+  }
+
+  button {
+    background: $aC;
+    color: black;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+    &:hover {
+      transform: scale(1.04);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+.event-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  background: $fB;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-size: 0.85rem;
+      color: $aC;
+      margin-bottom: 0.25rem;
+    }
+
+    input,
+    select {
+      color: $asC;
+      background-color: $bC;
+      padding: 0.35rem 0.6rem;
+      border: none;
+      border-radius: 4px;
+      transition: background 0.2s ease, color 0.2s ease;
+
+      &:focus {
+        outline: none;
+        background: lighten($bC, 5%);
+        color: $wC;
+      }
+    }
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    background: $aC;
+    color: black;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+    &:hover {
+      transform: scale(1.04);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+/* ============================================================
+   GRID: use the CSS variables to keep everything consistent
+   ============================================================ */
+.calendar-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: var(--time-col-width) repeat(7, 1fr);
+  grid-template-rows: var(--header-height) repeat(12, var(--row-height));
+  background-color: $bC;
+  position: relative;
+  border-radius: 6px;
+  overflow: visible; /* allow shadows visible */
+}
+
+/* Header */
+.calendar-header {
+  display: contents;
+}
+
+.time-column-header {
+  grid-column: 1;
+  color: $asC;
+  text-align: center;
+  line-height: var(--header-height);
+  border-bottom: 1px solid rgba($asC, 0.18);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+/* day header cells */
+.day-header {
+  color: $asC;
+  text-align: center;
+  line-height: var(--header-height);
+  border-bottom: 1px solid rgba($asC, 0.12);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+/* time column (left) — uses same row height variable */
+.time-column {
+  display: grid;
+  grid-column: 1;
+  grid-row: 2 / span 12;
+  grid-template-rows: repeat(12, var(--row-height));
+  z-index: 2;
+
+  .time-slot {
+    text-align: center;
+    color: $asC;
+    font-size: 0.8rem;
+    line-height: var(--row-height);
+    border-top: 1px solid rgba($asC, 0.08);
+    background: rgba(255, 255, 255, 0.01);
+  }
+}
+
+/* grid cells for the day/hour intersections */
+.grid-cell {
+  border-top: 1px solid rgba($asC, 0.06);
+  border-right: 1px solid rgba($asC, 0.04);
+  background: transparent;
+}
+
+/* ============================================================
+   VERTICAL LINES (styled here; positioned by JSX)
+   ============================================================ */
+.day-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: rgba($asC, 0.12);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ============================================================
+   EVENT BOXES (grid-placed)
+   ============================================================ */
+.event-box {
+  position: relative; /* grid-placed, not absolute */
+  margin: 4px 6px; /* horizontal gap so adjacent boxes don't touch */
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.9rem;
+  color: $bC;
+  background-color: rgba($asC, 0.85); /* slight transparency */
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.16s ease, box-shadow 0.16s ease,
+    background-color 0.16s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+
+  span {
+    display: block;
+    font-weight: 700;
+    color: #0b1620;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .event-details {
+    font-size: 0.78rem;
+    color: rgba(11, 22, 32, 0.8);
+    text-align: center;
+  }
+
+  &:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+    background-color: rgba($asC, 0.9);
+  }
+
+  .delete-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: rgba($bC, 0.28);
+    color: $wC;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    padding: 4px 6px;
+    cursor: pointer;
+    opacity: 0.95;
+    transition: transform 0.12s ease, background 0.12s ease;
+
+    &:hover {
+      transform: scale(1.08);
+      background: rgba($bC, 0.5);
+    }
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+@media (max-width: 1024px) {
+  :root {
+    --time-col-width: 50px;
+    --row-height: 60px;
+  }
+  .event-box {
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --time-col-width: 50px;
+    --row-height: 60px;
+  }
+
+  .calendar-container {
+    padding: 0.5rem;
+  }
+
+  .calendar-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .calendar-nav button {
+    width: 100%;
+  }
+
+  .event-form {
+    flex-direction: column;
+    align-items: stretch;
+    button {
+      width: 100%;
+    }
+  }
+
+  /* Make the whole grid horizontally scrollable on small screens */
+  .calendar-grid {
+    min-width: calc(
+      var(--time-col-width) + 7 * 110px
+    ); /* rough per-day width for mobile */
+    overflow-x: auto;
+  }
+
+  .event-box {
+    font-size: 0.78rem;
+    padding: 8px;
+    margin: 3px 5px;
+  }
+
+  .delete-btn {
+    font-size: 0.7rem;
+    padding: 3px 5px;
+  }
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
+
+/* ============================================================
+   🎨 COLOR VARIABLES — CODING THEME
+   ============================================================ */
+$aC: #4b6c82; // Accent color
+$asC: #afd4ed; // Secondary accent
+$bC: #1e1e1e; // Background (dark)
+$wC: #f2f2f2; // White text
+$fB: rgb(19, 19, 19); // Form background
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Fira Code", monospace;
+}
+
+/* ---------------------------
+   CSS variables — single source of truth
+   --------------------------- */
+:root {
+  --time-col-width: 60px;
+  --header-height: 40px;
+  --row-height: 70px; /* height per hour row */
+}
+
+/* ============================================================
+   🗓️ CALENDAR CONTAINER
+   ============================================================ */
+.calendar-container {
+  padding: 1rem;
+  overflow-x: auto;
+  background-color: $bC;
+  color: $wC;
+  min-height: 100vh;
+}
+
+/* ============================================================
    NAV / FORM
    ============================================================ */
 .calendar-nav {

@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { getAuth, deleteUser, signOut } from "firebase/auth";
+<<<<<<< Updated upstream
 import "./profile.css";
+=======
+import "./Profile.css";
+>>>>>>> Stashed changes
 
 const Profile = ({ user, onSignOut }) => {
   const [message, setMessage] = useState("");

@@ -2,379 +2,293 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 
+// Color Variables
 $aC: #4b6c82;
+$gC: #7bbf59;
 $asC: #afd4ed;
 $bC: #1e1e1e;
 $wC: #f2f2f2;
 $rC: #bf4040;
-$gC: #40bf46;
 $fB: rgb(19, 19, 19);
 
-// ::selection {
-//   background: black;
-//   // color: white;
-//   text-shadow: none;
-// }
-
 * {
+  margin: 0;
   padding: 0;
-  margin: 0;
-  // font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
   font-family: "Fira Code", monospace;
+  border: none;
 }
 
-.deact {
-  opacity: 0.5;
+body {
+  background: $fB;
+  color: $wC;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding-bottom: 100px; // extra space for footer
+}
+
+.header {
+  width: 100%;
+  max-width: 960px;
+  text-align: center;
+}
+
+.header__title {
+  font-size: 28px;
+  font-weight: 600;
+  color: $aC;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+}
+
+/* Timer */
+.timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.timer__title {
+  font-size: 22px;
+  font-weight: 500;
+  color: $aC;
+}
+
+.timer__circle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer__circle svg {
+  transform: rotate(-90deg);
+}
+
+.circle-bg {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+.circle-progress {
+  stroke: $aC;
+  stroke-linecap: round;
+}
+
+.timer__time {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: $wC;
+}
+
+.timer__controls {
+  display: flex;
+  gap: 12px;
+}
+
+.timer__controls button {
+  background: $aC;
   color: $fB;
-  pointer-events: none;
-  transition: ease 1s;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.flex {
+.timer__controls button:hover {
+  background: $asC;
+}
+
+.timer__progress-bar {
+  width: 80%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: $gC;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Templates */
+.templates {
+  width: 85%;
+  max-width: 960px;
+  background: $bC;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-li {
+.templates__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.templates__header button {
+  background: $aC;
+  color: $fB;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.templates__header button:hover {
+  background: $asC;
+}
+
+/* Editor */
+.templates__editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.templates__editor input,
+.templates__editor select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: $bC;
+  color: $wC;
+}
+
+.segment-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.segment-row button {
+  background: $rC;
+  color: $wC;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.segment-row button:hover {
+  background: $asC;
+  color: $fB;
+}
+
+.templates__editor button {
+  background: $aC;
+  color: $fB;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.templates__editor button:hover {
+  background: $asC;
+}
+
+/* Template List */
+.templates__list ul {
   list-style: none;
-  transition: ease 1s;
-}
-
-.flexcontainer {
-  width: 100vw;
-  flex-direction: row;
-  justify-content: center;
-  height: fit-content;
-  // margin-top: 10vh;
-  // z-index: 1000;
-  #duration {
-    margin-top: 25px;
-    height: 40px;
-    background-color: $fB;
-    border-radius: 10px;
-    width: 80%;
-    padding: 2px;
-
-    .flexcontainer {
-      width: 80vw;
-      flex-direction: row;
-      justify-content: space-between;
-
-      ol {
-        list-style: inside;
-      }
-
-      li:hover {
-        cursor: pointer;
-      }
-
-      #left1 {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-        width: 300px;
-
-        $bh: 40px;
-
-        .xS {
-          opacity: 0;
-          pointer-events: none;
-          transition: ease 1s;
-          transform: translateY(12px);
-          //   .l1 {
-          //     display: block;
-          //     background-color: $asC;
-          //     height: 2px;
-          //     transition: ease 1s;
-          //     width: 10px;
-          //     border-radius: 15px;
-          //     // position: absolute;
-          //     // top: 50%;
-          //     // left: 50%;
-          //     transform: translate(28px, -36px) rotate(45deg);
-          //   }
-
-          .l2 {
-            display: block;
-            background-color: $rC;
-            height: 2px;
-            width: 19px;
-            opacity: 0;
-            transition: ease 1s;
-            border-radius: 15px;
-            // position: absolute;
-            // top: 50%;
-            // left: 50%;
-            // transform: translate(11px, -0px) rotate(180deg);
-          }
-        }
-
-        .xS.active {
-          width: 30px;
-          height: 30px;
-          position: absolute;
-          opacity: 1;
-          pointer-events: all;
-          transition: ease 1s;
-          transform: translate(5px, -35px) rotate(180deg);
-
-          .l2 {
-            transform: translateX(5px) translateY(13px);
-          }
-        }
-
-        .xS:hover {
-          cursor: pointer;
-          .l2 {
-            opacity: 1;
-            transition: ease 1s;
-          }
-        }
-
-        button {
-          border-radius: 10px;
-          height: $bh;
-          border: none;
-          font-weight: 500;
-          background-color: transparent;
-          color: $aC;
-          width: $bh;
-          font-size: 14px;
-          transition: ease 1s;
-        }
-
-        button:hover {
-          background-color: $aC;
-          color: $wC;
-          cursor: pointer;
-          transition: ease 1s;
-        }
-
-        button.selected {
-          border: 2px solid $aC;
-        }
-
-        .used {
-          border: 2px solid $aC;
-          transition: ease 1s;
-        }
-
-        .nonactive {
-          border: 2px solid transparent;
-          transition: ease 1s;
-        }
-      }
-
-      .right {
-        width: fit-content;
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        width: 100px;
-        button {
-          height: 40px;
-          color: $aC;
-          font-size: 14px;
-          background-color: transparent;
-          width: fit-content;
-          border: none;
-          border-radius: 10px;
-          transition: ease 1s;
-        }
-        button:hover {
-          // background-color: $bC;
-          color: $asC;
-          cursor: pointer;
-          transition: ease 1s;
-        }
-        button.close:hover {
-          //   color: $rC;
-          transition: ease 1s;
-        }
-      }
-    }
-  }
-
-  // #duration.dactive {
-  //   opacity: 0;
-  //   pointer-events: none;
-  // }
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.addAmount {
-  transform: translateY(-40px);
-  opacity: 0;
-  transition: ease 1s;
   display: flex;
-  flex-direction: row;
-  justify-content: center;
-  pointer-events: none;
-  #enam {
-    z-index: 1;
-    border-radius: 10px;
-    border: none;
-    color: white;
-    background-color: $fB;
-    padding: 15px;
-    height: 10px;
-    outline: none;
-    width: 220px;
-    font-size: 13px;
-    font-family: "Fira Code", monospace;
-  }
-
-  button {
-    margin-left: 5px;
-    border: none;
-    background-color: $fB;
-    text-align: center;
-    height: 40px;
-    width: 40px;
-    color: $aC;
-    font-size: 16px;
-    color: $wC;
-    border-radius: 10px;
-  }
+  flex-direction: column;
+  gap: 12px;
 }
 
-.addAmount.active {
-  transform: translateY(20px);
-  transition: ease 1s;
-  opacity: 1;
-  pointer-events: all;
+.template-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
 }
 
-#app {
-  padding-top: 15vh;
+.template-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.template-actions button {
+  background: $aC;
+  color: $fB;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.template-actions button:hover {
+  background: $asC;
+}
+
+/* Quick Selector Footer */
+.quick-bar {
+  position: fixed;
+  // bottom: 30%;
+  left: 0;
   width: 100vw;
-  height: fit-content;
+  background: $bC;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+}
 
-  .flexcontainer {
-    flex-direction: column;
-    align-items: center;
-    width: 100vw;
-    height: fit-content;
+.quick-bar__btn {
+  background: $fB;
+  border: 1px solid $aC;
+  border-radius: 6px;
+  color: $wC;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
 
-    .timer {
-      margin-top: 20px;
-      flex-direction: column;
-      align-items: center;
-      #time {
-        font-size: 130px;
-        font-family: "Fira Code", monospace;
-        color: $aC;
-      }
-      .bL {
-        width: 350px;
-        flex-direction: row;
-        justify-content: space-around;
-        margin-top: 30px;
+.quick-bar__btn:hover {
+  background: $asC;
+  color: $fB;
+  transform: scale(1.05);
+}
 
-        $buttonW: 60px;
+.quick-bar__btn.active {
+  background: $aC;
+  color: $fB;
+}
 
-        button {
-          border-radius: 50px;
-          border: 2px solid transparent;
-          background-color: $fB;
-          color: $wC;
-          height: $buttonW;
-          width: $buttonW;
-          transition: ease 1s;
-
-          .pW {
-            display: none;
-          }
-
-          .pB {
-            display: default;
-          }
-
-          img {
-            height: 30px;
-          }
-        }
-
-        button:hover {
-          background-color: $wC;
-          border: none;
-          color: $bC;
-          transition: ease 1s;
-        }
-
-        #start {
-          height: 80px;
-          width: 80px;
-        }
-
-        button.stopped {
-          background-color: $aC;
-          // #bf4040
-          // border: $rC;
-
-          transition: ease 1s;
-
-          color: black;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          .pW {
-            display: block;
-            transition: ease 1s;
-          }
-
-          .pB {
-            display: none;
-            transition: ease 1s;
-          }
-        }
-
-        button.started {
-          background-color: $aC;
-          transition: ease 1s;
-          color: black;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          .pW {
-            display: block;
-            transition: ease 1s;
-          }
-
-          .pB {
-            display: none;
-            transition: ease 1s;
-          }
-        }
-      }
-    }
-  }
-
-  .numberbreak {
-    margin-top: 50px;
-    width: 80vw;
-    height: 200px;
-    border-radius: 10px;
-    background-color: #2e2e2e;
-
-    h3 {
-      color: black;
-      font-weight: 500;
-      padding-top: 1rem;
-      padding-left: 1rem;
-    }
-  }
-
-  h1 {
-    color: #f2f2f2;
-    font-weight: 400;
+/* Responsive */
+@media (max-width: 768px) {
+  .quick-bar {
+    overflow-x: auto;
+    justify-content: flex-start;
   }
 }

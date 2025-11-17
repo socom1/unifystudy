@@ -2,16 +2,25 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./pomodoro.scss";
 
+const breakSound = new Audio("/sounds/break-chime.mp3");
+const studySound = new Audio("/sounds/study-chime.mp3");
+
 const Pomodoro = () => {
   const [timeLeft, setTimeLeft] = useState(10 * 60);
   const [selectedDuration, setSelectedDuration] = useState(10 * 60);
   const [isRunning, setIsRunning] = useState(false);
-  const [intervalId, setIntervalId] = useState(null);
+  const [activeButton, setActiveButton] = useState(null);
   const [fadeKey, setFadeKey] = useState(0);
-  const [isEditing, setIsEditing] = useState(false);
-  const [customDurations, setCustomDurations] = useState([]);
-  const [newDuration, setNewDuration] = useState("");
-  const [activeButton, setActiveButton] = useState("");
+  const [templates, setTemplates] = useState([]);
+  const [showTemplateEditor, setShowTemplateEditor] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState("");
+  const [newSegments, setNewSegments] = useState([
+    { type: "study", duration: 10 },
+  ]);
+  const [editIndex, setEditIndex] = useState(null);
+  const [currentTemplate, setCurrentTemplate] = useState(null);
+  const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
+  const [currentTitle, setCurrentTitle] = useState("Quick Timer");
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -23,205 +32,385 @@ const Pomodoro = () => {
 
   useEffect(() => {
     let id;
-    if (isRunning) {
+    if (isRunning && timeLeft > 0) {
       id = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(id);
             setIsRunning(false);
-            setActiveButton("");
+            if (currentTemplate) {
+              const nextIndex = currentSegmentIndex + 1;
+              if (nextIndex < currentTemplate.segments.length) {
+                const nextSeg = currentTemplate.segments[nextIndex];
+                setCurrentSegmentIndex(nextIndex);
+                setSelectedDuration(nextSeg.duration * 60);
+                setTimeLeft(nextSeg.duration * 60);
+                setCurrentTitle(
+                  `${currentTemplate.name} - ${
+                    nextSeg.type === "study" ? "Study" : "Break"
+                  }`
+                );
+                setIsRunning(true);
+                if (nextSeg.type === "break") breakSound.play();
+                else studySound.play();
+              } else {
+                setCurrentTemplate(null);
+                setCurrentSegmentIndex(0);
+                setCurrentTitle("Quick Timer");
+              }
+            }
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-      setIntervalId(id);
     }
     return () => clearInterval(id);
-  }, [isRunning]);
+  }, [isRunning, timeLeft, currentTemplate, currentSegmentIndex]);
 
-  const handleStart = () => {
-    if (!isRunning && timeLeft > 0) {
-      setIsRunning(true);
-      setActiveButton("start");
+  const handleSaveTemplate = () => {
+    if (!newTemplateName.trim()) return;
+    const updatedTemplates = [...templates];
+    if (editIndex !== null) {
+      updatedTemplates[editIndex] = {
+        name: newTemplateName,
+        segments: newSegments,
+      };
+    } else {
+      updatedTemplates.push({ name: newTemplateName, segments: newSegments });
     }
+    setTemplates(updatedTemplates);
+    setNewTemplateName("");
+    setNewSegments([{ type: "study", duration: 10 }]);
+    setEditIndex(null);
+    setShowTemplateEditor(false);
   };
 
-  const handleStop = () => {
-    setIsRunning(false);
-    clearInterval(intervalId);
-    setActiveButton("stop");
-  };
-
-  const handleReset = () => {
-    setIsRunning(false);
-    clearInterval(intervalId);
-    setTimeLeft(selectedDuration);
-    setFadeKey((k) => k + 1);
-    setActiveButton("");
-  };
-
-  const handleSetTime = (minutes) => {
-    const newDuration = minutes * 60;
-    setIsRunning(false);
-    clearInterval(intervalId);
-    setSelectedDuration(newDuration);
-    setTimeLeft(newDuration);
-    setFadeKey((k) => k + 1);
-    setActiveButton("");
-  };
-
-  const toggleEdit = () => {
-    setIsEditing((prev) => !prev);
-  };
-
-  const handleAddDuration = (e) => {
-    e.preventDefault();
-    const val = parseInt(newDuration);
-    if (!val || val <= 0) return;
-    if (!customDurations.includes(val)) {
-      const updated = [...customDurations, val].sort((a, b) => a - b);
-      setCustomDurations(updated);
-    }
-    setNewDuration("");
-  };
-
-  const handleRemoveDuration = (min) => {
-    setCustomDurations(customDurations.filter((d) => d !== min));
-  };
-
-  const allDurations = [5, 10, 20, 25, 60, ...customDurations].sort(
-    (a, b) => a - b
-  );
+  const circleRadius = 90;
+  const circleCircumference = 2 * Math.PI * circleRadius;
+  const dashOffset = circleCircumference * (1 - timeLeft / selectedDuration);
 
   return (
-    <>
-      <div className="flexcontainer flex">
-        <div id="duration">
-          <div className="flexcontainer flex">
-            <ol id="left1">
-              <AnimatePresence>
-                {allDurations.map((min) => (
-                  <motion.li
-                    key={min}
-                    className={`${min}min ${isEditing ? "deact" : ""}`}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.3 }}
-                    layout
-                  >
-                    <motion.button
-                      className={isEditing ? "deact" : ""}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleSetTime(min)}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      {min}
-                    </motion.button>
+    <div className="app">
+      <motion.header
+        className="header"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h1 className="header__title">Pomodoro()</h1>
+      </motion.header>
 
-                    <div
-                      className={`xS ${isEditing ? "active" : ""}`}
-                      onClick={() => handleRemoveDuration(min)}
-                    >
-                      <span className="l1"></span>
-                      <span className="l2"></span>
-                    </div>
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </ol>
-
-            <div className="right">
-              <AnimatePresence mode="wait">
-                <motion.button
-                  key={isEditing ? "close" : "edit"}
-                  id="addB"
-                  onClick={toggleEdit}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={isEditing ? "active" : ""}
-                >
-                  {isEditing ? "close" : "edit"}
-                  <span style={{ color: "#afd4ed" }}>()</span>
-                </motion.button>
-              </AnimatePresence>
-            </div>
-          </div>
-
-          <form
-            id="amountForm"
-            onSubmit={handleAddDuration}
-            className={`addAmount ${isEditing ? "active" : ""}`}
+      <main className="main">
+        <motion.section
+          className="timer"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <h2 className="timer__title">{currentTitle}</h2>
+          <motion.div
+            className="timer__circle"
+            animate={{ scale: isRunning ? 1.05 : 1 }}
           >
-            <input
-              id="enam"
-              placeholder="Add new time (minutes)"
-              type="number"
-              value={newDuration}
-              onChange={(e) => setNewDuration(e.target.value)}
-              className={isEditing ? "active" : ""}
-            />
-            <button type="submit">+</button>
-          </form>
-        </div>
-      </div>
-
-      <div id="app">
-        <div className="flexcontainer flex">
-          <h1>Coding Session</h1>
-          <div className="timer flex">
+            <svg width="200" height="200">
+              <circle
+                className="circle-bg"
+                cx="100"
+                cy="100"
+                r={circleRadius}
+                strokeWidth="10"
+                fill="none"
+              />
+              <motion.circle
+                className="circle-progress"
+                cx="100"
+                cy="100"
+                r={circleRadius}
+                strokeWidth="10"
+                fill="none"
+                strokeDasharray={circleCircumference}
+                strokeDashoffset={dashOffset}
+                animate={{
+                  strokeDashoffset: dashOffset,
+                  stroke:
+                    currentTemplate &&
+                    currentTemplate.segments[currentSegmentIndex]?.type ===
+                      "break"
+                      ? "#bf4040"
+                      : "#4b6c82",
+                }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+              />
+            </svg>
             <AnimatePresence mode="wait">
               <motion.p
                 key={fadeKey}
-                id="time"
-                initial={{ opacity: 0, scale: 0.8, y: -5 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: 5 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="timer__time"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
               >
                 {formatTime(timeLeft)}
               </motion.p>
             </AnimatePresence>
+          </motion.div>
 
-            <ul className="bL flex">
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.05 }}
-                onClick={handleReset}
-              >
-                reset
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.05 }}
-                onClick={handleStart}
+          <motion.div
+            className="timer__controls"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsRunning(true)}
+            >
+              Start
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsRunning(false)}
+            >
+              Stop
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                setIsRunning(false);
+                setTimeLeft(selectedDuration);
+                setFadeKey((k) => k + 1);
+              }}
+            >
+              Reset
+            </motion.button>
+          </motion.div>
+
+          {currentTemplate && (
+            <div className="timer__progress-bar">
+              <motion.div
+                className="progress-bar__fill"
+                initial={{ width: "0%" }}
                 animate={{
-                  backgroundColor: activeButton === "start" ? "#4b6c82" : "",
+                  width: `${
+                    ((selectedDuration - timeLeft) / selectedDuration) * 100
+                  }%`,
                 }}
-                transition={{ duration: 0.2 }}
-              >
-                start
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.05 }}
-                onClick={handleStop}
-                animate={{
-                  backgroundColor: activeButton === "stop" ? "#ac4646" : "",
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                style={{
+                  backgroundColor:
+                    currentTemplate.segments[currentSegmentIndex]?.type ===
+                    "break"
+                      ? "#bf4040"
+                      : "#7bbf59",
                 }}
-                transition={{ duration: 0.2 }}
-              >
-                stop
-              </motion.button>
-            </ul>
+              />
+            </div>
+          )}
+        </motion.section>
+
+        {/* Templates Section */}
+        <motion.section className="templates" layout="position">
+          <div className="templates__header">
+            <h2>Templates</h2>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                setShowTemplateEditor(!showTemplateEditor);
+                setEditIndex(null);
+                setNewTemplateName("");
+                setNewSegments([{ type: "study", duration: 10 }]);
+              }}
+            >
+              {showTemplateEditor ? "Close Editor" : "Add Template"}
+            </motion.button>
           </div>
-        </div>
-      </div>
-    </>
+
+          <AnimatePresence>
+            {showTemplateEditor && (
+              <motion.div
+                className="templates__editor"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                layout="position"
+              >
+                <input
+                  placeholder="Template Name"
+                  value={newTemplateName}
+                  onChange={(e) => setNewTemplateName(e.target.value)}
+                />
+                <div className="templates__segments">
+                  {newSegments.map((seg, idx) => (
+                    <motion.div
+                      key={idx}
+                      className="segment-row"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      layout
+                    >
+                      <select
+                        value={seg.type}
+                        onChange={(e) => {
+                          const updated = [...newSegments];
+                          updated[idx].type = e.target.value;
+                          setNewSegments(updated);
+                        }}
+                      >
+                        <option value="study">Study</option>
+                        <option value="break">Break</option>
+                      </select>
+                      <input
+                        type="number"
+                        value={seg.duration}
+                        onChange={(e) => {
+                          const updated = [...newSegments];
+                          updated[idx].duration = parseInt(e.target.value);
+                          setNewSegments(updated);
+                        }}
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          const updated = [...newSegments];
+                          updated.splice(idx, 1);
+                          setNewSegments(updated);
+                        }}
+                      >
+                        Remove
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() =>
+                    setNewSegments([
+                      ...newSegments,
+                      { type: "study", duration: 10 },
+                    ])
+                  }
+                >
+                  Add Segment
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleSaveTemplate}
+                >
+                  {editIndex !== null ? "Update Template" : "Save Template"}
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.div className="templates__list" layout="position">
+            <ul>
+              {templates.map((temp, idx) => (
+                <motion.li
+                  key={idx}
+                  className="template-item"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  layout="position"
+                >
+                  <div>
+                    <strong>{temp.name}</strong>
+                    <small>
+                      {temp.segments
+                        .map((s) => `${s.type} ${s.duration}m`)
+                        .join(" - ")}
+                    </small>
+                  </div>
+                  <div className="template-actions">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        if (!temp.segments.length) return;
+                        setCurrentTemplate(temp);
+                        setCurrentSegmentIndex(0);
+                        const first = temp.segments[0];
+                        setSelectedDuration(first.duration * 60);
+                        setTimeLeft(first.duration * 60);
+                        setCurrentTitle(
+                          `${temp.name} - ${
+                            first.type === "study" ? "Study" : "Break"
+                          }`
+                        );
+                        setActiveButton(null);
+                        setIsRunning(true);
+                        if (first.type === "break") breakSound.play();
+                        else studySound.play();
+                      }}
+                    >
+                      Apply
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setShowTemplateEditor(true);
+                        setNewTemplateName(temp.name);
+                        setNewSegments([...temp.segments]);
+                        setEditIndex(idx);
+                      }}
+                    >
+                      Edit
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        const updated = [...templates];
+                        updated.splice(idx, 1);
+                        setTemplates(updated);
+                      }}
+                    >
+                      Delete
+                    </motion.button>
+                  </div>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        </motion.section>
+      </main>
+
+      <motion.footer
+        className="quick-bar"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        {[5, 10, 15, 25, 50, 60].map((min) => (
+          <motion.button
+            key={min}
+            className={`quick-bar__btn ${activeButton === min ? "active" : ""}`}
+            onClick={() => {
+              setIsRunning(false);
+              const secs = min * 60;
+              setSelectedDuration(secs);
+              setTimeLeft(secs);
+              setFadeKey((k) => k + 1);
+              setActiveButton(min);
+              setCurrentTemplate(null);
+              setCurrentTitle("Quick Timer");
+              studySound.play();
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {min}m
+          </motion.button>
+        ))}
+      </motion.footer>
+    </div>
   );
 };
 
