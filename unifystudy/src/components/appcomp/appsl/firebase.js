@@ -1,6 +1,6 @@
 // src/firebase.js
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth"; // ✅ added GoogleAuthProvider
 import { getDatabase } from "firebase/database"; // Realtime DB import
 
 const firebaseConfig = {
@@ -12,7 +12,7 @@ const firebaseConfig = {
   appId: "1:397741027892:web:e01f7db83b838ce3915061",
   measurementId: "G-XJQRKVSPKR",
   databaseURL:
-    "https://unifys-c6b42-default-rtdb.europe-west1.firebasedatabase.app/", // 👈 Required for RTDB
+    "https://unifys-c6b42-default-rtdb.europe-west1.firebasedatabase.app/",
 };
 
 // Prevent duplicate initialization
@@ -20,3 +20,6 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getDatabase(app);
+export const googleProvider = new GoogleAuthProvider(); // ✅ FIXED — added export
+
+export default app;
