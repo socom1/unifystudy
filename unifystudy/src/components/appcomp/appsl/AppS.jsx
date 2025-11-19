@@ -7,7 +7,6 @@ import MyTimetable from "./myTimetable/MyTimetable";
 import Profile from "./profile/profile";
 
 const AppS = ({ activeComponent, user, onLoginSuccess, onSignOut }) => {
-  // Check if we’re switching between sign-in and profile
   const shouldAnimate =
     activeComponent === "signIn" || activeComponent === "profile";
 
@@ -44,7 +43,6 @@ const AppS = ({ activeComponent, user, onLoginSuccess, onSignOut }) => {
           </motion.div>
         </AnimatePresence>
       ) : (
-        // No animation for other components
         <div style={{ width: "100%", height: "100%" }}>{renderComponent()}</div>
       )}
     </div>

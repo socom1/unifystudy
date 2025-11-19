@@ -1,8 +1,13 @@
 import React from "react";
 import "./styling/navs/navs.css";
 
-const NavS = ({ onToggle, activeComponent }) => {
-  // Map component names to titles
+const NavS = ({
+  onToggle,
+  activeComponent,
+  isMobile,
+  setActiveComponent,
+  user,
+}) => {
   const titles = {
     home: "Home",
     signIn: "Sign In",
@@ -22,14 +27,33 @@ const NavS = ({ onToggle, activeComponent }) => {
             <span style={{ color: "#afd4ed" }}>()</span>
           </div>
         </div>
+
         <div className="right">
-          <div className="menuToggle">
-            <button className="toggle" onClick={onToggle}>
-              <span className="l1"></span>
-              <span className="l2"></span>
-              <span className="l3"></span>
-            </button>
-          </div>
+          {isMobile ? (
+            // Mobile toggle menu
+            <div className="menuToggle">
+              <button className="toggle" onClick={onToggle}>
+                <span className="l1"></span>
+                <span className="l2"></span>
+                <span className="l3"></span>
+              </button>
+            </div>
+          ) : (
+            // Desktop full menu
+            <ul className="desktopMenu">
+              <li
+                onClick={() => setActiveComponent(user ? "profile" : "signIn")}
+              >
+                {user ? user.displayName || user.email : "Sign In"}
+              </li>
+              <li onClick={() => setActiveComponent("home")}>Home</li>
+              <li onClick={() => setActiveComponent("pomodoro")}>Pomodoro</li>
+              <li onClick={() => setActiveComponent("timetable")}>
+                My Timetable
+              </li>
+              <li onClick={() => setActiveComponent("todo")}>To Do List</li>
+            </ul>
+          )}
         </div>
       </div>
     </div>

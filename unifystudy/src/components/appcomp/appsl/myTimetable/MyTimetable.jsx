@@ -157,7 +157,10 @@ export default function WeeklyCalendar() {
                 />
               </div>
               <div className="desc">
-                <label>Description(optional)</label>
+                <label>
+                  Description{" "}
+                  <span style={{ color: "#afd4ed" }}>(optional)</span>
+                </label>
                 <textarea
                   type="text"
                   value={form.description}
@@ -168,69 +171,86 @@ export default function WeeklyCalendar() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Day</label>
-              <select
-                value={form.day}
-                onChange={(e) => setForm({ ...form, day: e.target.value })}
-              >
-                {days.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
+            <div className="form-group sel">
+              <div className="day">
+                <label>Day</label>
+                <select
+                  value={form.day}
+                  onChange={(e) => setForm({ ...form, day: e.target.value })}
+                >
+                  {days.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>Start</label>
-              <select
-                value={form.start}
-                onChange={(e) =>
-                  setForm({ ...form, start: parseInt(e.target.value) })
-                }
-              >
-                {hours.map((h) => (
-                  <option key={h} value={h}>
-                    {h}:00
-                  </option>
-                ))}
-              </select>
+            <div className="form-group ">
+              <div className="st">
+                <label>Start</label>
+                <select
+                  value={form.start}
+                  onChange={(e) =>
+                    setForm({ ...form, start: parseInt(e.target.value) })
+                  }
+                >
+                  {hours.map((h) => (
+                    <option key={h} value={h}>
+                      {h}:00
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>End</label>
-              <select
-                value={form.end}
-                onChange={(e) =>
-                  setForm({ ...form, end: parseInt(e.target.value) })
-                }
-              >
-                {hours.map((h) => (
-                  <option key={h} value={h}>
-                    {h}:00
-                  </option>
-                ))}
-              </select>
+            <div className="form-group ">
+              <div className="end">
+                <label>End</label>
+                <select
+                  value={form.end}
+                  onChange={(e) =>
+                    setForm({ ...form, end: parseInt(e.target.value) })
+                  }
+                >
+                  {hours.map((h) => (
+                    <option key={h} value={h}>
+                      {h}:00
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>Color</label>
-              <select
-                value={form.color}
-                onChange={(e) => setForm({ ...form, color: e.target.value })}
-              >
-                {colors.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+            <div className="form-group ">
+              <div className="cl">
+                <label>Color</label>
+                <select
+                  value={form.color}
+                  onChange={(e) => setForm({ ...form, color: e.target.value })}
+                >
+                  {colors.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="form-buttons">
               <button type="submit">
                 {editingEventId ? "Save Changes" : "Add"}
+              </button>
+              <button
+                className="delete-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteEvent(ev.id);
+                }}
+              >
+                Delete
               </button>
               <button
                 type="button"
@@ -316,15 +336,6 @@ export default function WeeklyCalendar() {
                   <div className="event-details">
                     {ev.start}:00 — {ev.end}:00
                   </div>
-                  <button
-                    className="delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteEvent(ev.id);
-                    }}
-                  >
-                    Delete
-                  </button>
                 </motion.div>
               );
             })}

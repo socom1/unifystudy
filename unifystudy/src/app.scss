@@ -32,6 +32,19 @@ li {
   // color: $gC;
 }
 
+/* Mobile first */
+.container {
+  margin-top: 60px; /* space for NavS toggle bar */
+}
+
+/* Desktop */
+// @media (min-width: 768px) {
+//   .container {
+//     margin-top: 0;
+//     padding-left: 200px; /* adjust if NavM is a sidebar */
+//   }
+// }
+
 html {
   background-color: #1e1e1e;
   height: 100vh;

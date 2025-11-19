@@ -33,10 +33,11 @@ li {
 }
 
 .titleC {
+  margin-top: 35px;
   width: 80vw;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  // margin-bottom: 10px;
 
   .backB {
     background-color: $bC;
@@ -122,6 +123,7 @@ li {
     flex-direction: row;
     justify-content: center;
     width: 100vw;
+    // height: fit-content;
 
     #submitI {
       margin-top: 25px;
@@ -167,7 +169,7 @@ li {
           border-radius: 5px;
           border: none;
           color: $asC;
-          background-color: $bC;
+          background-color: lighten($bC, 5%);
           padding: 4px;
           height: 40px;
           width: 50vw;
@@ -182,7 +184,7 @@ li {
   }
 
   #taskS {
-    min-height: 67vh;
+    min-height: 470px;
     height: fit-content;
     margin-top: 10px;
     padding-bottom: 12px;

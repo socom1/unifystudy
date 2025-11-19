@@ -15,9 +15,34 @@ li {
   list-style: none;
 }
 
+/* Desktop menu styles */
+.desktopMenu {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  padding-top: 0.6rem;
+}
+
+.desktopMenu li {
+  cursor: pointer;
+  color: #afd4ed;
+  font-weight: 500;
+}
+
+@media (max-width: 767px) {
+  .desktopMenu {
+    display: none; /* just to be safe */
+  }
+}
+@media (min-width: 768px) {
+  #nav .menuToggle {
+    display: none; /* hide toggle button on desktop */
+  }
+}
 .navf #nav {
   width: 100vw;
-  height: 100px;
+  height: -moz-fit-content;
+  height: fit-content;
 }
 .navf #nav .flexcontainer {
   flex-direction: row;
@@ -25,7 +50,6 @@ li {
 }
 .navf #nav .flexcontainer .left {
   width: 50vw;
-  padding-top: 2rem;
 }
 .navf #nav .flexcontainer .left .logo {
   padding-left: -1rem;
@@ -40,7 +64,6 @@ li {
 .navf #nav .flexcontainer .right .menuToggle {
   width: -moz-fit-content;
   width: fit-content;
-  padding-top: 33px;
 }
 .navf #nav .flexcontainer .right .menuToggle .toggle {
   background-color: transparent;
@@ -65,4 +88,17 @@ li {
 .navf #nav .flexcontainer .right .menuToggle .toggle:hover span {
   transition: ease-in 0.5s;
   background-color: #4b6c82;
+}
+@media (min-width: 768px) {
+  .navf #nav .flexcontainer .right {
+    width: 900px;
+  }
+  .navf #nav .flexcontainer .left {
+    padding-left: 2rem;
+  }
+}
+@media (min-width: 768px) {
+  .navf #nav .flexcontainer {
+    justify-content: center;
+  }
 }/*# sourceMappingURL=navs.css.map */

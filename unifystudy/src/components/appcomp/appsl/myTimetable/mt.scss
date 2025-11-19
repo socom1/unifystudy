@@ -29,6 +29,7 @@ $fB: rgb(19, 19, 19); // Form background
    🗓️ CALENDAR CONTAINER
    ============================================================ */
 .calendar-container {
+  margin-top: 25px;
   max-width: 98vw; /* prevent overflow */
   overflow-x: hidden;
   padding: 1rem;
@@ -104,6 +105,10 @@ $fB: rgb(19, 19, 19); // Form background
     }
   }
 
+  .sel {
+    margin-top: 30px;
+  }
+
   .form-group {
     display: flex;
     flex-direction: column;
@@ -113,6 +118,7 @@ $fB: rgb(19, 19, 19); // Form background
       display: flex;
       flex-direction: column;
       margin-top: 3vh;
+      width: 80%;
     }
 
     .desc {
@@ -156,6 +162,32 @@ $fB: rgb(19, 19, 19); // Form background
         color: $wC;
       }
     }
+
+    select {
+      width: 70px;
+    }
+
+    .day,
+    .st,
+    .end,
+    .cl {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 30px;
+    }
+
+    .st {
+      gap: 15px;
+    }
+
+    .end {
+      gap: 31px;
+    }
+
+    .cl {
+      gap: 16px;
+    }
   }
 
   .form-buttons {
@@ -179,7 +211,7 @@ $fB: rgb(19, 19, 19); // Form background
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
-    max-width: 100%;
+    // max-width: 100%;
     box-sizing: border-box;
     white-space: nowrap;
     transition: transform 0.12s ease, box-shadow 0.12s ease;

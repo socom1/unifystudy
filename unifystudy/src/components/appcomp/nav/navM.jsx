@@ -1,11 +1,11 @@
 import React from "react";
 import "./styling/navm/navM.css";
 
-const NavM = ({ isActive, setActiveComponent, user }) => {
+const NavM = ({ isActive, setActiveComponent, user, isMobile }) => {
   return (
     <div className="flex-container">
-      <div id="navm" className={`${isActive ? "active" : ""}`}>
-        <ul className="menu flex">
+      <div id="navm" className={`${isMobile && isActive ? "active" : ""}`}>
+        <ul className={`menu flex ${!isMobile ? "desktop-menu" : ""}`}>
           <li onClick={() => setActiveComponent(user ? "profile" : "signIn")}>
             <span style={{ color: "#4b6c82" }}>01.</span>{" "}
             {user ? user.displayName || user.email : "Sign In"}

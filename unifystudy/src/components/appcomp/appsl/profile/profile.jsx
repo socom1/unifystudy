@@ -1,9 +1,21 @@
 import React, { useState } from "react";
-import { getAuth, deleteUser, signOut } from "firebase/auth";
+import {
+  getAuth,
+  deleteUser,
+  signOut,
+  sendPasswordResetEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 import "./Profile.css";
 
 const Profile = ({ user, onSignOut }) => {
   const [message, setMessage] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [showChangePassword, setShowChangePassword] = useState(false);
+
   const auth = getAuth();
 
   if (!user) return <p>Please sign in to view your profile.</p>;
@@ -12,7 +24,7 @@ const Profile = ({ user, onSignOut }) => {
     try {
       await deleteUser(user);
       setMessage("Account deleted successfully.");
-      if (onSignOut) onSignOut(); // redirect after deletion
+      if (onSignOut) onSignOut();
     } catch (error) {
       console.error("Error deleting user:", error);
       setMessage(
@@ -25,10 +37,45 @@ const Profile = ({ user, onSignOut }) => {
     try {
       await signOut(auth);
       setMessage("Signed out successfully.");
-      if (onSignOut) onSignOut(); // redirect after sign-out
+      if (onSignOut) onSignOut();
     } catch (error) {
       console.error("Error signing out:", error);
       setMessage("Error signing out. Please try again.");
+    }
+  };
+
+  // Forgot password
+  const handleForgotPassword = async () => {
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      setMessage("Password reset email sent. Check your inbox.");
+    } catch (error) {
+      console.error("Error sending reset email:", error);
+      setMessage("Error sending reset email. Try again later.");
+    }
+  };
+
+  // Change password
+  const handleChangePassword = async () => {
+    try {
+      // Reauthenticate user with current password
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword
+      );
+      await reauthenticateWithCredential(user, credential);
+
+      // Update password
+      await updatePassword(user, newPassword);
+      setMessage("Password updated successfully.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setShowChangePassword(false);
+    } catch (error) {
+      console.error("Error changing password:", error);
+      setMessage(
+        "Error changing password. Make sure your current password is correct."
+      );
     }
   };
 
@@ -53,7 +100,37 @@ const Profile = ({ user, onSignOut }) => {
           <button className="delete-account-btn" onClick={handleDeleteAccount}>
             Delete Account
           </button>
+          <button
+            className="forgot-password-btn"
+            onClick={handleForgotPassword}
+          >
+            Forgot Your Password?
+          </button>
+          <button
+            className="change-password-toggle-btn"
+            onClick={() => setShowChangePassword(!showChangePassword)}
+          >
+            {showChangePassword ? "Cancel" : "Change Password"}
+          </button>
         </div>
+
+        {showChangePassword && (
+          <div className="change-password-form">
+            <input
+              type="password"
+              placeholder="Current Password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="New Password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <button onClick={handleChangePassword}>Update Password</button>
+          </div>
+        )}
 
         {message && <p className="message">{message}</p>}
       </div>

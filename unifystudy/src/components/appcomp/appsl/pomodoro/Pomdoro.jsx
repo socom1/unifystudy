@@ -20,7 +20,7 @@ const Pomodoro = () => {
   const [editIndex, setEditIndex] = useState(null);
   const [currentTemplate, setCurrentTemplate] = useState(null);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
-  const [currentTitle, setCurrentTitle] = useState("Quick Timer");
+  const [currentTitle, setCurrentTitle] = useState("Pomodoro");
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -56,7 +56,7 @@ const Pomodoro = () => {
               } else {
                 setCurrentTemplate(null);
                 setCurrentSegmentIndex(0);
-                setCurrentTitle("Quick Timer");
+                setCurrentTitle("Pomodoro");
               }
             }
             return 0;
@@ -87,8 +87,21 @@ const Pomodoro = () => {
   };
 
   const circleRadius = 90;
+  const isBreak =
+    currentTemplate &&
+    currentTemplate.segments[currentSegmentIndex]?.type === "break";
+
   const circleCircumference = 2 * Math.PI * circleRadius;
-  const dashOffset = circleCircumference * (1 - timeLeft / selectedDuration);
+  const dashOffset = circleCircumference * (timeLeft / selectedDuration);
+  const totalTemplateDuration = currentTemplate
+    ? currentTemplate.segments.reduce((sum, seg) => sum + seg.duration * 60, 0)
+    : selectedDuration;
+  const elapsedBeforeCurrent = currentTemplate
+    ? currentTemplate.segments
+        .slice(0, currentSegmentIndex)
+        .reduce((sum, seg) => sum + seg.duration * 60, 0)
+    : 0;
+  const totalElapsed = elapsedBeforeCurrent + (selectedDuration - timeLeft);
 
   return (
     <div className="app">
@@ -109,7 +122,7 @@ const Pomodoro = () => {
               setFadeKey((k) => k + 1);
               setActiveButton(min);
               setCurrentTemplate(null);
-              setCurrentTitle("Quick Timer");
+              setCurrentTitle("Pomodoro");
               studySound.play();
             }}
             whileHover={{ scale: 1.05 }}
@@ -145,6 +158,7 @@ const Pomodoro = () => {
                 strokeWidth="10"
                 fill="none"
               />
+
               <motion.circle
                 className="circle-progress"
                 cx="100"
@@ -154,18 +168,15 @@ const Pomodoro = () => {
                 fill="none"
                 strokeDasharray={circleCircumference}
                 strokeDashoffset={dashOffset}
+                transform="rotate( 100 100)" // <-- only rotation needed!
                 animate={{
                   strokeDashoffset: dashOffset,
-                  stroke:
-                    currentTemplate &&
-                    currentTemplate.segments[currentSegmentIndex]?.type ===
-                      "break"
-                      ? "#bf4040"
-                      : "#4b6c82",
+                  stroke: isBreak ? "#bf4040" : "#4b6c82",
                 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
               />
             </svg>
+
             <AnimatePresence mode="wait">
               <motion.p
                 key={fadeKey}
@@ -211,27 +222,20 @@ const Pomodoro = () => {
             </motion.button>
           </motion.div>
 
-          {currentTemplate && (
-            <div className="timer__progress-bar">
-              <motion.div
-                className="progress-bar__fill"
-                initial={{ width: "0%" }}
-                animate={{
-                  width: `${
-                    ((selectedDuration - timeLeft) / selectedDuration) * 100
-                  }%`,
-                }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                style={{
-                  backgroundColor:
-                    currentTemplate.segments[currentSegmentIndex]?.type ===
+          <div className="timer__progress-bar">
+            <div
+              className="progress-bar__fill"
+              style={{
+                width: `${(totalElapsed / totalTemplateDuration) * 100}%`,
+                backgroundColor:
+                  currentTemplate &&
+                  currentTemplate.segments[currentSegmentIndex]?.type ===
                     "break"
-                      ? "#bf4040"
-                      : "#7bbf59",
-                }}
-              />
-            </div>
-          )}
+                    ? "#bf4040" // red
+                    : "#7bbf59", // green
+              }}
+            />
+          </div>
         </motion.section>
 
         {/* Templates Section */}
@@ -262,11 +266,16 @@ const Pomodoro = () => {
                 transition={{ duration: 0.3 }}
                 layout="position"
               >
+                <div className="header">
+                  <h2>Template:</h2>
+                </div>
+                <label>Name:</label>
                 <input
                   placeholder="Template Name"
                   value={newTemplateName}
                   onChange={(e) => setNewTemplateName(e.target.value)}
                 />
+                <label>Segments:</label>
                 <div className="templates__segments">
                   {newSegments.map((seg, idx) => (
                     <motion.div
@@ -323,13 +332,39 @@ const Pomodoro = () => {
                 >
                   Add Segment
                 </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleSaveTemplate}
-                >
-                  {editIndex !== null ? "Update Template" : "Save Template"}
-                </motion.button>
+                <div className="soc">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSaveTemplate}
+                  >
+                    {editIndex !== null ? "Update Template" : "Save Template"}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      const updated = [...templates];
+                      updated.splice(idx, 1);
+                      setTemplates(updated);
+                    }}
+                  >
+                    Delete
+                  </motion.button>
+                  <motion.button
+                    className="editor-close-btn"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setShowTemplateEditor(false);
+                      setEditIndex(null);
+                      setNewTemplateName("");
+                      setNewSegments([{ type: "study", duration: 10 }]);
+                    }}
+                  >
+                    Close
+                  </motion.button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -388,17 +423,6 @@ const Pomodoro = () => {
                       }}
                     >
                       Edit
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        const updated = [...templates];
-                        updated.splice(idx, 1);
-                        setTemplates(updated);
-                      }}
-                    >
-                      Delete
                     </motion.button>
                   </div>
                 </motion.li>

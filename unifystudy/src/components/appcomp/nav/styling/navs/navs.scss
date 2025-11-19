@@ -25,17 +25,42 @@ li {
   list-style: none;
 }
 
+/* Desktop menu styles */
+.desktopMenu {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  padding-top: 0.6rem;
+}
+
+.desktopMenu li {
+  cursor: pointer;
+  color: $asC;
+  font-weight: 500;
+}
+
+@media (max-width: 767px) {
+  .desktopMenu {
+    display: none; /* just to be safe */
+  }
+}
+
+@media (min-width: 768px) {
+  #nav .menuToggle {
+    display: none; /* hide toggle button on desktop */
+  }
+}
 .navf {
   #nav {
     width: 100vw;
-    height: 100px;
+    height: fit-content;
     .flexcontainer {
       flex-direction: row;
       justify-content: space-around;
 
       .left {
         width: 50vw;
-        padding-top: 2rem;
+        // padding-top: 2rem;
         .logo {
           padding-left: -1rem;
           font-family: "Fira Code", monospace;
@@ -50,7 +75,7 @@ li {
 
         .menuToggle {
           width: fit-content;
-          padding-top: 33px;
+          // padding-top: 33px;
           .toggle {
             // height: 2px;
             background-color: transparent;
@@ -78,6 +103,22 @@ li {
             }
           }
         }
+      }
+
+      @media (min-width: 768px) {
+        .right {
+          width: 900px;
+        }
+
+        .left {
+          padding-left: 2rem;
+        }
+      }
+    }
+
+    @media (min-width: 768px) {
+      .flexcontainer {
+        justify-content: center;
       }
     }
   }
