@@ -18,6 +18,7 @@ li {
 .app .flex-container #navm {
   transition: ease 0.3s;
   position: absolute;
+  left: 0;
   height: 100vh;
   width: 100vw;
   pointer-events: none;
@@ -29,7 +30,7 @@ li {
   margin-left: 10vw;
   flex-direction: column;
   align-items: left;
-  margin-top: 10vh;
+  margin-top: 4.5vh;
 }
 .app .flex-container #navm .menu li {
   margin-top: 100px;

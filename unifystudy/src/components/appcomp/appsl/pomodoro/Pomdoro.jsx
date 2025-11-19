@@ -92,13 +92,38 @@ const Pomodoro = () => {
 
   return (
     <div className="app">
+      <motion.footer
+        className="quick-bar"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        {[5, 10, 15, 25, 50, 60].map((min) => (
+          <motion.button
+            key={min}
+            className={`quick-bar__btn ${activeButton === min ? "active" : ""}`}
+            onClick={() => {
+              setIsRunning(false);
+              const secs = min * 60;
+              setSelectedDuration(secs);
+              setTimeLeft(secs);
+              setFadeKey((k) => k + 1);
+              setActiveButton(min);
+              setCurrentTemplate(null);
+              setCurrentTitle("Quick Timer");
+              studySound.play();
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {min}m
+          </motion.button>
+        ))}
+      </motion.footer>
       <motion.header
         className="header"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-      >
-        <h1 className="header__title">Pomodoro()</h1>
-      </motion.header>
+      ></motion.header>
 
       <main className="main">
         <motion.section
@@ -382,34 +407,6 @@ const Pomodoro = () => {
           </motion.div>
         </motion.section>
       </main>
-
-      <motion.footer
-        className="quick-bar"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        {[5, 10, 15, 25, 50, 60].map((min) => (
-          <motion.button
-            key={min}
-            className={`quick-bar__btn ${activeButton === min ? "active" : ""}`}
-            onClick={() => {
-              setIsRunning(false);
-              const secs = min * 60;
-              setSelectedDuration(secs);
-              setTimeLeft(secs);
-              setFadeKey((k) => k + 1);
-              setActiveButton(min);
-              setCurrentTemplate(null);
-              setCurrentTitle("Quick Timer");
-              studySound.play();
-            }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {min}m
-          </motion.button>
-        ))}
-      </motion.footer>
     </div>
   );
 };

@@ -20,6 +20,7 @@ $fB: rgb(19, 19, 19);
 }
 
 body {
+  height: 100vh;
   background: $fB;
   color: $wC;
 }
@@ -28,18 +29,18 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
-  padding-bottom: 100px; // extra space for footer
+  // gap: 40px;
 }
 
 .header {
+  padding-top: 30px;
   width: 100%;
   max-width: 960px;
   text-align: center;
 }
 
 .header__title {
-  font-size: 28px;
+  font-size: 38px;
   font-weight: 600;
   color: $aC;
 }
@@ -61,9 +62,9 @@ body {
 }
 
 .timer__title {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 500;
-  color: $aC;
+  color: $asC;
 }
 
 .timer__circle {
@@ -248,17 +249,14 @@ body {
   background: $asC;
 }
 
-/* Quick Selector Footer */
 .quick-bar {
-  position: fixed;
-  // bottom: 30%;
-  left: 0;
-  width: 100vw;
+  width: 80vw;
+  border-radius: 15px;
   background: $bC;
   padding: 12px 20px;
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 5%;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -286,9 +284,9 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .quick-bar {
-    overflow-x: auto;
-    justify-content: flex-start;
-  }
-}
+// @media (max-width: 768px) {
+//   .quick-bar {
+//     overflow-x: auto;
+//     justify-content: flex-start;
+//   }
+// }

@@ -3,7 +3,6 @@
 /* ============================================================
    🎨 COLOR VARIABLES — CODING THEME
    ============================================================ */
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
 * {
   margin: 0;
   padding: 0;
@@ -17,22 +16,23 @@
 :root {
   --time-col-width: 60px;
   --header-height: 40px;
-  --row-height: 70px; /* height per hour row */
+  --row-height: 70px;
 }
 
 /* ============================================================
    🗓️ CALENDAR CONTAINER
    ============================================================ */
 .calendar-container {
+  max-width: 98vw; /* prevent overflow */
+  overflow-x: hidden;
   padding: 1rem;
-  overflow-x: auto;
   background-color: #1e1e1e;
   color: #f2f2f2;
   min-height: 100vh;
 }
 
 /* ============================================================
-   NAV / FORM (same as before)
+   NAV / FORM
    ============================================================ */
 .calendar-nav {
   display: flex;
@@ -56,6 +56,9 @@
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-weight: 500;
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 .calendar-nav button:hover {
@@ -67,19 +70,52 @@
 }
 
 .event-form {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  height: 100vh;
+  width: 100vw;
+  z-index: 20000;
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   align-items: flex-end;
   background: rgb(19, 19, 19);
-  padding: 1rem;
+  padding: 2rem;
   border-radius: 6px;
   margin-bottom: 1rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
+.event-form .header h3 {
+  text-align: left;
+  font-size: 30px;
+  font-weight: 500;
+}
 .event-form .form-group {
   display: flex;
   flex-direction: column;
+}
+.event-form .form-group .title,
+.event-form .form-group .desc {
+  display: flex;
+  flex-direction: column;
+  margin-top: 3vh;
+}
+.event-form .form-group .desc textarea {
+  background-color: #1e1e1e;
+  padding: 0.5rem;
+  border-radius: 5px;
+  color: #afd4ed;
+  height: 20vh;
+  vertical-align: top;
+  text-align: left;
+  resize: none;
+}
+.event-form .form-group .desc textarea:focus {
+  outline: none;
+  background: #1e1e1e;
+  color: #f2f2f2;
 }
 .event-form .form-group label {
   font-size: 0.85rem;
@@ -88,6 +124,7 @@
 }
 .event-form .form-group input,
 .event-form .form-group select {
+  -webkit-appearance: none;
   color: #afd4ed;
   background-color: #1e1e1e;
   padding: 0.35rem 0.6rem;
@@ -98,8 +135,19 @@
 .event-form .form-group input:focus,
 .event-form .form-group select:focus {
   outline: none;
-  background: rgb(42.75, 42.75, 42.75);
+  background: #1e1e1e;
   color: #f2f2f2;
+}
+.event-form .form-buttons {
+  margin-top: 2vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+.event-form .form-buttons button {
+  height: 40px;
+  width: 150px;
 }
 .event-form button {
   padding: 0.5rem 1rem;
@@ -109,6 +157,9 @@
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 .event-form button:hover {
@@ -123,8 +174,10 @@
    GRID: use the CSS variables to keep everything consistent
    ============================================================ */
 .calendar-wrapper {
+  width: 100%;
+  overflow-x: auto; /* allow horizontal scroll if needed */
+  -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
   position: relative;
-  overflow: hidden;
 }
 
 .calendar-grid {
@@ -134,7 +187,9 @@
   background-color: #1e1e1e;
   position: relative;
   border-radius: 6px;
-  overflow: visible; /* allow shadows visible */
+  overflow: visible;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Header */
@@ -151,7 +206,6 @@
   background: rgba(255, 255, 255, 0.01);
 }
 
-/* day header cells */
 .day-header {
   color: #afd4ed;
   text-align: center;
@@ -160,7 +214,7 @@
   background: rgba(255, 255, 255, 0.01);
 }
 
-/* time column (left) — uses same row height variable */
+/* Time column */
 .time-column {
   display: grid;
   grid-column: 1;
@@ -177,16 +231,14 @@
   background: rgba(255, 255, 255, 0.01);
 }
 
-/* grid cells for the day/hour intersections */
+/* Grid cells */
 .grid-cell {
   border-top: 1px solid rgba(175, 212, 237, 0.06);
   border-right: 1px solid rgba(175, 212, 237, 0.04);
   background: transparent;
 }
 
-/* ============================================================
-   VERTICAL LINES (styled here; positioned by JSX)
-   ============================================================ */
+/* Vertical day lines */
 .day-line {
   position: absolute;
   top: 0;
@@ -198,16 +250,16 @@
 }
 
 /* ============================================================
-   EVENT BOXES (grid-placed)
+   EVENT BOXES
    ============================================================ */
 .event-box {
-  position: relative; /* grid-placed, not absolute */
-  margin: 4px 6px; /* horizontal gap so adjacent boxes don't touch */
+  position: relative;
+  margin: 4px 6px;
   border-radius: 10px;
   padding: 10px;
   font-size: 0.9rem;
   color: #1e1e1e;
-  background-color: rgba(175, 212, 237, 0.85); /* slight transparency */
+  background-color: rgba(175, 212, 237, 0.85);
   -webkit-backdrop-filter: blur(6px);
           backdrop-filter: blur(6px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
@@ -218,6 +270,7 @@
   align-items: center;
   justify-content: center;
   z-index: 3;
+  word-break: break-word;
 }
 .event-box span {
   display: block;
@@ -233,6 +286,7 @@
 }
 .event-box:hover {
   transform: scale(1.03);
+  cursor: pointer;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
   background-color: rgba(175, 212, 237, 0.9);
 }
@@ -290,335 +344,79 @@
   .event-form {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.6rem;
   }
   .event-form button {
     width: 100%;
   }
-  /* Make the whole grid horizontally scrollable on small screens */
-  .calendar-grid {
-    min-width: calc(var(--time-col-width) + 770px); /* rough per-day width for mobile */
+  .calendar-wrapper {
     overflow-x: auto;
-  }
-  .event-box {
-    font-size: 0.78rem;
-    padding: 8px;
-    margin: 3px 5px;
-  }
-  .delete-btn {
-    font-size: 0.7rem;
-    padding: 3px 5px;
-  }
-}
-/* ============================================================
-   🎨 COLOR VARIABLES — CODING THEME
-   ============================================================ */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Fira Code", monospace;
-}
-
-/* ---------------------------
-   CSS variables — single source of truth
-   --------------------------- */
-:root {
-  --time-col-width: 60px;
-  --header-height: 40px;
-  --row-height: 70px; /* height per hour row */
-}
-
-/* ============================================================
-   🗓️ CALENDAR CONTAINER
-   ============================================================ */
-.calendar-container {
-  padding: 1rem;
-  overflow-x: auto;
-  background-color: #1e1e1e;
-  color: #f2f2f2;
-  min-height: 100vh;
-}
-
-/* ============================================================
-   NAV / FORM
-   ============================================================ */
-.calendar-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgb(19, 19, 19);
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-.calendar-nav h2 {
-  color: #afd4ed;
-  font-size: 1.1rem;
-}
-.calendar-nav button {
-  background: #4b6c82;
-  color: black;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-.calendar-nav button:hover {
-  transform: scale(1.04);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-.calendar-nav button:active {
-  transform: scale(0.98);
-}
-
-.event-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-end;
-  background: rgb(19, 19, 19);
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-.event-form .form-group {
-  display: flex;
-  flex-direction: column;
-}
-.event-form .form-group label {
-  font-size: 0.85rem;
-  color: #4b6c82;
-  margin-bottom: 0.25rem;
-}
-.event-form .form-group input,
-.event-form .form-group select {
-  color: #afd4ed;
-  background-color: #1e1e1e;
-  padding: 0.35rem 0.6rem;
-  border: none;
-  border-radius: 4px;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-.event-form .form-group input:focus,
-.event-form .form-group select:focus {
-  outline: none;
-  background: rgb(42.75, 42.75, 42.75);
-  color: #f2f2f2;
-}
-.event-form button {
-  padding: 0.5rem 1rem;
-  background: #4b6c82;
-  color: black;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-.event-form button:hover {
-  transform: scale(1.04);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-.event-form button:active {
-  transform: scale(0.98);
-}
-
-/* ============================================================
-   GRID: use the CSS variables to keep everything consistent
-   ============================================================ */
-.calendar-wrapper {
-  position: relative;
-  overflow: hidden;
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: var(--time-col-width) repeat(7, 1fr);
-  grid-template-rows: var(--header-height) repeat(12, var(--row-height));
-  background-color: #1e1e1e;
-  position: relative;
-  border-radius: 6px;
-  overflow: visible; /* allow shadows visible */
-}
-
-/* Header */
-.calendar-header {
-  display: contents;
-}
-
-.time-column-header {
-  grid-column: 1;
-  color: #afd4ed;
-  text-align: center;
-  line-height: var(--header-height);
-  border-bottom: 1px solid rgba(175, 212, 237, 0.18);
-  background: rgba(255, 255, 255, 0.01);
-}
-
-.day-header {
-  color: #afd4ed;
-  text-align: center;
-  line-height: var(--header-height);
-  border-bottom: 1px solid rgba(175, 212, 237, 0.12);
-  background: rgba(255, 255, 255, 0.01);
-}
-
-/* Time column */
-.time-column {
-  display: grid;
-  grid-column: 1;
-  grid-row: 2/span 12;
-  grid-template-rows: repeat(12, var(--row-height));
-  z-index: 2;
-}
-.time-column .time-slot {
-  text-align: center;
-  color: #afd4ed;
-  font-size: 0.8rem;
-  line-height: var(--row-height);
-  border-top: 1px solid rgba(175, 212, 237, 0.08);
-  background: rgba(255, 255, 255, 0.01);
-}
-
-/* grid cells */
-.grid-cell {
-  border-top: 1px solid rgba(175, 212, 237, 0.06);
-  border-right: 1px solid rgba(175, 212, 237, 0.04);
-  background: transparent;
-}
-
-/* vertical day lines */
-.day-line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background-color: rgba(175, 212, 237, 0.12);
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* ============================================================
-   EVENT BOXES
-   ============================================================ */
-.event-box {
-  position: relative;
-  margin: 4px 6px;
-  border-radius: 10px;
-  padding: 10px;
-  font-size: 0.9rem;
-  color: #1e1e1e;
-  background-color: rgba(175, 212, 237, 0.85);
-  -webkit-backdrop-filter: blur(6px);
-          backdrop-filter: blur(6px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 3;
-}
-.event-box span {
-  display: block;
-  font-weight: 700;
-  color: #0b1620;
-  margin-bottom: 6px;
-  text-align: center;
-}
-.event-box .event-details {
-  font-size: 0.78rem;
-  color: rgba(11, 22, 32, 0.8);
-  text-align: center;
-}
-.event-box:hover {
-  transform: scale(1.03);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
-  background-color: rgba(175, 212, 237, 0.9);
-}
-.event-box .delete-btn {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  background: rgba(30, 30, 30, 0.28);
-  color: #f2f2f2;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.78rem;
-  padding: 4px 6px;
-  cursor: pointer;
-  opacity: 0.95;
-  transition: transform 0.12s ease, background 0.12s ease;
-}
-.event-box .delete-btn:hover {
-  transform: scale(1.08);
-  background: rgba(30, 30, 30, 0.5);
-}
-.event-box .delete-btn:active {
-  transform: scale(0.96);
-}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 1024px) {
-  :root {
-    --time-col-width: 50px;
-    --row-height: 60px;
-  }
-  .event-box {
-    font-size: 0.85rem;
-    border-radius: 8px;
-  }
-}
-@media (max-width: 768px) {
-  :root {
-    --time-col-width: 50px;
-    --row-height: 60px;
-  }
-  .calendar-container {
-    padding: 0.5rem;
-  }
-  .calendar-nav {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-  .calendar-nav button {
-    width: 100%;
-  }
-  .event-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .event-form button {
-    width: 100%;
   }
   .calendar-grid {
     min-width: calc(var(--time-col-width) + 770px);
-    overflow-x: auto;
+  }
+  .time-slot {
+    font-size: 0.72rem;
+    line-height: 50px;
+  }
+  .time-column-header,
+  .day-header {
+    font-size: 0.8rem;
+    line-height: 35px;
   }
   .event-box {
     font-size: 0.78rem;
     padding: 8px;
     margin: 3px 5px;
   }
+  .event-box span {
+    font-size: 0.85rem;
+  }
+  .event-box .event-details {
+    font-size: 0.72rem;
+  }
   .delete-btn {
     font-size: 0.7rem;
     padding: 3px 5px;
   }
-  .time-slot {
-    font-size: 0.7rem;
-    line-height: 50px;
+}
+@media (max-width: 480px) {
+  .calendar-grid {
+    min-width: calc(var(--time-col-width) + 700px);
   }
-  .day-header,
-  .time-column-header {
-    font-size: 0.8rem;
-    line-height: 35px;
+  .event-box {
+    padding: 6px;
+    margin: 2px 4px;
+    font-size: 0.72rem;
+  }
+  .event-box span {
+    font-size: 0.78rem;
+  }
+  .event-box .event-details {
+    font-size: 0.68rem;
+  }
+  .delete-btn {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+  }
+  .time-slot {
+    font-size: 0.65rem;
+    line-height: 45px;
+  }
+  .time-column-header,
+  .day-header {
+    font-size: 0.75rem;
+    line-height: 30px;
+  }
+}
+@media (max-width: 360px) {
+  .calendar-grid {
+    transform: scale(0.95);
+    transform-origin: top left;
+  }
+  .calendar-nav button,
+  .event-form button {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.8rem;
   }
 }/*# sourceMappingURL=mt.css.map */

@@ -1,7 +1,7 @@
 // src/components/tdl/TdlF.jsx
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { db, auth } from ".././firebase";
+import { db, auth } from "../firebase";
 import { ref, set, push, remove, onValue, update } from "firebase/database";
 import "./tdlF.scss";
 
@@ -35,11 +35,9 @@ const TdlF = () => {
     const foldersRef = ref(db, `users/${userId}/folders`);
     const unsub = onValue(foldersRef, (snap) => {
       const data = snap.val() || {};
-      // each folder stays as { id, text, tasks: { taskId: {text,isActive}, ... } }
       const loaded = Object.entries(data).map(([id, val]) => ({ id, ...val }));
       setFolders(loaded);
 
-      // Keep currentFolder object fresh if open
       if (currentFolder) {
         const match = loaded.find((f) => f.id === currentFolder.id);
         if (match) setCurrentFolder(match);
@@ -67,6 +65,7 @@ const TdlF = () => {
     if (!userId) return;
     try {
       await remove(ref(db, `users/${userId}/folders/${id}`));
+      setFolders((prev) => prev.filter((f) => f.id !== id));
       if (currentFolder?.id === id) setCurrentFolder(null);
     } catch (err) {
       console.error("Delete folder failed:", err);
@@ -83,6 +82,12 @@ const TdlF = () => {
       await update(ref(db, `users/${userId}/folders/${id}`), {
         text: editFolderText,
       });
+      // Update locally
+      setFolders((prev) =>
+        prev.map((f) => (f.id === id ? { ...f, text: editFolderText } : f))
+      );
+      if (currentFolder?.id === id)
+        setCurrentFolder((prev) => ({ ...prev, text: editFolderText }));
       setEditingFolderId(null);
     } catch (err) {
       console.error("Edit folder failed:", err);
@@ -91,7 +96,6 @@ const TdlF = () => {
 
   // --- Enter / Go back ---
   const enterFolder = (folder) => {
-    // folder comes from current folders state so contains 'tasks' object
     setCurrentFolder(folder);
     setActiveIndex(null);
     setActiveFIndex(null);
@@ -116,7 +120,14 @@ const TdlF = () => {
         `users/${userId}/folders/${currentFolder.id}/tasks`
       );
       const newTaskRef = push(tasksRef);
-      await set(newTaskRef, { text: taskInput, isActive: false });
+      const newTask = { text: taskInput, isActive: false };
+      await set(newTaskRef, newTask);
+
+      // Update UI immediately
+      setCurrentFolder((prev) => ({
+        ...prev,
+        tasks: { ...prev.tasks, [newTaskRef.key]: newTask },
+      }));
       setTaskInput("");
     } catch (err) {
       console.error("Add task failed:", err);
@@ -126,11 +137,19 @@ const TdlF = () => {
   // --- Delete task ---
   const handleDeleteTask = async (taskId) => {
     if (!userId || !currentFolder) return;
+
+    // Update UI immediately
+    setCurrentFolder((prev) => {
+      if (!prev) return prev;
+      const updatedTasks = { ...prev.tasks };
+      delete updatedTasks[taskId];
+      return { ...prev, tasks: updatedTasks };
+    });
+
     try {
       await remove(
         ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`)
       );
-      // close dropdown optionally
       setActiveIndex(null);
     } catch (err) {
       console.error("Delete task failed:", err);
@@ -143,6 +162,19 @@ const TdlF = () => {
       setEditingTaskId(null);
       return;
     }
+
+    // Update UI immediately
+    setCurrentFolder((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        tasks: {
+          ...prev.tasks,
+          [taskId]: { ...prev.tasks[taskId], text: editTaskText },
+        },
+      };
+    });
+
     try {
       await update(
         ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`),
@@ -158,43 +190,47 @@ const TdlF = () => {
   // --- Toggle complete ---
   const toggleTask = async (taskId, currentState) => {
     if (!userId || !currentFolder) return;
+
+    // Update UI immediately
+    setCurrentFolder((prev) => ({
+      ...prev,
+      tasks: {
+        ...prev.tasks,
+        [taskId]: { ...prev.tasks[taskId], isActive: !currentState },
+      },
+    }));
+
     try {
       await update(
         ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`),
-        {
-          isActive: !Boolean(currentState),
-        }
+        { isActive: !currentState }
       );
     } catch (err) {
       console.error("Toggle task failed:", err);
     }
   };
 
-  // --- Delete finished tasks (keeps behaviour close to yours) ---
+  // --- Delete finished tasks ---
   const deleteAllFinishedTasks = async () => {
     if (!userId || !currentFolder) return;
+    const tasksToDelete = Object.entries(currentFolder.tasks || {}).filter(
+      ([_, t]) => t.isActive
+    );
+
+    // Update UI immediately
+    setCurrentFolder((prev) => {
+      if (!prev) return prev;
+      const updatedTasks = { ...prev.tasks };
+      tasksToDelete.forEach(([id]) => delete updatedTasks[id]);
+      return { ...prev, tasks: updatedTasks };
+    });
+
     try {
-      const tasksRef = ref(
-        db,
-        `users/${userId}/folders/${currentFolder.id}/tasks`
-      );
-      // read once and remove
-      onValue(
-        tasksRef,
-        (snap) => {
-          const data = snap.val() || {};
-          Object.entries(data).forEach(([id, t]) => {
-            if (t.isActive)
-              remove(
-                ref(
-                  db,
-                  `users/${userId}/folders/${currentFolder.id}/tasks/${id}`
-                )
-              );
-          });
-        },
-        { onlyOnce: true }
-      );
+      tasksToDelete.forEach(([id]) => {
+        remove(
+          ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${id}`)
+        );
+      });
     } catch (err) {
       console.error("Delete finished tasks failed:", err);
     }
@@ -398,7 +434,6 @@ const TdlF = () => {
                                   }
                                   onBlur={() => applyTaskEdit(taskId)}
                                   onKeyDown={(e) => {
-                                    // Prevent outer form submit and apply edit on Enter
                                     if (e.key === "Enter") {
                                       e.preventDefault();
                                       e.stopPropagation();

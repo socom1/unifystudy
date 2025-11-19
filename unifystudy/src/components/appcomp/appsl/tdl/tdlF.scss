@@ -188,7 +188,7 @@ li {
     padding-bottom: 12px;
     width: 80vw;
     border-radius: 10px;
-    background-color: $fB;
+    background-color: lighten($bC, 2%);
 
     #taskListTD {
       .aS {

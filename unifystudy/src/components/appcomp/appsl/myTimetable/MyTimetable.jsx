@@ -5,11 +5,6 @@ import { db, auth } from "../firebase";
 import { ref, onValue, push, set, remove } from "firebase/database";
 import "./mt.css";
 
-// import React, { useState, useEffect } from "react";
-// import { motion, AnimatePresence } from "framer-motion";
-// import "./mt.css"; // compiled from mt.scss
-
-// Theme / data
 const colors = ["#4b6c82", "#afd4ed", "#e79950", "#e94f4f"];
 const days = [
   "Monday",
@@ -22,25 +17,21 @@ const days = [
 ];
 const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8 → 19 (8am - 7pm)
 
-/**
- * WeeklyCalendar
- * - Events are placed using CSS Grid (gridColumn & gridRow). This avoids manual pixel math.
- * - Vertical day lines are rendered dynamically here (so you can toggle/highlight programmatically).
- * - CSS variables control header height, row height and time column width to avoid offsets.
- */
 export default function WeeklyCalendar() {
   const [events, setEvents] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [form, setForm] = useState({
     title: "",
+    description: "",
     day: "Monday",
     start: 8,
     end: 9,
     color: colors[0],
   });
   const [userId, setUserId] = useState(null);
+  const [editingEventId, setEditingEventId] = useState(null);
 
-  // ✅ Track logged-in user
+  // Track logged-in user
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) setUserId(user.uid);
@@ -49,7 +40,7 @@ export default function WeeklyCalendar() {
     return unsubscribe;
   }, []);
 
-  // ✅ Load events from Firebase
+  // Load events from Firebase
   useEffect(() => {
     if (!userId) return;
 
@@ -57,7 +48,6 @@ export default function WeeklyCalendar() {
     const unsubscribe = onValue(eventsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        // Transform Firebase object into array with keys
         const loadedEvents = Object.entries(data).map(([id, value]) => ({
           id,
           ...value,
@@ -71,24 +61,66 @@ export default function WeeklyCalendar() {
     return () => unsubscribe();
   }, [userId]);
 
-  // ✅ Add event to Firebase
+  // Add or update event
   const addEvent = (e) => {
     e.preventDefault();
     if (!userId) return alert("Please log in first.");
     if (!form.title.trim() || form.end <= form.start) return;
 
     const eventsRef = ref(db, `users/${userId}/events`);
-    const newEventRef = push(eventsRef);
-    set(newEventRef, form);
 
-    setForm({ title: "", day: "Monday", start: 8, end: 9, color: colors[0] });
+    if (editingEventId) {
+      // Update existing event
+      set(ref(db, `users/${userId}/events/${editingEventId}`), form);
+      setEditingEventId(null);
+    } else {
+      // Create new event
+      const newEventRef = push(eventsRef);
+      set(newEventRef, form);
+    }
+
+    // Reset form
+    setForm({
+      title: "",
+      description: "",
+      day: "Monday",
+      start: 8,
+      end: 9,
+      color: colors[0],
+    });
     setIsFormOpen(false);
   };
 
-  // ✅ Delete event by Firebase key
+  // Delete event
   const deleteEvent = (eventId) => {
     if (!userId) return;
     remove(ref(db, `users/${userId}/events/${eventId}`));
+    if (editingEventId === eventId) {
+      setEditingEventId(null);
+      setForm({
+        title: "",
+        description: "",
+        day: "Monday",
+        start: 8,
+        end: 9,
+        color: colors[0],
+      });
+      setIsFormOpen(false);
+    }
+  };
+
+  // Edit event
+  const editEvent = (ev) => {
+    setForm({
+      title: ev.title,
+      description: ev.description || "",
+      day: ev.day,
+      start: ev.start,
+      end: ev.end,
+      color: ev.color,
+    });
+    setEditingEventId(ev.id);
+    setIsFormOpen(true);
   };
 
   return (
@@ -110,15 +142,32 @@ export default function WeeklyCalendar() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ ease: "easeOut", duration: 0.25 }}
           >
-            <div className="form-group">
-              <label>Title</label>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                required
-              />
+            <div className="header">
+              <h3>Event:</h3>
             </div>
+
+            <div className="form-group">
+              <div className="title">
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="desc">
+                <label>Description(optional)</label>
+                <textarea
+                  type="text"
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
             <div className="form-group">
               <label>Day</label>
               <select
@@ -132,6 +181,7 @@ export default function WeeklyCalendar() {
                 ))}
               </select>
             </div>
+
             <div className="form-group">
               <label>Start</label>
               <select
@@ -147,6 +197,7 @@ export default function WeeklyCalendar() {
                 ))}
               </select>
             </div>
+
             <div className="form-group">
               <label>End</label>
               <select
@@ -162,6 +213,7 @@ export default function WeeklyCalendar() {
                 ))}
               </select>
             </div>
+
             <div className="form-group">
               <label>Color</label>
               <select
@@ -175,12 +227,34 @@ export default function WeeklyCalendar() {
                 ))}
               </select>
             </div>
-            <button type="submit">Add</button>
+
+            <div className="form-buttons">
+              <button type="submit">
+                {editingEventId ? "Save Changes" : "Add"}
+              </button>
+              <button
+                type="button"
+                className="close-btn"
+                onClick={() => {
+                  setIsFormOpen(false);
+                  setEditingEventId(null);
+                  setForm({
+                    title: "",
+                    description: "",
+                    day: "Monday",
+                    start: 8,
+                    end: 9,
+                    color: colors[0],
+                  });
+                }}
+              >
+                Close
+              </button>
+            </div>
           </motion.form>
         )}
       </AnimatePresence>
 
-      {/* Calendar Grid */}
       <div className="calendar-wrapper">
         <div className="calendar-grid">
           <div className="calendar-header">
@@ -216,7 +290,6 @@ export default function WeeklyCalendar() {
             />
           ))}
 
-          {/* Events */}
           <AnimatePresence>
             {events.map((ev) => {
               const dayIndex = days.indexOf(ev.day);
@@ -237,6 +310,7 @@ export default function WeeklyCalendar() {
                     gridRow: `${gridRowStart} / span ${rowSpan}`,
                     backgroundColor: ev.color,
                   }}
+                  onClick={() => editEvent(ev)}
                 >
                   <span>{ev.title}</span>
                   <div className="event-details">
@@ -244,9 +318,12 @@ export default function WeeklyCalendar() {
                   </div>
                   <button
                     className="delete-btn"
-                    onClick={() => deleteEvent(ev.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteEvent(ev.id);
+                    }}
                   >
-                    ✕
+                    Delete
                   </button>
                 </motion.div>
               );
