@@ -10,6 +10,14 @@ $rC: #bf4040;
 $gC: #40bf46;
 $fB: rgb(19, 19, 19);
 
+:root {
+  --bg: #0c1214;
+  --panel: #0f1516;
+  --muted: #9fb1bb;
+  --accent: #4b6c82;
+  --accent2: #8fd2ff;
+}
+
 * {
   padding: 0;
   margin: 0;
@@ -30,21 +38,23 @@ li {
     #navm {
       transition: ease 0.3s;
       position: absolute;
+      top: 85px;
       left: 0;
+      transform: translateY(-60px);
       // transform: translateY(-1300px);
       // transform: translateX(-150px);
       height: 100vh;
       width: 100vw;
       pointer-events: none;
       opacity: 0;
-      background-color: $bC;
+      background-color: var(--bg);
       z-index: 15;
 
       .menu {
         margin-left: 10vw;
         flex-direction: column;
         align-items: left;
-        margin-top: 4.5vh;
+        margin-top: 0.5vh;
 
         li {
           margin-top: 100px;
@@ -68,10 +78,10 @@ li {
       transition: ease 0.3s;
       display: default;
       opacity: 1;
-      // transform: translateY(0px);
+      transform: translateY(-30px);
       height: 100vh;
       width: 100vw;
-      background-color: $bC;
+      // background-color: $bC;
       // z-index: 3;
     }
   }

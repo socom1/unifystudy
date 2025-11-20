@@ -1,104 +1,121 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+/* src/styling/navs/navs.css */
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
+:root {
+  --bg: #0c1214;
+  --panel: #0f1516;
+  --muted: #9fb1bb;
+  --accent: #4b6c82;
+  --accent2: #8fd2ff;
+}
+
 * {
-  padding: 0;
   margin: 0;
+}
+
+#nav {
+  width: 100%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0));
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
   font-family: "Fira Code", monospace;
+  z-index: 40;
 }
 
-.flex {
+.flexcontainer {
+  width: 100%;
+  margin: 0;
+  padding: 3rem;
   display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-li {
+.left {
+  padding-left: 3vw;
+}
+
+.right {
+  padding-right: 3vw;
+}
+
+.left .logo {
+  font-weight: 500;
+  font-size: 28px;
+  color: var(--accent2);
+  letter-spacing: 0.6px;
+}
+
+.right ul.desktopMenu {
+  display: flex; /* <-- Show by default */
+  gap: 14px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.right ul.desktopMenu li {
   list-style: none;
 }
 
-/* Desktop menu styles */
-.desktopMenu {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  padding-top: 0.6rem;
+.right ul.desktopMenu li a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  transition: all 0.14s ease;
 }
 
-.desktopMenu li {
-  cursor: pointer;
-  color: #afd4ed;
-  font-weight: 500;
+.right ul.desktopMenu li a:hover {
+  color: var(--accent2);
+  transform: translateY(-2px);
+  background: rgba(143, 210, 255, 0.03);
 }
 
-@media (max-width: 767px) {
-  .desktopMenu {
-    display: none; /* just to be safe */
-  }
+.right .desktopMenu li:first-child a {
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color: #02161a;
+  font-weight: 700;
+  padding: 6px 10px;
 }
-@media (min-width: 768px) {
-  #nav .menuToggle {
-    display: none; /* hide toggle button on desktop */
-  }
+
+/* --- ADDED THIS RULE --- */
+/* Hide mobile toggle by default on desktop */
+.right .menuToggle {
+  display: none;
 }
-.navf #nav {
-  width: 100vw;
-  height: -moz-fit-content;
-  height: fit-content;
+
+/* mobile toggle button styling (no change) */
+.menuToggle .toggle {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer; /* Added for better usability */
 }
-.navf #nav .flexcontainer {
-  flex-direction: row;
-  justify-content: space-around;
-}
-.navf #nav .flexcontainer .left {
-  width: 50vw;
-}
-.navf #nav .flexcontainer .left .logo {
-  padding-left: -1rem;
-  font-family: "Fira Code", monospace;
-  font-size: 30px;
-  color: #4b6c82;
-}
-.navf #nav .flexcontainer .right {
-  width: -moz-fit-content;
-  width: fit-content;
-}
-.navf #nav .flexcontainer .right .menuToggle {
-  width: -moz-fit-content;
-  width: fit-content;
-}
-.navf #nav .flexcontainer .right .menuToggle .toggle {
-  background-color: transparent;
-  height: -moz-fit-content;
-  height: fit-content;
-  border: none;
-}
-.navf #nav .flexcontainer .right .menuToggle .toggle .l1,
-.navf #nav .flexcontainer .right .menuToggle .toggle .l2,
-.navf #nav .flexcontainer .right .menuToggle .toggle .l3 {
-  margin-top: 7px;
-  height: 3px;
-  border-radius: 15px;
+
+.menuToggle .toggle .l1,
+.menuToggle .toggle .l2,
+.menuToggle .toggle .l3 {
   display: block;
-  width: 35px;
-  background-color: #f2f2f2;
-  transition: ease-in 0.5s;
+  width: 18px;
+  height: 2px;
+  background: var(--muted);
+  margin: 4px 0;
+  transition: all 0.18s ease;
 }
-.navf #nav .flexcontainer .right .menuToggle .toggle:hover {
-  cursor: pointer;
-}
-.navf #nav .flexcontainer .right .menuToggle .toggle:hover span {
-  transition: ease-in 0.5s;
-  background-color: #4b6c82;
-}
-@media (min-width: 768px) {
-  .navf #nav .flexcontainer .right {
-    width: 900px;
+
+/* small screens */
+@media (max-width: 900px) {
+  .flexcontainer {
+    padding: 10px;
   }
-  .navf #nav .flexcontainer .left {
-    padding-left: 2rem;
+  .right ul.desktopMenu {
+    display: none; /* This rule was already correct */
   }
-}
-@media (min-width: 768px) {
-  .navf #nav .flexcontainer {
-    justify-content: center;
+  /* --- ADDED THIS RULE --- */
+  /* Show mobile toggle on small screens */
+  .right .menuToggle {
+    display: block;
   }
 }/*# sourceMappingURL=navs.css.map */

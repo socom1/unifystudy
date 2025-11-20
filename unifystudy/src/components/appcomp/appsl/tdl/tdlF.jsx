@@ -1,525 +1,824 @@
-// src/components/tdl/TdlF.jsx
-import React, { useState, useEffect } from "react";
+// /mnt/data/tdlF.jsx
+// Terminal-styled ToDo list with polished drag preview, framer animations, folder color picker,
+// mobile full-screen editors, desktop right panel editor, undo, and reliable Firebase persistence.
+//
+// Requires: framer-motion installed, ../firebase exports { db, auth } (Realtime Database).
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "../firebase";
-import { ref, set, push, remove, onValue, update } from "firebase/database";
+import { ref, push, set, remove, onValue, update } from "firebase/database";
 import "./tdlF.scss";
 
-const TdlF = () => {
+export default function TdlF() {
+  // auth
   const [userId, setUserId] = useState(null);
-  const [folders, setFolders] = useState([]);
-  const [currentFolder, setCurrentFolder] = useState(null);
-
-  const [folderInput, setFolderInput] = useState("");
-  const [taskInput, setTaskInput] = useState("");
-
-  const [editingFolderId, setEditingFolderId] = useState(null);
-  const [editingTaskId, setEditingTaskId] = useState(null);
-  const [editFolderText, setEditFolderText] = useState("");
-  const [editTaskText, setEditTaskText] = useState("");
-
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [activeFIndex, setActiveFIndex] = useState(null);
-
-  // --- Track auth ---
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => {
-      setUserId(user ? user.uid : null);
-    });
+    const unsub = auth.onAuthStateChanged((u) => setUserId(u ? u.uid : null));
     return () => unsub();
   }, []);
 
-  // --- Load folders (and keep currentFolder in sync) ---
+  // responsive
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 900 : true
+  );
   useEffect(() => {
-    if (!userId) return;
+    const onResize = () => setIsMobile(window.innerWidth < 900);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // data
+  const [folders, setFolders] = useState([]);
+  const [currentFolderId, setCurrentFolderId] = useState(null);
+  const [tasks, setTasks] = useState([]);
+
+  // UI state
+  const [folderInput, setFolderInput] = useState("");
+  const [taskInput, setTaskInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [showFolderDetailMobile, setShowFolderDetailMobile] = useState(false);
+  const [recentlyDeleted, setRecentlyDeleted] = useState(null);
+
+  // drag state
+  const dragState = useRef({ draggingIndex: null });
+  const ghostEl = useRef(null);
+
+  // throttled order persistence
+  const orderTimeout = useRef(null);
+  const persistQueue = useRef(null);
+
+  // firebase listeners: folders
+  useEffect(() => {
+    if (!userId) {
+      setFolders([]);
+      return;
+    }
     const foldersRef = ref(db, `users/${userId}/folders`);
     const unsub = onValue(foldersRef, (snap) => {
       const data = snap.val() || {};
-      const loaded = Object.entries(data).map(([id, val]) => ({ id, ...val }));
-      setFolders(loaded);
-
-      if (currentFolder) {
-        const match = loaded.find((f) => f.id === currentFolder.id);
-        if (match) setCurrentFolder(match);
+      const arr = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+      arr.sort((a, b) => {
+        if (a.order != null && b.order != null) return a.order - b.order;
+        return (a.text || "").localeCompare(b.text || "");
+      });
+      setFolders(arr);
+      if (currentFolderId && !arr.find((f) => f.id === currentFolderId)) {
+        setCurrentFolderId(null);
       }
     });
     return () => unsub();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [userId, currentFolderId]);
 
-  // --- Add folder ---
-  const handleAddFolder = async (e) => {
-    e.preventDefault();
-    if (!folderInput.trim() || !userId) return;
-    try {
-      const newFolderRef = push(ref(db, `users/${userId}/folders`));
-      await set(newFolderRef, { text: folderInput, tasks: {} });
-      setFolderInput("");
-    } catch (err) {
-      console.error("Add folder failed:", err);
-    }
-  };
-
-  // --- Delete folder ---
-  const handleDeleteFolder = async (id) => {
-    if (!userId) return;
-    try {
-      await remove(ref(db, `users/${userId}/folders/${id}`));
-      setFolders((prev) => prev.filter((f) => f.id !== id));
-      if (currentFolder?.id === id) setCurrentFolder(null);
-    } catch (err) {
-      console.error("Delete folder failed:", err);
-    }
-  };
-
-  // --- Edit folder name ---
-  const applyFolderEdit = async (id) => {
-    if (!editFolderText.trim() || !userId) {
-      setEditingFolderId(null);
+  // firebase listeners: tasks for current folder
+  useEffect(() => {
+    if (!userId || !currentFolderId) {
+      setTasks([]);
       return;
     }
-    try {
-      await update(ref(db, `users/${userId}/folders/${id}`), {
-        text: editFolderText,
-      });
-      // Update locally
-      setFolders((prev) =>
-        prev.map((f) => (f.id === id ? { ...f, text: editFolderText } : f))
-      );
-      if (currentFolder?.id === id)
-        setCurrentFolder((prev) => ({ ...prev, text: editFolderText }));
-      setEditingFolderId(null);
-    } catch (err) {
-      console.error("Edit folder failed:", err);
-    }
-  };
-
-  // --- Enter / Go back ---
-  const enterFolder = (folder) => {
-    setCurrentFolder(folder);
-    setActiveIndex(null);
-    setActiveFIndex(null);
-    setEditingTaskId(null);
-    setEditTaskText("");
-  };
-  const goBack = () => {
-    setCurrentFolder(null);
-    setActiveIndex(null);
-    setActiveFIndex(null);
-    setEditingTaskId(null);
-    setEditTaskText("");
-  };
-
-  // --- Add task ---
-  const handleAddTask = async (e) => {
-    e.preventDefault();
-    if (!taskInput.trim() || !userId || !currentFolder) return;
-    try {
-      const tasksRef = ref(
-        db,
-        `users/${userId}/folders/${currentFolder.id}/tasks`
-      );
-      const newTaskRef = push(tasksRef);
-      const newTask = { text: taskInput, isActive: false };
-      await set(newTaskRef, newTask);
-
-      // Update UI immediately
-      setCurrentFolder((prev) => ({
-        ...prev,
-        tasks: { ...prev.tasks, [newTaskRef.key]: newTask },
-      }));
-      setTaskInput("");
-    } catch (err) {
-      console.error("Add task failed:", err);
-    }
-  };
-
-  // --- Delete task ---
-  const handleDeleteTask = async (taskId) => {
-    if (!userId || !currentFolder) return;
-
-    // Update UI immediately
-    setCurrentFolder((prev) => {
-      if (!prev) return prev;
-      const updatedTasks = { ...prev.tasks };
-      delete updatedTasks[taskId];
-      return { ...prev, tasks: updatedTasks };
+    const path = `users/${userId}/folders/${currentFolderId}/tasks`;
+    const tasksRef = ref(db, path);
+    const unsub = onValue(tasksRef, (snap) => {
+      const data = snap.val() || {};
+      const arr = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+      arr.sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+      setTasks(arr);
     });
+    return () => unsub();
+  }, [userId, currentFolderId]);
 
-    try {
-      await remove(
-        ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`)
-      );
-      setActiveIndex(null);
-    } catch (err) {
-      console.error("Delete task failed:", err);
-    }
-  };
-
-  // --- Edit task ---
-  const applyTaskEdit = async (taskId) => {
-    if (!editTaskText.trim() || !userId || !currentFolder) {
-      setEditingTaskId(null);
-      return;
-    }
-
-    // Update UI immediately
-    setCurrentFolder((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        tasks: {
-          ...prev.tasks,
-          [taskId]: { ...prev.tasks[taskId], text: editTaskText },
-        },
-      };
-    });
-
-    try {
-      await update(
-        ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`),
-        { text: editTaskText }
-      );
-      setEditingTaskId(null);
-      setEditTaskText("");
-    } catch (err) {
-      console.error("Edit task failed:", err);
-    }
-  };
-
-  // --- Toggle complete ---
-  const toggleTask = async (taskId, currentState) => {
-    if (!userId || !currentFolder) return;
-
-    // Update UI immediately
-    setCurrentFolder((prev) => ({
-      ...prev,
-      tasks: {
-        ...prev.tasks,
-        [taskId]: { ...prev.tasks[taskId], isActive: !currentState },
-      },
-    }));
-
-    try {
-      await update(
-        ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${taskId}`),
-        { isActive: !currentState }
-      );
-    } catch (err) {
-      console.error("Toggle task failed:", err);
-    }
-  };
-
-  // --- Delete finished tasks ---
-  const deleteAllFinishedTasks = async () => {
-    if (!userId || !currentFolder) return;
-    const tasksToDelete = Object.entries(currentFolder.tasks || {}).filter(
-      ([_, t]) => t.isActive
+  // helpers
+  const escapeHtml = (s) =>
+    String(s || "").replace(
+      /[&<>"']/g,
+      (m) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[m])
     );
 
-    // Update UI immediately
-    setCurrentFolder((prev) => {
-      if (!prev) return prev;
-      const updatedTasks = { ...prev.tasks };
-      tasksToDelete.forEach(([id]) => delete updatedTasks[id]);
-      return { ...prev, tasks: updatedTasks };
-    });
+  // safe push wrapper
+  const safePushTask = useCallback(
+    async (folderId, taskObj) => {
+      if (!userId || !folderId) return null;
+      const tasksRef = ref(db, `users/${userId}/folders/${folderId}/tasks`);
+      const newRef = push(tasksRef);
+      await set(newRef, taskObj);
+      return newRef.key;
+    },
+    [userId]
+  );
 
-    try {
-      tasksToDelete.forEach(([id]) => {
-        remove(
-          ref(db, `users/${userId}/folders/${currentFolder.id}/tasks/${id}`)
-        );
+  // persist order (throttled)
+  const persistTaskOrder = useCallback(
+    (folderId, orderedIds) => {
+      if (!userId || !folderId) return;
+      // batch updates
+      const updates = {};
+      orderedIds.forEach((id, idx) => {
+        updates[`users/${userId}/folders/${folderId}/tasks/${id}/order`] = idx;
       });
-    } catch (err) {
-      console.error("Delete finished tasks failed:", err);
+      // debounce single database write
+      if (orderTimeout.current) clearTimeout(orderTimeout.current);
+      orderTimeout.current = setTimeout(() => {
+        update(ref(db, "/"), updates).catch((e) => console.error(e));
+        orderTimeout.current = null;
+      }, 180);
+    },
+    [userId]
+  );
+
+  // folder operations
+  const addFolder = async (e) => {
+    e?.preventDefault();
+    if (!userId || !folderInput.trim()) return;
+    const folderObj = {
+      text: folderInput.trim(),
+      emoji: "📁",
+      color: "#3b6ea5",
+      notes: "",
+      order: Date.now(),
+    };
+    const foldersRef = ref(db, `users/${userId}/folders`);
+    const newRef = push(foldersRef);
+    await set(newRef, folderObj);
+    setFolderInput("");
+  };
+
+  const deleteFolder = async (folderId, e) => {
+    e?.stopPropagation();
+    if (!userId) return;
+    const folderObj = folders.find((f) => f.id === folderId);
+    setRecentlyDeleted({ type: "folder", id: folderId, data: folderObj });
+    await remove(ref(db, `users/${userId}/folders/${folderId}`));
+    if (currentFolderId === folderId) {
+      setCurrentFolderId(null);
+      setSelectedTaskId(null);
     }
   };
 
-  // animations
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -15 },
-  };
-  const pageVariants = {
-    initial: { opacity: 0, x: 50 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -50 },
+  const setFolderColor = async (folderId, color) => {
+    if (!userId) return;
+    await update(ref(db, `users/${userId}/folders/${folderId}`), { color });
   };
 
-  return (
-    <div className="relative overflow-hidden">
-      <AnimatePresence mode="wait">
-        {/* FOLDER VIEW */}
-        {!currentFolder && (
-          <motion.div
-            key="folder-view"
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={pageVariants}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="appL"
-          >
-            <div className="titleCF flex">
-              <h2>Your Folders</h2>
+  const setFolderNotes = async (folderId, notes) => {
+    if (!userId) return;
+    await update(ref(db, `users/${userId}/folders/${folderId}`), { notes });
+  };
+
+  // tasks operations
+  const addTask = async (e) => {
+    e?.preventDefault();
+    if (!userId || !currentFolderId || !taskInput.trim()) return;
+    const taskObj = {
+      text: taskInput.trim(),
+      isActive: false,
+      order: tasks.length,
+      description: "",
+      color:
+        (folders.find((f) => f.id === currentFolderId) || {}).color ||
+        "#3b6ea5",
+    };
+    await safePushTask(currentFolderId, taskObj);
+    setTaskInput("");
+  };
+
+  const updateTask = async (taskId, payload) => {
+    if (!userId || !currentFolderId) return;
+    // always run update (no pushes!)
+    await update(
+      ref(db, `users/${userId}/folders/${currentFolderId}/tasks/${taskId}`),
+      payload
+    );
+  };
+
+  const toggleTask = async (taskId, currentState) => {
+    if (!userId || !currentFolderId) return;
+    // local optimistic update
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, isActive: !currentState } : t))
+    );
+    await update(
+      ref(db, `users/${userId}/folders/${currentFolderId}/tasks/${taskId}`),
+      { isActive: !currentState }
+    );
+  };
+
+  const deleteTask = async (taskId, e) => {
+    e?.stopPropagation();
+    if (!userId || !currentFolderId) return;
+    const removed = tasks.find((t) => t.id === taskId);
+    setRecentlyDeleted({
+      type: "task",
+      folderId: currentFolderId,
+      id: taskId,
+      data: removed,
+    });
+    // optimistic local remove
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    await remove(
+      ref(db, `users/${userId}/folders/${currentFolderId}/tasks/${taskId}`)
+    );
+    if (selectedTaskId === taskId) setSelectedTaskId(null);
+  };
+
+  const undoDelete = async () => {
+    if (!userId || !recentlyDeleted) return;
+    if (recentlyDeleted.type === "task") {
+      // push back into folder (will get new key)
+      await safePushTask(recentlyDeleted.folderId, recentlyDeleted.data);
+    } else if (recentlyDeleted.type === "folder") {
+      const foldersRef = ref(db, `users/${userId}/folders`);
+      const newRef = push(foldersRef);
+      await set(newRef, recentlyDeleted.data);
+    }
+    setRecentlyDeleted(null);
+  };
+
+  // drag behavior: improved ghost
+  const createGhost = (title, color) => {
+    if (ghostEl.current) ghostEl.current.remove();
+    const g = document.createElement("div");
+    g.id = "tdl-drag-ghost";
+    g.style.padding = "8px 12px";
+    g.style.borderRadius = "10px";
+    g.style.background = "rgba(10,14,18,0.95)";
+    g.style.color = "#eaf6ff";
+    g.style.boxShadow = "0 12px 40px rgba(0,0,0,0.6)";
+    g.style.fontWeight = "700";
+    g.style.display = "inline-flex";
+    g.style.alignItems = "center";
+    g.style.gap = "10px";
+    g.style.backdropFilter = "blur(6px)";
+    g.style.border = `1px solid ${color}22`;
+    const chip = document.createElement("span");
+    chip.style.width = "12px";
+    chip.style.height = "12px";
+    chip.style.background = color;
+    chip.style.borderRadius = "3px";
+    chip.style.display = "inline-block";
+    const text = document.createElement("span");
+    text.style.fontFamily = "Fira Code, monospace";
+    text.style.fontSize = "13px";
+    text.textContent = title;
+    g.appendChild(chip);
+    g.appendChild(text);
+    document.body.appendChild(g);
+    ghostEl.current = g;
+  };
+
+  const onDragStart = (e, draggedIndex) => {
+    dragState.current.draggingIndex = draggedIndex;
+    const folderColor =
+      (folders.find((f) => f.id === currentFolderId) || {}).color || "#3b6ea5";
+    const title = escapeHtml(tasks[draggedIndex]?.text || "Task");
+    createGhost(title, folderColor);
+    try {
+      e.dataTransfer.setDragImage(ghostEl.current, 20, 16);
+    } catch (_) {}
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const onDrop = async (e, dropIndex) => {
+    e.preventDefault();
+    const from = dragState.current.draggingIndex;
+    if (from == null) return;
+    if (from === dropIndex) {
+      dragState.current.draggingIndex = null;
+      if (ghostEl.current) {
+        ghostEl.current.remove();
+        ghostEl.current = null;
+      }
+      return;
+    }
+    const arr = [...tasks];
+    const [moved] = arr.splice(from, 1);
+    arr.splice(dropIndex, 0, moved);
+    setTasks(arr);
+    const orderedIds = arr.map((t) => t.id);
+    persistTaskOrder(currentFolderId, orderedIds);
+    dragState.current.draggingIndex = null;
+    if (ghostEl.current) {
+      ghostEl.current.remove();
+      ghostEl.current = null;
+    }
+  };
+
+  // cleanup ghost
+  useEffect(() => {
+    const handler = () => {
+      if (ghostEl.current) {
+        ghostEl.current.remove();
+        ghostEl.current = null;
+      }
+      dragState.current.draggingIndex = null;
+    };
+    window.addEventListener("dragend", handler);
+    window.addEventListener("blur", handler);
+    return () => {
+      window.removeEventListener("dragend", handler);
+      window.removeEventListener("blur", handler);
+    };
+  }, []);
+
+  // UI helpers
+  const currentFolder = folders.find((f) => f.id === currentFolderId) || null;
+  const visibleTasks = tasks.filter((t) =>
+    (t.text || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const total = tasks.length;
+  const completed = tasks.filter((t) => t.isActive).length;
+  const progress = total ? Math.round((completed / total) * 100) : 0;
+
+  // motion variants
+  const panelVariants = {
+    hidden: { opacity: 0, x: 24 },
+    enter: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: 24 },
+  };
+  const fullScreenVariants = {
+    hidden: { opacity: 0, y: 30 },
+    enter: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 30 },
+  };
+  const listItem = {
+    hidden: { opacity: 0, y: 8 },
+    enter: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 8 },
+  };
+
+  // keyboard shortcuts (space toggles selected task)
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.code === "Space" && selectedTaskId) {
+        e.preventDefault();
+        const t = tasks.find((x) => x.id === selectedTaskId);
+        if (t) toggleTask(t.id, t.isActive);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedTaskId, tasks]);
+
+  // ------- Detail components -------
+  function TaskDetail({ taskId, onClose }) {
+    const task = tasks.find((t) => t.id === taskId);
+    const [title, setTitle] = useState(task?.text || "");
+    const [desc, setDesc] = useState(task?.description || "");
+    const [color, setColor] = useState(
+      task?.color || currentFolder?.color || "#3b6ea5"
+    );
+    const [isActiveState, setIsActiveState] = useState(Boolean(task?.isActive));
+
+    useEffect(() => {
+      setTitle(task?.text || "");
+      setDesc(task?.description || "");
+      setColor(task?.color || currentFolder?.color || "#3b6ea5");
+      setIsActiveState(Boolean(task?.isActive));
+    }, [taskId, task, currentFolder?.id]);
+
+    const save = async () => {
+      await updateTask(taskId, {
+        text: title,
+        description: desc,
+        color,
+        isActive: isActiveState,
+      });
+      if (onClose) onClose();
+    };
+
+    const toggle = async () => {
+      setIsActiveState((p) => !p);
+      await updateTask(taskId, { isActive: !isActiveState });
+    };
+
+    if (!task) return null;
+    return (
+      <motion.div
+        className="detailWrap"
+        initial="hidden"
+        animate="enter"
+        exit="exit"
+        variants={isMobile ? fullScreenVariants : panelVariants}
+      >
+        <div className="detailHeader">
+          <h3>Task</h3>
+          <div className="detailBtns">
+            <button className="primaryBtn" onClick={save}>
+              Save
+            </button>
+            <button className="ghostBtn" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        </div>
+
+        <div className="detailBody">
+          <label>Title</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} />
+
+          <label>Description</label>
+          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} />
+
+          <label>Color</label>
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          />
+
+          <label className="checkboxRow">
+            <input type="checkbox" checked={isActiveState} onChange={toggle} />{" "}
+            Completed
+          </label>
+        </div>
+      </motion.div>
+    );
+  }
+
+  function FolderDetail({ folder }) {
+    const [notes, setNotes] = useState(folder?.notes || "");
+    const [color, setColor] = useState(folder?.color || "#3b6ea5");
+    useEffect(() => {
+      setNotes(folder?.notes || "");
+      setColor(folder?.color || "#3b6ea5");
+    }, [folder?.id]);
+
+    const saveNotes = async () => {
+      await setFolderNotes(folder.id, notes);
+    };
+    const saveColor = async (c) => {
+      setColor(c);
+      await setFolderColor(folder.id, c);
+    };
+
+    if (!folder) return null;
+    return (
+      <motion.div
+        className="folderDetailWrap"
+        initial="hidden"
+        animate="enter"
+        exit="exit"
+        variants={isMobile ? fullScreenVariants : panelVariants}
+      >
+        <div className="detailHeader">
+          <h3>Folder</h3>
+          <div className="detailBtns">
+            <button className="primaryBtn" onClick={saveNotes}>
+              Save
+            </button>
+            <button
+              className="ghostBtn"
+              onClick={() => {
+                if (isMobile) setShowFolderDetailMobile(false);
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
+        <div className="detailBody">
+          <label>Name</label>
+          <div className="folderNameInline">
+            <div
+              className="folderIconPreview"
+              style={{ background: folder.color || "#3b6ea5" }}
+            >
+              {folder.emoji || "📁"}
             </div>
+            <div className="folderNameText">{folder.text}</div>
+          </div>
 
-            <form className="containerflex flex" onSubmit={handleAddFolder}>
-              <div id="submitI" className="flex">
-                <div className="flexC flex">
-                  <input
-                    type="text"
-                    placeholder="Add New Folder"
-                    value={folderInput}
-                    onChange={(e) => setFolderInput(e.target.value)}
-                  />
-                  <button type="submit">+</button>
+          <label>Color</label>
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            onBlur={() => saveColor(color)}
+          />
+
+          <label>Notes</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={saveNotes}
+          />
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Render
+  return (
+    <div className="tdl-root">
+      <div className="topRow">
+        <input
+          className="searchInput"
+          placeholder="Search tasks..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <div className="layoutFinder">
+        <aside className="finderSidebar">
+          <div className="finderHeader">
+            <div className="hdrLeft">
+              <strong>Explorer</strong>
+            </div>
+            <div className="hdrRight">
+              <form
+                onSubmit={addFolder}
+                className="folderAdd"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  value={folderInput}
+                  onChange={(e) => setFolderInput(e.target.value)}
+                  placeholder="New folder"
+                />
+                <button type="submit">+</button>
+              </form>
+            </div>
+          </div>
+
+          <ul className="folderTree">
+            {folders.map((f) => (
+              <motion.li
+                layout
+                key={f.id}
+                className={`folderNode ${
+                  currentFolderId === f.id ? "open" : ""
+                }`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div
+                  className="folderRow"
+                  onClick={() => {
+                    setCurrentFolderId((prev) => (prev === f.id ? null : f.id));
+                  }}
+                >
+                  <button
+                    className={`caret ${
+                      currentFolderId === f.id ? "down" : "right"
+                    }`}
+                    aria-hidden
+                  >
+                    <span />
+                  </button>
+                  <div
+                    className="folderIcon"
+                    style={{ background: f.color || "#3b6ea5" }}
+                  >
+                    {f.emoji || "📁"}
+                  </div>
+                  <div className="folderName">{f.text}</div>
+
+                  {isMobile ? (
+                    <div className="folderActions">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowFolderDetailMobile(true);
+                          setCurrentFolderId(f.id);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteFolder(f.id, e);
+                        }}
+                      >
+                        Del
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="folderActions">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteFolder(f.id, e);
+                        }}
+                      >
+                        Del
+                      </button>
+                    </div>
+                  )}
                 </div>
+
+                {currentFolderId === f.id && (
+                  <ul className="folderChildren">
+                    <li className="meta">
+                      • {f.tasks ? Object.keys(f.tasks).length : 0} items
+                    </li>
+                    {f.notes && (
+                      <li className="meta">
+                        • notes: {String(f.notes).slice(0, 48)}
+                        {String(f.notes).length > 48 ? "…" : ""}
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </motion.li>
+            ))}
+          </ul>
+        </aside>
+
+        <main className="mainContent">
+          {!currentFolderId ? (
+            <div className="placeholder">
+              <h3>Your folders</h3>
+              <p>Open a folder to view tasks.</p>
+            </div>
+          ) : (
+            <div className="taskPane">
+              <div className="paneHeader">
+                <h3>{currentFolder?.text}</h3>
+                <div className="progressMini">{progress}%</div>
               </div>
-            </form>
 
-            <div id="taskS">
-              <ul id="taskListTD">
+              <form
+                onSubmit={addTask}
+                className="taskAdd"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  value={taskInput}
+                  onChange={(e) => setTaskInput(e.target.value)}
+                  placeholder="New task"
+                />
+                <button type="submit">Add</button>
+              </form>
+
+              <ul className="taskList">
                 <AnimatePresence>
-                  {folders.map((folder, i) => (
-                    <motion.li
-                      key={folder.id}
-                      variants={itemVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      transition={{ duration: 0.25 }}
-                    >
-                      <div className="listC">
-                        <div className="divS">
-                          {editingFolderId === folder.id ? (
-                            <input
-                              type="text"
-                              value={editFolderText}
-                              onChange={(e) =>
-                                setEditFolderText(e.target.value)
-                              }
-                              onBlur={() => applyFolderEdit(folder.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  applyFolderEdit(folder.id);
-                                }
-                              }}
-                              autoFocus
-                            />
-                          ) : (
-                            <span onClick={() => enterFolder(folder)}>
-                              {folder.text}
-                            </span>
-                          )}
-                        </div>
-
-                        <span
-                          className={`buttonS ${
-                            activeFIndex === i ? "active" : ""
-                          }`}
+                  {visibleTasks.map((t) => {
+                    const realIndex = tasks.findIndex((x) => x.id === t.id);
+                    return (
+                      <motion.li
+                        key={t.id}
+                        layout
+                        initial="hidden"
+                        animate="enter"
+                        exit="exit"
+                        variants={listItem}
+                        className="taskRow"
+                        draggable
+                        onDragStart={(e) => onDragStart(e, realIndex)}
+                        onDragOver={onDragOver}
+                        onDrop={(e) => onDrop(e, realIndex)}
+                      >
+                        <div
+                          className="taskLeft"
+                          onDoubleClick={() => setSelectedTaskId(t.id)}
                         >
                           <button
-                            type="button"
-                            onClick={() =>
-                              setActiveFIndex(activeFIndex === i ? null : i)
-                            }
+                            className={`tick ${t.isActive ? "done" : ""}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleTask(t.id, t.isActive);
+                            }}
+                          />
+                          <span
+                            className={`taskText ${
+                              t.isActive ? "finished" : ""
+                            }`}
                           >
-                            <span className="span1"></span>
-                            <span className="span2"></span>
-                          </button>
-                        </span>
-
-                        <div
-                          className={`lOption ${
-                            activeFIndex === i ? "active" : ""
-                          }`}
-                        >
-                          <div className="flexcL">
-                            <button
-                              type="button"
-                              className="listDelete"
-                              onClick={() => handleDeleteFolder(folder.id)}
-                            >
-                              Delete
-                            </button>
-                            <button
-                              type="button"
-                              className="listFinished"
-                              onClick={() => {
-                                setEditingFolderId(folder.id);
-                                setEditFolderText(folder.text || "");
-                              }}
-                            >
-                              Edit Name
-                            </button>
-                          </div>
+                            {t.text}
+                          </span>
                         </div>
-                      </div>
-                    </motion.li>
-                  ))}
+
+                        <div className="taskRight">
+                          <button
+                            className="opt"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTaskId(t.id);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="opt"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteTask(t.id, e);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </motion.li>
+                    );
+                  })}
                 </AnimatePresence>
               </ul>
             </div>
+          )}
+        </main>
+
+        <aside className="rightInfo">
+          <div className="rightPanelInner">
+            <AnimatePresence mode="wait">
+              {selectedTaskId ? (
+                <TaskDetail
+                  key={`task-${selectedTaskId}`}
+                  taskId={selectedTaskId}
+                  onClose={() => setSelectedTaskId(null)}
+                />
+              ) : currentFolder ? (
+                <FolderDetail
+                  key={`folder-${currentFolder.id}`}
+                  folder={currentFolder}
+                />
+              ) : (
+                <motion.div
+                  key="empty"
+                  initial="hidden"
+                  animate="enter"
+                  exit="exit"
+                  variants={panelVariants}
+                  className="muted"
+                >
+                  Select a folder or task
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </aside>
+      </div>
+
+      {/* Mobile overlays */}
+      <AnimatePresence>
+        {isMobile && selectedTaskId && (
+          <motion.div
+            className="mobileOverlay"
+            initial="hidden"
+            animate="enter"
+            exit="exit"
+            variants={fullScreenVariants}
+          >
+            <TaskDetail
+              taskId={selectedTaskId}
+              onClose={() => setSelectedTaskId(null)}
+            />
           </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* TASK VIEW */}
-        {currentFolder && (
+      <AnimatePresence>
+        {isMobile && showFolderDetailMobile && currentFolder && (
           <motion.div
-            key="task-view"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="appL"
+            className="mobileOverlay"
+            initial="hidden"
+            animate="enter"
+            exit="exit"
+            variants={fullScreenVariants}
           >
-            <div className="titleC flex">
-              <h2>{currentFolder.text}</h2>
-              <button type="button" onClick={goBack} className="backB">
-                back()
-              </button>
-            </div>
-
-            <form className="containerflex flex" onSubmit={handleAddTask}>
-              <div id="submitI" className="flex">
-                <div className="flexC flex">
-                  <input
-                    type="text"
-                    placeholder="Add New Task"
-                    value={taskInput}
-                    onChange={(e) => setTaskInput(e.target.value)}
-                  />
-                  <button type="submit">+</button>
-                </div>
-              </div>
-            </form>
-
-            <div id="taskS">
-              <ul id="taskListTD">
-                <AnimatePresence>
-                  {currentFolder.tasks &&
-                  Object.keys(currentFolder.tasks).length > 0 ? (
-                    Object.entries(currentFolder.tasks).map(
-                      ([taskId, task], i) => (
-                        <motion.li
-                          key={taskId}
-                          variants={itemVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          transition={{ duration: 0.25 }}
-                        >
-                          <div className="listC">
-                            <div className="divS">
-                              <button
-                                type="button"
-                                className={`finish ${
-                                  task.isActive ? "active" : ""
-                                }`}
-                                onClick={() =>
-                                  toggleTask(taskId, task.isActive)
-                                }
-                              ></button>
-
-                              {editingTaskId === taskId ? (
-                                <input
-                                  type="text"
-                                  value={editTaskText}
-                                  onChange={(e) =>
-                                    setEditTaskText(e.target.value)
-                                  }
-                                  onBlur={() => applyTaskEdit(taskId)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      applyTaskEdit(taskId);
-                                    }
-                                  }}
-                                  autoFocus
-                                />
-                              ) : (
-                                <span
-                                  className={task.isActive ? "activeText" : ""}
-                                >
-                                  {task.text}
-                                </span>
-                              )}
-                            </div>
-
-                            <span
-                              className={`buttonS ${
-                                activeIndex === i ? "active" : ""
-                              }`}
-                            >
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setActiveIndex(activeIndex === i ? null : i)
-                                }
-                              >
-                                <span className="span1"></span>
-                                <span className="span2"></span>
-                              </button>
-                            </span>
-
-                            <div
-                              className={`lOption ${
-                                activeIndex === i ? "active" : ""
-                              }`}
-                            >
-                              <div className="flexcL">
-                                <button
-                                  type="button"
-                                  className="listDelete"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteTask(taskId);
-                                  }}
-                                >
-                                  Delete
-                                </button>
-                                <button
-                                  type="button"
-                                  className="listFinished"
-                                  onClick={() => {
-                                    setEditingTaskId(taskId);
-                                    setEditTaskText(task.text || "");
-                                  }}
-                                >
-                                  Edit Name
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.li>
-                      )
-                    )
-                  ) : (
-                    <p>No tasks yet.</p>
-                  )}
-                </AnimatePresence>
-              </ul>
-            </div>
-
-            <div className="aS flex">
+            <FolderDetail folder={currentFolder} />
+            <div
+              style={{ padding: 12, display: "flex", justifyContent: "center" }}
+            >
               <button
-                type="button"
-                onClick={deleteAllFinishedTasks}
-                className="deleteActiveBtn"
+                className="ghostBtn"
+                onClick={() => setShowFolderDetailMobile(false)}
               >
-                Delete <span style={{ color: "#afd4ed" }}>()</span>
+                Close
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Undo bar */}
+      {recentlyDeleted && (
+        <div className="undoBar">
+          <span>
+            {recentlyDeleted.type === "task"
+              ? "Task deleted"
+              : "Folder deleted"}
+          </span>
+          <div className="undoActions">
+            <button onClick={undoDelete}>Undo</button>
+            <button onClick={() => setRecentlyDeleted(null)}>Dismiss</button>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default TdlF;
+}

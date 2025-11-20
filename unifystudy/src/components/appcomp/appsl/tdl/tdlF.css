@@ -1,347 +1,472 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-* {
-  margin: 0;
-  padding: 0;
+/* tdlF_terminal.scss
+   Terminal / developer dashboard styling for tdlF
+   Matches Pomodoro / Profile / Signup look (glassy panels + neon blue accents)
+*/
+:root {
+  --bg-1: #071019;
+  --panel: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01),
+    rgba(255, 255, 255, 0.006)
+  );
+  --accent: #4b6c82;
+  --accent-2: #8fd2ff;
+  --muted: #9fb1bb;
+  --glass-border: rgba(255, 255, 255, 0.04);
+  --danger: #bf4040;
+}
+
+/* root */
+.tdl-root {
+  min-height: 100vh;
+  padding: 28px;
+  background: linear-gradient(180deg, var(--bg-1), #07131a);
+  font-family: "Fira Code", monospace;
+  color: #e6eef3;
+}
+
+/* top search */
+.topRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.searchInput {
+  width: 520px;
+  max-width: calc(100% - 40px);
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: #eaf6ff;
   font-family: "Fira Code", monospace;
 }
 
-.flex {
-  display: flex;
+/* layout */
+.layoutFinder {
+  display: grid;
+  grid-template-columns: 300px 1fr 360px;
+  gap: 18px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-li {
+/* Finder sidebar */
+.finderSidebar {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  height: -moz-fit-content;
+  height: fit-content;
+}
+
+.finderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.folderAdd {
+  display: flex;
+  gap: 8px;
+}
+
+.folderAdd input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: #eaf6ff;
+}
+
+.folderAdd button {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #02161a;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+/* folder tree */
+.folderTree {
   list-style: none;
-}
-
-.folderView,
-.appL {
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 100vw;
+  gap: 8px;
 }
 
-.titleC {
-  margin-top: 35px;
-  width: 80vw;
-  justify-content: space-between;
-  align-items: center;
-}
-.titleC .backB {
-  background-color: #1e1e1e;
-  border: none;
-  border-radius: 15px;
-  color: #f2f2f2;
-  padding: 5px 10px;
-  font-weight: 500;
-}
-.titleC .backB:hover {
-  color: #4b6c82;
-  transition: ease 0.3s;
-  cursor: pointer;
-}
-
-.folderView h2 {
-  color: #afd4ed;
-  font-weight: 500;
-  padding-left: 15px;
-  padding-top: 7px;
-  font-size: 14px;
-}
-.folderView ul#taskListTD {
-  width: 400px;
-}
-.folderView ul#taskListTD li .listC {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-  position: relative;
-}
-.folderView ul#taskListTD li .listC .divS span {
-  color: #f2f2f2;
-  font-size: 14px;
-  padding-left: 15px;
-}
-.folderView ul#taskListTD li .listC .divS input {
-  border: none;
-  background-color: #1e1e1e;
-}
-.folderView ul#taskListTD li .listC button {
-  border-radius: 5px;
-  border: none;
-  background-color: #1e1e1e;
-  color: #4b6c82;
-  padding: 5px 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.folderView ul#taskListTD li .listC button:hover {
-  background-color: #4b6c82;
-  color: #f2f2f2;
-}
-
-/* ------------------------ */
-/* Task list view styling */
-/* ------------------------ */
-.appL h2 {
-  color: #afd4ed;
-  font-weight: 500;
-  padding-left: 15px;
-  padding-top: 7px;
-  font-size: 22px;
-}
-.appL .containerflex {
-  flex-direction: row;
-  justify-content: center;
-  width: 100vw;
-}
-.appL .containerflex #submitI {
-  margin-top: 25px;
-  height: 65px;
-  background-color: rgb(19, 19, 19);
-  border-radius: 10px;
-  width: 78vw;
-  padding: 8px 5px 8px 5px;
-}
-.appL .containerflex #submitI .flexC {
-  padding-top: 4px;
-  width: 100%;
-  flex-direction: row;
-  justify-content: space-around;
-}
-.appL .containerflex #submitI .flexC form {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-.appL .containerflex #submitI .flexC button {
-  border-radius: 10px;
-  height: 38px;
-  border: none;
-  margin-right: 10px;
-  font-weight: 500;
-  background-color: #1e1e1e;
-  color: #4b6c82;
-  width: 38px;
-  font-size: 20px;
-  transition: all 0.3s ease;
-}
-.appL .containerflex #submitI .flexC button:hover {
-  background-color: #4b6c82;
-  color: #f2f2f2;
-  cursor: pointer;
-}
-.appL .containerflex #submitI .flexC input {
-  border-radius: 5px;
-  border: none;
-  color: #afd4ed;
-  background-color: rgb(42.75, 42.75, 42.75);
-  padding: 4px;
-  height: 40px;
-  width: 50vw;
-  outline: none;
-}
-.appL .containerflex #submitI .flexC input::-moz-placeholder {
-  color: #afd4ed;
-}
-.appL .containerflex #submitI .flexC input::placeholder {
-  color: #afd4ed;
-}
-.appL #taskS {
-  min-height: 470px;
-  height: -moz-fit-content;
-  height: fit-content;
-  margin-top: 10px;
-  padding-bottom: 12px;
-  width: 80vw;
-  border-radius: 10px;
-  background-color: rgb(35.1, 35.1, 35.1);
-}
-.appL #taskS #taskListTD .aS {
-  flex-direction: row;
-  justify-content: space-around;
-  width: 100%;
-  padding-top: 10px;
-}
-.appL #taskS #taskListTD .aS .clearActiveBtn {
-  border: none;
-  background-color: transparent;
-  color: #4b6c82;
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.appL #taskS #taskListTD .aS .clearActiveBtn:hover {
-  color: #f2f2f2;
-}
-.appL #taskS #taskListTD .aS .deleteActiveBtn {
-  border: none;
-  background-color: transparent;
-  color: #4b6c82;
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.appL #taskS #taskListTD .aS .deleteActiveBtn:hover {
-  color: #f2f2f2;
-}
-.appL #taskS #taskListTD .listC {
-  margin-top: 8%;
-  display: flex;
-  justify-content: space-between;
-  position: relative;
-}
-.appL #taskS #taskListTD .listC .divS {
-  padding-left: 10px;
-  height: 40px;
-  width: fit-conten;
-  overflow: hidden;
-}
-.appL #taskS #taskListTD .listC .divS .finish {
-  transform: translateY(6px);
-  border: solid #4b6c82 2px;
-  height: 27px;
-  width: 27px;
-  background-color: transparent;
-  border-radius: 5px;
-  transition: ease 0.3s;
-}
-.appL #taskS #taskListTD .listC .divS .finish.active {
-  background-color: #4b6c82;
-  transition: ease 0.3s;
-}
-.appL #taskS #taskListTD .listC .divS .finish:hover {
-  color: #4b6c82;
-  cursor: pointer;
-}
-.appL #taskS #taskListTD .listC .divS span {
-  padding-left: 15px;
-  color: #f2f2f2;
-  font-size: 16px;
-  transition: color 0.3s ease;
-}
-.appL #taskS #taskListTD .listC .divS span.activeText {
-  color: #4b6c82;
-  text-decoration: line-through;
-  transition: ease 0.3s;
-}
-.appL #taskS #taskListTD .listC .divS input {
-  margin-left: 15px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  color: #afd4ed;
-  border: none;
-  background-color: #1e1e1e;
-  transition: ease 1s;
-}
-.appL #taskS #taskListTD .listC .divS input:focus {
-  outline: none;
-}
-.appL #taskS #taskListTD .listC .divS .lineTitle {
-  opacity: 0;
-  width: 70vw;
-  display: block;
-  height: 2px;
-  border-radius: 15px;
-  transform: translateX(14px) translateY(-10px);
-  background-color: #bf4040;
-  transition: opacity 0.3s ease;
-}
-.appL #taskS #taskListTD .listC .divS .lineTitle.active {
-  opacity: 1;
-}
-.appL #taskS #taskListTD .listC .divS:hover span {
-  cursor: pointer;
-}
-.appL #taskS #taskListTD .listC .divS:hover span .lineTitle {
-  opacity: 1;
-}
-.appL #taskS #taskListTD .listC .divS:hover {
-  cursor: pointer;
-}
-.appL #taskS #taskListTD .listC .divS:hover span {
-  color: #afd4ed;
-}
-.appL #taskS #taskListTD .listC .lOption {
-  transform: translateY(-10px) translateX(12px);
-  position: absolute;
-  top: 30px;
-  right: 25px;
-  padding: 3px 7px;
-  pointer-events: none;
-  opacity: 0;
-  background-color: #1e1e1e;
-  width: -moz-fit-content;
-  width: fit-content;
-  height: -moz-fit-content;
-  height: fit-content;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.appL #taskS #taskListTD .listC .lOption .flexcL {
+.folderNode {
+  padding: 8px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  align-items: right;
+  gap: 6px;
 }
-.appL #taskS #taskListTD .listC .lOption .flexcL button {
-  border: none;
-  background-color: #1e1e1e;
-  color: #afd4ed;
+
+.folderRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.caret {
+  width: 20px;
   height: 20px;
-  margin: 2px 0;
-  transition: all 0.3s ease;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
 }
-.appL #taskS #taskListTD .listC .lOption .flexcL button:hover {
-  background-color: #afd4ed;
-  color: #1e1e1e;
+
+.caret.right span,
+.caret.down span {
+  display: block;
+  width: 9px;
+  height: 2px;
+  background: var(--muted);
+  transform-origin: center;
+}
+
+.caret.down span {
+  transform: rotate(90deg);
+}
+
+.folderIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eaf6ff;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: inset 0 -4px 10px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.folderName {
+  flex: 1;
+  color: #eaf6ff;
+  font-weight: 700;
+}
+
+.folderActions {
+  display: flex;
+  gap: 6px;
+}
+
+.folderActions button {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  padding: 6px 8px;
+  border-radius: 6px;
   cursor: pointer;
 }
-.appL #taskS #taskListTD .listC .lOption.active {
-  opacity: 1;
-  z-index: 1000;
-  pointer-events: all;
-  transform: translateY(-5px) translateX(10px);
+
+.folderChildren {
+  list-style: none;
+  padding-left: 44px;
+  margin: 6px 0 0 0;
+  color: var(--muted);
+  font-size: 13px;
 }
-.appL #taskS #taskListTD .listC .buttonS {
-  transform: translateY(7.5px);
-  transition: ease 0.3s;
+
+/* main content */
+.mainContent {
+  background: transparent;
+  min-height: 360px;
 }
-.appL #taskS #taskListTD .listC .buttonS button {
-  width: 30px;
-  height: 30px;
-  background-color: transparent;
+
+.placeholder {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.taskPane {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.paneHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progressMini {
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+/* add task */
+.taskAdd {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.taskAdd input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: #eaf6ff;
+}
+
+.taskAdd button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #02161a;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* task list */
+.taskList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.taskRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  cursor: grab;
+}
+
+.taskRow:active {
+  cursor: grabbing;
+}
+
+.taskLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tick {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--accent-2);
+  background: transparent;
+  cursor: pointer;
+}
+
+.tick.done {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
   border: none;
 }
-.appL #taskS #taskListTD .listC .buttonS button .span1,
-.appL #taskS #taskListTD .listC .buttonS button .span2 {
-  display: block;
-  height: 3px;
-  width: 9px;
-  background-color: #afd4ed;
-  transition: all 0.3s ease;
+
+.taskText {
+  color: #eaf6ff;
+  font-weight: 600;
 }
-.appL #taskS #taskListTD .listC .buttonS button .span1 {
-  transform: rotate(-48.5deg) translateX(5px) translateY(4px);
+
+.taskText.finished {
+  color: var(--muted);
+  text-decoration: line-through;
 }
-.appL #taskS #taskListTD .listC .buttonS button .span2 {
-  transform: translateX(1.1px) translateY(-4px) rotate(48.5deg);
+
+/* actions */
+.taskRight {
+  display: flex;
+  gap: 8px;
 }
-.appL #taskS #taskListTD .listC .buttonS:hover .span1, .appL #taskS #taskListTD .listC .buttonS:hover .span2 {
-  background-color: #4b6c82;
+
+.opt {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  padding: 6px 8px;
+  border-radius: 6px;
   cursor: pointer;
 }
-.appL #taskS #taskListTD .listC .buttonS.active {
-  transform: translateX(-1px);
-  transition: ease 0.3s;
+
+/* right panel */
+.rightInfo {
+  background: transparent;
 }
-.appL #taskS #taskListTD .listC .buttonS.active .span1 {
-  transform: translateX(7px) translateY(-1px) rotate(48.5deg);
+
+.rightPanelInner {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  min-height: 200px;
 }
-.appL #taskS #taskListTD .listC .buttonS.active .span2 {
-  transform: translateX(2px) translateY(-4px) rotate(-48.5deg);
+
+/* detail panels */
+.detailWrap,
+.folderDetailWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailHeader h3 {
+  color: var(--accent-2);
+  margin: 0;
+}
+
+.detailBtns {
+  display: flex;
+  gap: 8px;
+}
+
+.primaryBtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #02161a;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ghostBtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.detailBody label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.detailBody input[type=text],
+.detailBody input[type=color],
+.detailBody textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
+  color: #eaf6ff;
+}
+
+.detailBody textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+/* folder name inline */
+.folderNameInline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.folderIconPreview {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eaf6ff;
+  font-weight: 700;
+}
+
+.folderNameText {
+  font-weight: 700;
+  color: #eaf6ff;
+}
+
+/* mobile overlay */
+.mobileOverlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(1, 6, 8, 0.9), rgba(1, 6, 8, 0.95));
+  z-index: 4000;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* undo bar */
+.undoBar {
+  position: fixed;
+  left: 24px;
+  bottom: 22px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: #eaf6ff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 5000;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.undoActions button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* small screens */
+@media (max-width: 980px) {
+  .layoutFinder {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+  .rightInfo {
+    display: none;
+  }
+  .finderSidebar {
+    order: 2;
+  }
+  .mainContent {
+    order: 1;
+  }
 }/*# sourceMappingURL=tdlF.css.map */

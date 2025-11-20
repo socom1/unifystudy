@@ -1,25 +1,25 @@
-// src/firebase.js
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth"; // ✅ added GoogleAuthProvider
-import { getDatabase } from "firebase/database"; // Realtime DB import
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCax0FPsBTauiQjJc8alni_mnKQjMxvn1A",
   authDomain: "unifys-c6b42.firebaseapp.com",
   projectId: "unifys-c6b42",
-  storageBucket: "unifys-c6b42.firebasestorage.app",
+  storageBucket: "unifys-c6b42.appspot.com",
   messagingSenderId: "397741027892",
   appId: "1:397741027892:web:e01f7db83b838ce3915061",
-  measurementId: "G-XJQRKVSPKR",
   databaseURL:
-    "https://unifys-c6b42-default-rtdb.europe-west1.firebasedatabase.app/",
+    "https://unifys-c6b42-default-rtdb.europe-west1.firebasedatabase.app",
 };
 
-// Prevent duplicate initialization
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" }); // optional
+
 export const db = getDatabase(app);
-export const googleProvider = new GoogleAuthProvider(); // ✅ FIXED — added export
 
 export default app;

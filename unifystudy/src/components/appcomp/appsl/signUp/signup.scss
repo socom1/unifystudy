@@ -1,202 +1,126 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import "../index//LandingPage.scss"; /* Signup form styled to landing page */
 
-$aC: #4b6c82;
-$asC: #afd4ed;
-$bC: #1e1e1e;
-$wC: #f2f2f2;
-$rC: #bf4040;
-$gC: #40bf46;
-$fB: rgb(19, 19, 19);
+$bg: #0c1214;
+$panel: #0f1516;
+$muted: #9fb1bb;
+$accent: #4b6c82;
+$accent-2: #8fd2ff;
+$glass: rgba(255, 255, 255, 0.03);
+$success: #40bf46;
+$font: "Fira Code", monospace;
 
-* {
-  padding: 0;
-  margin: 0;
-  // font-family: "Poppins", sans-serif;
-  font-family: "Fira Code", monospace;
-}
-
-.flex {
-  display: flex;
-}
-
-li {
-  list-style: none;
-}
+$rc: #071019;
 
 .signup-container {
-  max-width: 400px;
-  margin: 3rem auto;
-  height: 600px;
-  background: #1e1e1e;
-  color: #f2f2f2;
-  padding: 2rem;
-  border-radius: 8px;
+  max-width: 420px;
+  margin: 2.6rem auto;
+  background: linear-gradient(
+    180deg,
+    $panel 0%,
+    rgba(143, 210, 255, 0.03) 100%
+  );
+  color: #e8f3f7;
+  padding: 1.8rem;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(2, 6, 10, 0.45);
+  font-family: $font;
+}
+.signup-title {
+  color: $accent-2;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.signup-form {
   display: flex;
   flex-direction: column;
-  align-items: center;
-
-  .signup-title {
-    color: #afd4ed;
-    font-size: 1.8rem;
-    font-weight: 500;
-    margin-bottom: 1.5rem;
-  }
-
-  .signup-form {
-    width: 100%;
+  gap: 0.9rem;
+  .form-group {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      position: relative;
-
-      label {
-        margin-bottom: 0.3rem;
-        width: fit-content;
-        color: #4b6c82;
-        font-weight: 500;
-        font-size: 0.95rem;
-      }
-
-      .pass {
-        margin-top: 25px;
-      }
-
-      input {
-        padding: 0.5rem 0.8rem;
-        border-radius: 4px;
-        border: none;
-        background: #2a2a2a;
-        color: #afd4ed;
-        font-family: "Fira Code", monospace;
-        font-size: 0.95rem;
-
-        &:focus {
-          outline: none;
-          background: #3a3a3a;
-        }
-      }
-
-      span {
-        color: $asC;
+    gap: 0.35rem;
+    label {
+      color: $accent-2;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    input {
+      background: rgba(255, 255, 255, 0.02);
+      color: #eaf6ff;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      &:focus {
+        outline: none;
+        box-shadow: 0 10px 26px rgba(75, 108, 130, 0.06);
       }
     }
-
-    button {
-      margin-top: 35px;
-      padding: 0.6rem 1rem;
-      border-radius: 6px;
-      border: none;
-      background: #4b6c82;
-      color: black;
-      font-weight: 500;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
-
-      &:hover {
-        transform: scale(1.04);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-      }
-      &:active {
-        transform: scale(0.98);
-      }
+    .pass {
+      margin-top: 0.6rem;
     }
   }
-
-  .divider {
-    margin-top: 40px;
-    width: 100%;
-    text-align: center;
-    border-bottom: 1px solid rgba(175, 212, 237, 0.3);
-    line-height: 0.1em;
-  }
-
-  h1 {
-    transform: translateY(25px);
-    font-size: 17px;
-    font-weight: 400;
-    color: #afd4ed;
-  }
-
-  .btn-google {
-    margin-top: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.5rem;
-    background: #4285f4;
-    color: $bC;
-    font-weight: 500;
-    border-radius: 6px;
+  button {
+    background: linear-gradient(90deg, $accent, $accent-2);
+    color: #02161a;
+    font-weight: 700;
     border: none;
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 1rem;
-    transition: opacity 0.2s ease;
-
-    img.google-logo {
-      width: 20px;
-      height: 20px;
-    }
-
+    transition: all 0.18s;
+    box-shadow: 0 10px 30px rgba(75, 108, 130, 0.12);
     &:hover {
-      opacity: 0.9;
+      transform: translateY(-3px);
+      box-shadow: 0 14px 36px rgba(75, 108, 130, 0.2);
     }
   }
-
+  .btn-google {
+    background: linear-gradient(90deg, #4285f4, #367bf5);
+    color: #02161a;
+    padding: 0.6rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    border: none;
+    &:hover {
+      opacity: 0.95;
+      transform: translateY(-2px);
+    }
+    img.google-logo {
+      width: 18px;
+      height: 18px;
+    }
+  }
   .toggle-text {
-    margin-top: 3.6rem;
-    color: #afd4ed;
+    color: $muted;
+    text-align: center;
     font-size: 0.9rem;
-
     .toggle-btn {
-      color: #4b6c82;
+      color: $accent-2;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
       margin-left: 0.25rem;
     }
   }
-
-  .error-msg,
-  .success-msg {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-    text-align: center;
-    word-break: break-word;
-  }
-
   .error-msg {
-    color: #e74c3c;
+    // color: $rC;
+    margin-top: 0.6rem;
   }
-
   .success-msg {
-    color: #afd4ed;
+    color: $accent-2;
+    margin-top: 0.6rem;
   }
-}
-
-/* Responsive */
+} /* responsive */
 @media (max-width: 500px) {
   .signup-container {
-    margin: 2rem auto;
-    padding: 1.5rem;
-
-    .signup-title {
-      font-size: 1.5rem;
-    }
-
-    .signup-form button,
-    .btn-google {
-      font-size: 0.95rem;
-    }
+    padding: 1rem;
+    margin: 1.6rem auto;
+  }
+  .signup-title {
+    font-size: 1.3rem;
   }
 }

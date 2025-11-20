@@ -10,12 +10,6 @@ $rC: #bf4040;
 $gC: #40bf46;
 $fB: rgb(19, 19, 19);
 
-// ::selection {
-//   background: black;
-//   // color: white;
-//   text-shadow: none;
-// }
-
 * {
   padding: 0;
   margin: 0;
@@ -29,35 +23,35 @@ $fB: rgb(19, 19, 19);
 
 li {
   list-style: none;
-  // color: $gC;
 }
 
 /* Mobile first */
 .container {
-  margin-top: 60px; /* space for NavS toggle bar */
+  // margin-top: 60px; /* space for NavS toggle bar */
 }
-
-/* Desktop */
-// @media (min-width: 768px) {
-//   .container {
-//     margin-top: 0;
-//     padding-left: 200px; /* adjust if NavM is a sidebar */
-//   }
-// }
 
 html {
   background-color: #1e1e1e;
   height: 100vh;
   width: 100vw;
-
+  margin: 0;
   .app {
     .container {
       .navf {
-        position: sticky;
         flex-direction: row;
+        padding-right: 0%;
+        margin: 0;
+        justify-content: center;
         width: 100vw;
         height: fit-content;
         z-index: 1000;
+      }
+
+      @media (max-width: 900px) {
+        .navf {
+          margin: 0;
+          padding: 0;
+        }
       }
     }
   }

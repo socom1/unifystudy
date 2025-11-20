@@ -23,7 +23,7 @@
    🗓️ CALENDAR CONTAINER
    ============================================================ */
 .calendar-container {
-  margin-top: 25px;
+  margin-top: 15px;
   max-width: 98vw; /* prevent overflow */
   overflow-x: hidden;
   padding: 1rem;
@@ -79,18 +79,19 @@
   width: 100vw;
   z-index: 20000;
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 1rem;
-  align-items: flex-end;
+  align-items: left;
   background: rgb(19, 19, 19);
-  padding: 2rem;
+  padding: 4rem;
   border-radius: 6px;
   margin-bottom: 1rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 .event-form .header h3 {
   text-align: left;
-  font-size: 30px;
+  font-size: 35px;
   font-weight: 500;
 }
 .event-form .sel {
@@ -112,7 +113,8 @@
   padding: 0.5rem;
   border-radius: 5px;
   color: #afd4ed;
-  height: 20vh;
+  height: 25vh;
+  font-size: 15px;
   vertical-align: top;
   text-align: left;
   resize: none;
@@ -123,9 +125,13 @@
   color: #f2f2f2;
 }
 .event-form .form-group label {
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   color: #4b6c82;
   margin-bottom: 0.25rem;
+}
+.event-form .form-group input {
+  height: 40px;
+  font-size: 1rem;
 }
 .event-form .form-group input,
 .event-form .form-group select {
@@ -144,7 +150,8 @@
   color: #f2f2f2;
 }
 .event-form .form-group select {
-  width: 70px;
+  width: 80px;
+  font-size: 1rem;
 }
 .event-form .form-group .day,
 .event-form .form-group .st,
@@ -158,8 +165,11 @@
 .event-form .form-group .st {
   gap: 15px;
 }
+.event-form .form-group .day {
+  gap: 36px;
+}
 .event-form .form-group .end {
-  gap: 31px;
+  gap: 36px;
 }
 .event-form .form-group .cl {
   gap: 16px;
@@ -209,7 +219,7 @@
   display: grid;
   grid-template-columns: var(--time-col-width) repeat(7, 1fr);
   grid-template-rows: var(--header-height) repeat(12, var(--row-height));
-  background-color: #1e1e1e;
+  background-color: rgb(19, 19, 19);
   position: relative;
   border-radius: 6px;
   overflow: visible;

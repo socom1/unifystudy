@@ -29,7 +29,7 @@ $fB: rgb(19, 19, 19); // Form background
    🗓️ CALENDAR CONTAINER
    ============================================================ */
 .calendar-container {
-  margin-top: 25px;
+  margin-top: 15px;
   max-width: 98vw; /* prevent overflow */
   overflow-x: hidden;
   padding: 1rem;
@@ -88,11 +88,12 @@ $fB: rgb(19, 19, 19); // Form background
   width: 100vw;
   z-index: 20000;
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 1rem;
-  align-items: flex-end;
+  align-items: left;
   background: $fB;
-  padding: 2rem;
+  padding: 4rem;
   border-radius: 6px;
   margin-bottom: 1rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -100,7 +101,7 @@ $fB: rgb(19, 19, 19); // Form background
   .header {
     h3 {
       text-align: left;
-      font-size: 30px;
+      font-size: 35px;
       font-weight: 500;
     }
   }
@@ -127,7 +128,8 @@ $fB: rgb(19, 19, 19); // Form background
         padding: 0.5rem;
         border-radius: 5px;
         color: $asC;
-        height: 20vh;
+        height: 25vh;
+        font-size: 15px;
         vertical-align: top;
         text-align: left;
         resize: none;
@@ -141,9 +143,14 @@ $fB: rgb(19, 19, 19); // Form background
     }
 
     label {
-      font-size: 0.85rem;
+      font-size: 1.1rem;
       color: $aC;
       margin-bottom: 0.25rem;
+    }
+
+    input {
+      height: 40px;
+      font-size: 1rem;
     }
 
     input,
@@ -164,7 +171,8 @@ $fB: rgb(19, 19, 19); // Form background
     }
 
     select {
-      width: 70px;
+      width: 80px;
+      font-size: 1rem;
     }
 
     .day,
@@ -181,8 +189,12 @@ $fB: rgb(19, 19, 19); // Form background
       gap: 15px;
     }
 
+    .day {
+      gap: 36px;
+    }
+
     .end {
-      gap: 31px;
+      gap: 36px;
     }
 
     .cl {
@@ -240,7 +252,7 @@ $fB: rgb(19, 19, 19); // Form background
   display: grid;
   grid-template-columns: var(--time-col-width) repeat(7, 1fr);
   grid-template-rows: var(--header-height) repeat(12, var(--row-height));
-  background-color: $bC;
+  background-color: $fB;
   position: relative;
   border-radius: 6px;
   overflow: visible;

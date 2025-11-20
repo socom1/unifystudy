@@ -1,51 +1,128 @@
+// src/AppS.jsx
 import React from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+
+import LandingPage from "./index/LandingPage";
+import SignUp from "./signUp/SignUp";
+import Profile from "./profile/Profile";
+import ResetPassword from "./passwordreset/ResetPassword";
 import TdlOVERALL from "./tdl/TdlOVERALL";
 import Pomodoro from "./pomodoro/Pomdoro";
-import SignUp from "./signUp/SignUp";
 import MyTimetable from "./myTimetable/MyTimetable";
-import Profile from "./profile/profile";
 
-const AppS = ({ activeComponent, user, onLoginSuccess, onSignOut }) => {
-  const shouldAnimate =
-    activeComponent === "signIn" || activeComponent === "profile";
-
-  const renderComponent = () => {
-    switch (activeComponent) {
-      case "todo":
-        return <TdlOVERALL />;
-      case "pomodoro":
-        return <Pomodoro />;
-      case "timetable":
-        return <MyTimetable user={user} />;
-      case "signIn":
-        return <SignUp onLoginSuccess={onLoginSuccess} />;
-      case "profile":
-        return <Profile user={user} onSignOut={onSignOut} />;
-      default:
-        return <div>Select a section from the menu</div>;
-    }
-  };
+const AppS = ({ user, onLoginSuccess, onSignOut }) => {
+  const location = useLocation();
 
   return (
-    <div className="containerAppS">
-      {shouldAnimate ? (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeComponent}
-            initial={{ opacity: 0, y: 30, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -30, scale: 0.98 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            style={{ width: "100%", height: "100%" }}
-          >
-            {renderComponent()}
-          </motion.div>
-        </AnimatePresence>
-      ) : (
-        <div style={{ width: "100%", height: "100%" }}>{renderComponent()}</div>
-      )}
-    </div>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <LandingPage />
+            </motion.div>
+          }
+        />
+
+        <Route
+          path="/signup"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <SignUp onLoginSuccess={onLoginSuccess} />
+            </motion.div>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <Profile user={user} onSignOut={onSignOut} />
+            </motion.div>
+          }
+        />
+
+        <Route
+          path="/reset-password"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <ResetPassword />
+            </motion.div>
+          }
+        />
+
+        <Route
+          path="/todo"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <TdlOVERALL />
+            </motion.div>
+          }
+        />
+
+        <Route
+          path="/pomodoro"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <Pomodoro />
+            </motion.div>
+          }
+        />
+
+        <Route
+          path="/timetable"
+          element={
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.45, ease: "easeInOut" }}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <MyTimetable user={user} />
+            </motion.div>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
   );
 };
 

@@ -1,22 +1,23 @@
+// src/navS.jsx
 import React from "react";
-import "./styling/navs/navs.css";
+import { Link, useLocation } from "react-router-dom";
+import "./styling/navs/navs.scss"; // This path is from your file
 
-const NavS = ({
-  onToggle,
-  activeComponent,
-  isMobile,
-  setActiveComponent,
-  user,
-}) => {
+// The 'isMobile' prop is no longer needed
+const NavS = ({ onToggle, user }) => {
+  const location = useLocation();
+
   const titles = {
-    home: "Home",
-    signIn: "Sign In",
-    pomodoro: "Pomodoro",
-    timetable: "MyTimetable",
-    todo: "ToDoList",
+    "/": "Home",
+    "/signup": "SignIn",
+    "/pomodoro": "Pomodoro",
+    "/timetable": "MyTimetable",
+    "/todo": "ToDoList",
+    "/profile": "Profile",
+    "/reset-password": "Reset",
   };
 
-  const currentTitle = titles[activeComponent] || "ToDoList";
+  const currentTitle = titles[location.pathname] || "ToDoList";
 
   return (
     <div id="nav">
@@ -24,36 +25,56 @@ const NavS = ({
         <div className="left">
           <div className="logo">
             {currentTitle}
+            {/* This span was hardcoded, you could use var(--accent2) if you prefer */}
             <span style={{ color: "#afd4ed" }}>()</span>
           </div>
         </div>
 
         <div className="right">
-          {isMobile ? (
-            // Mobile toggle menu
-            <div className="menuToggle">
-              <button className="toggle" onClick={onToggle}>
-                <span className="l1"></span>
-                <span className="l2"></span>
-                <span className="l3"></span>
-              </button>
-            </div>
-          ) : (
-            // Desktop full menu
-            <ul className="desktopMenu">
-              <li
-                onClick={() => setActiveComponent(user ? "profile" : "signIn")}
+          {/* Both menus are rendered. 
+            CSS will now control which one is visible.
+          */}
+
+          {/* Mobile toggle menu */}
+          <div className="menuToggle">
+            <button className="toggle" onClick={onToggle}>
+              <span className="l1"></span>
+              <span className="l2"></span>
+              <span className="l3"></span>
+            </button>
+          </div>
+
+          {/* Desktop full menu */}
+          <ul className="desktopMenu">
+            <li>
+              <Link
+                to={user ? "/profile" : "/"}
+                style={{ textDecoration: "none" }}
               >
                 {user ? user.displayName || user.email : "Sign In"}
-              </li>
-              <li onClick={() => setActiveComponent("home")}>Home</li>
-              <li onClick={() => setActiveComponent("pomodoro")}>Pomodoro</li>
-              <li onClick={() => setActiveComponent("timetable")}>
+              </Link>
+            </li>
+            <li>
+              <Link to="/" style={{ textDecoration: "none" }}>
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link to="/pomodoro" style={{ textDecoration: "none" }}>
+                Pomodoro
+              </Link>
+            </li>
+            <li>
+              <Link to="/timetable" style={{ textDecoration: "none" }}>
                 My Timetable
-              </li>
-              <li onClick={() => setActiveComponent("todo")}>To Do List</li>
-            </ul>
-          )}
+              </Link>
+            </li>
+            <li>
+              <Link to="/todo" style={{ textDecoration: "none" }}>
+                To Do List
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

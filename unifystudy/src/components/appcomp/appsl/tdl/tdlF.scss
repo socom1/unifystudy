@@ -1,422 +1,431 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+/* tdlF_terminal.scss
+   Terminal / developer dashboard styling for tdlF
+   Matches Pomodoro / Profile / Signup look (glassy panels + neon blue accents)
+*/
 
-$aC: #4b6c82;
-$asC: #afd4ed;
-$bC: #1e1e1e;
-$wC: #f2f2f2;
-$rC: #bf4040;
-$gC: #40bf46;
-$fB: rgb(19, 19, 19);
-$font-primary: "Fira Code", monospace;
-
-* {
-  margin: 0;
-  padding: 0;
-  font-family: $font-primary;
+:root {
+  --bg-1: #071019;
+  --panel: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01),
+    rgba(255, 255, 255, 0.006)
+  );
+  --accent: #4b6c82;
+  --accent-2: #8fd2ff;
+  --muted: #9fb1bb;
+  --glass-border: rgba(255, 255, 255, 0.04);
+  --danger: #bf4040;
 }
 
-.flex {
+/* root */
+.tdl-root {
+  min-height: 100vh;
+  padding: 28px;
+  background: linear-gradient(180deg, var(--bg-1), #07131a);
+  font-family: "Fira Code", monospace;
+  color: #e6eef3;
+}
+
+/* top search */
+.topRow {
   display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
 }
-li {
-  list-style: none;
+.searchInput {
+  width: 520px;
+  max-width: calc(100% - 40px);
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: #eaf6ff;
+  font-family: "Fira Code", monospace;
 }
 
-.folderView,
-.appL {
-  // margin-top: 3%;
+/* layout */
+.layoutFinder {
+  display: grid;
+  grid-template-columns: 300px 1fr 360px;
+  gap: 18px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Finder sidebar */
+.finderSidebar {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  height: fit-content;
+}
+.finderHeader {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100vw;
-}
-
-.titleC {
-  margin-top: 35px;
-  width: 80vw;
   justify-content: space-between;
   align-items: center;
-  // margin-bottom: 10px;
-
-  .backB {
-    background-color: $bC;
-    border: none;
-    border-radius: 15px;
-    color: $wC;
-    padding: 5px 10px;
-
-    font-weight: 500;
-  }
-
-  .backB:hover {
-    color: $aC;
-    transition: ease 0.3s;
-    cursor: pointer;
-  }
+  margin-bottom: 10px;
+}
+.folderAdd {
+  display: flex;
+  gap: 8px;
+}
+.folderAdd input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: #eaf6ff;
+}
+.folderAdd button {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #02161a;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
 }
 
-.folderView {
-  h2 {
-    color: $asC;
-    font-weight: 500;
-    padding-left: 15px;
-    padding-top: 7px;
-    font-size: 14px;
-  }
-
-  ul#taskListTD {
-    width: 400px;
-    li {
-      .listC {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 10px;
-        position: relative;
-
-        .divS {
-          span {
-            color: $wC;
-            font-size: 14px;
-            padding-left: 15px;
-          }
-
-          input {
-            border: none;
-            background-color: $bC;
-          }
-        }
-
-        button {
-          border-radius: 5px;
-          border: none;
-          background-color: $bC;
-          color: $aC;
-          padding: 5px 10px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        button:hover {
-          background-color: $aC;
-          color: $wC;
-        }
-      }
-    }
-  }
+/* folder tree */
+.folderTree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.folderNode {
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.folderRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.caret {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+.caret.right span,
+.caret.down span {
+  display: block;
+  width: 9px;
+  height: 2px;
+  background: var(--muted);
+  transform-origin: center;
+}
+.caret.down span {
+  transform: rotate(90deg);
+}
+.folderIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eaf6ff;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: inset 0 -4px 10px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+.folderName {
+  flex: 1;
+  color: #eaf6ff;
+  font-weight: 700;
+}
+.folderActions {
+  display: flex;
+  gap: 6px;
+}
+.folderActions button {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.folderChildren {
+  list-style: none;
+  padding-left: 44px;
+  margin: 6px 0 0 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
-/* ------------------------ */
-/* Task list view styling */
-/* ------------------------ */
+/* main content */
+.mainContent {
+  background: transparent;
+  min-height: 360px;
+}
+.placeholder {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+.taskPane {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+.paneHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.progressMini {
+  font-weight: 700;
+  color: var(--accent-2);
+}
 
-.appL {
-  h2 {
-    color: $asC;
-    font-weight: 500;
-    padding-left: 15px;
-    padding-top: 7px;
-    font-size: 22px;
+/* add task */
+.taskAdd {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.taskAdd input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: #eaf6ff;
+}
+.taskAdd button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #02161a;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* task list */
+.taskList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.taskRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  cursor: grab;
+}
+.taskRow:active {
+  cursor: grabbing;
+}
+.taskLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tick {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--accent-2);
+  background: transparent;
+  cursor: pointer;
+}
+.tick.done {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border: none;
+}
+.taskText {
+  color: #eaf6ff;
+  font-weight: 600;
+}
+.taskText.finished {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* actions */
+.taskRight {
+  display: flex;
+  gap: 8px;
+}
+.opt {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* right panel */
+.rightInfo {
+  background: transparent;
+}
+.rightPanelInner {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  min-height: 200px;
+}
+
+/* detail panels */
+.detailWrap,
+.folderDetailWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.detailHeader h3 {
+  color: var(--accent-2);
+  margin: 0;
+}
+.detailBtns {
+  display: flex;
+  gap: 8px;
+}
+.primaryBtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #02161a;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ghostBtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  cursor: pointer;
+}
+.detailBody label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+.detailBody input[type="text"],
+.detailBody input[type="color"],
+.detailBody textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
+  color: #eaf6ff;
+}
+.detailBody textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+/* folder name inline */
+.folderNameInline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.folderIconPreview {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eaf6ff;
+  font-weight: 700;
+}
+.folderNameText {
+  font-weight: 700;
+  color: #eaf6ff;
+}
+
+/* mobile overlay */
+.mobileOverlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(1, 6, 8, 0.9), rgba(1, 6, 8, 0.95));
+  z-index: 4000;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* undo bar */
+.undoBar {
+  position: fixed;
+  left: 24px;
+  bottom: 22px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: #eaf6ff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 5000;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+.undoActions button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* small screens */
+@media (max-width: 980px) {
+  .layoutFinder {
+    grid-template-columns: 1fr;
+    padding: 12px;
   }
-
-  .containerflex {
-    flex-direction: row;
-    justify-content: center;
-    width: 100vw;
-    // height: fit-content;
-
-    #submitI {
-      margin-top: 25px;
-      height: 65px;
-      background-color: $fB;
-      border-radius: 10px;
-      width: 78vw;
-      padding: 8px 5px 8px 5px;
-
-      .flexC {
-        padding-top: 4px;
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-around;
-
-        form {
-          width: 100%;
-          display: flex;
-          flex-direction: row;
-          justify-content: space-between;
-        }
-
-        button {
-          border-radius: 10px;
-          height: 38px;
-          border: none;
-          margin-right: 10px;
-          font-weight: 500;
-          background-color: $bC;
-          color: $aC;
-          width: 38px;
-          font-size: 20px;
-          transition: all 0.3s ease;
-        }
-
-        button:hover {
-          background-color: $aC;
-          color: $wC;
-          cursor: pointer;
-        }
-
-        input {
-          border-radius: 5px;
-          border: none;
-          color: $asC;
-          background-color: lighten($bC, 5%);
-          padding: 4px;
-          height: 40px;
-          width: 50vw;
-          outline: none;
-        }
-
-        input::placeholder {
-          color: $asC;
-        }
-      }
-    }
+  .rightInfo {
+    display: none;
   }
-
-  #taskS {
-    min-height: 470px;
-    height: fit-content;
-    margin-top: 10px;
-    padding-bottom: 12px;
-    width: 80vw;
-    border-radius: 10px;
-    background-color: lighten($bC, 2%);
-
-    #taskListTD {
-      .aS {
-        flex-direction: row;
-        justify-content: space-around;
-        width: 100%;
-        padding-top: 10px;
-
-        .clearActiveBtn {
-          // position: absolute;
-          // bottom: 5vh;
-          // left: 60px;
-          border: none;
-          // transform: translateX(2px) translateY(10px);
-          background-color: transparent;
-          color: $aC;
-          font-size: 16px;
-          padding: 5px 10px;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .clearActiveBtn:hover {
-          // background-color: $aC;
-          color: $wC;
-        }
-
-        .deleteActiveBtn {
-          // position: absolute;
-          // bottom: 5vh;
-          // left: 60px;
-          border: none;
-          // transform: translateX(2px) translateY(10px);
-          background-color: transparent;
-          color: $aC;
-          font-size: 16px;
-          padding: 5px 10px;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .deleteActiveBtn:hover {
-          // background-color: $aC;
-          color: $wC;
-        }
-      }
-
-      .listC {
-        margin-top: 8%;
-        display: flex;
-        justify-content: space-between;
-        position: relative;
-
-        .divS {
-          padding-left: 10px;
-          height: 40px;
-          width: fit-conten;
-          overflow: hidden;
-
-          .finish {
-            transform: translateY(6px);
-            border: solid $aC 2px;
-            height: 27px;
-            width: 27px;
-            background-color: transparent;
-            border-radius: 5px;
-            transition: ease 0.3s;
-          }
-
-          .finish.active {
-            background-color: $aC;
-            transition: ease 0.3s;
-          }
-
-          .finish:hover {
-            color: $aC;
-            cursor: pointer;
-          }
-
-          span {
-            padding-left: 15px;
-            color: $wC;
-            font-size: 16px;
-            transition: color 0.3s ease;
-          }
-
-          span.activeText {
-            color: $aC;
-            text-decoration: line-through;
-            transition: ease 0.3s;
-          }
-
-          input {
-            margin-left: 15px;
-            // padding-left: 15px;
-            padding-top: 4px;
-            padding-bottom: 4px;
-            color: $asC;
-            border: none;
-            background-color: $bC;
-            transition: ease 1s;
-          }
-
-          input:focus {
-            outline: none;
-          }
-
-          .lineTitle {
-            opacity: 0;
-            width: 70vw;
-            display: block;
-            height: 2px;
-            border-radius: 15px;
-            transform: translateX(14px) translateY(-10px);
-            background-color: $rC;
-            transition: opacity 0.3s ease;
-          }
-
-          .lineTitle.active {
-            opacity: 1;
-          }
-
-          &:hover span {
-            cursor: pointer;
-            .lineTitle {
-              opacity: 1;
-            }
-          }
-        }
-
-        .divS:hover {
-          cursor: pointer;
-
-          span {
-            color: $asC;
-          }
-        }
-
-        .lOption {
-          transform: translateY(-10px) translateX(12px);
-          position: absolute;
-          top: 30px;
-          right: 25px;
-          padding: 3px 7px;
-          pointer-events: none;
-          opacity: 0;
-          background-color: $bC;
-          width: fit-content;
-          height: fit-content;
-          transition: opacity 0.3s ease, transform 0.3s ease;
-
-          .flexcL {
-            display: flex;
-            flex-direction: column;
-            align-items: right;
-
-            button {
-              border: none;
-              background-color: $bC;
-              color: $asC;
-              height: 20px;
-              margin: 2px 0;
-              transition: all 0.3s ease;
-
-              &:hover {
-                background-color: $asC;
-                color: $bC;
-                cursor: pointer;
-              }
-            }
-          }
-        }
-
-        .lOption.active {
-          opacity: 1;
-          z-index: 1000;
-          pointer-events: all;
-          transform: translateY(-5px) translateX(10px);
-        }
-
-        .buttonS {
-          transform: translateY(7.5px);
-          transition: ease 0.3s;
-          button {
-            width: 30px;
-            height: 30px;
-            background-color: transparent;
-            border: none;
-
-            .span1,
-            .span2 {
-              display: block;
-              height: 3px;
-              width: 9px;
-              background-color: $asC;
-              transition: all 0.3s ease;
-            }
-
-            .span1 {
-              transform: rotate(-48.5deg) translateX(5px) translateY(4px);
-            }
-            .span2 {
-              transform: translateX(1.1px) translateY(-4px) rotate(48.5deg);
-            }
-          }
-
-          &:hover .span1,
-          &:hover .span2 {
-            background-color: $aC;
-            cursor: pointer;
-          }
-        }
-
-        .buttonS.active {
-          transform: translateX(-1px);
-          transition: ease 0.3s;
-          .span1 {
-            transform: translateX(7px) translateY(-1px) rotate(48.5deg);
-          }
-          .span2 {
-            transform: translateX(2px) translateY(-4px) rotate(-48.5deg);
-          }
-        }
-      }
-    }
+  .finderSidebar {
+    order: 2;
+  }
+  .mainContent {
+    order: 1;
   }
 }

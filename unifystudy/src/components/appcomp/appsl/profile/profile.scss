@@ -1,109 +1,309 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+/* profile_terminal.scss
+   Developer dashboard + glass UI for profile page
+   Drop into your project and import in profile.jsx
+*/
 
-$aC: #4b6c82;
-$asC: #afd4ed;
-$bC: #1e1e1e;
-$wC: #f2f2f2;
-$rC: #bf4040;
-$gC: #40bf46;
-$fB: rgb(19, 19, 19);
-$font-primary: "Fira Code", monospace;
-
-* {
-  margin: 0;
-  padding: 0;
-  font-family: $font-primary;
+:root {
+  --bg-1: #071019;
+  --panel: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01),
+    rgba(255, 255, 255, 0.006)
+  );
+  --accent: #4b6c82;
+  --accent-2: #8fd2ff;
+  --muted: #9fb1bb;
+  --danger: #bf4040;
+  --glass-border: rgba(255, 255, 255, 0.04);
 }
 
-.flex {
+.profile-root {
+  min-height: 100vh;
+  padding: 28px;
+  background: linear-gradient(180deg, var(--bg-1) 0%, #07131a 100%);
+  color: #e6eef3;
+  font-family: "Fira Code", monospace;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+/* Card base */
+.profile-card,
+.panel {
+  background: var(--panel);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  padding: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* special danger panel */
+.panel.danger {
+  border-color: rgba(191, 64, 64, 0.12);
+}
+
+/* header inside card */
+.card-header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
-li {
-  list-style: none;
+.section-title {
+  color: var(--accent-2);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  font-size: 14px;
 }
 
-.profile-container {
-  max-width: 500px;
-  margin: 2rem auto;
-  background: #1e1e1e; // dark theme
-  color: #f2f2f2;
+/* completion bar */
+.completion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.completion-bar {
+  width: 140px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+.completion-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  width: 20%;
+  transition: width 0.5s ease;
+}
+.completion-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* profile main layout */
+.profile-main {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 200px;
+}
+.profile-photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(143, 210, 255, 0.12);
+  box-shadow: 0 6px 18px rgba(75, 108, 130, 0.08);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.005)
+  );
+}
+
+/* avatar actions */
+.avatar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+}
+.upload-progress {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* fields */
+.profile-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.field-input {
+  width: 100%;
+  padding: 10px 12px;
   border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  text-align: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: #e6eef3;
+  font-family: "Fira Code", monospace;
+}
 
-  h2 {
-    color: #afd4ed;
-    margin-bottom: 1.5rem;
+/* providers */
+.providers {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.provider-chip {
+  font-size: 12px;
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* action buttons */
+.profile-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--accent-2);
+}
+.btn.primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #031516;
+  box-shadow: 0 8px 20px rgba(75, 108, 130, 0.06);
+}
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+}
+.btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+}
+.btn.outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+}
+.btn.danger {
+  background: linear-gradient(90deg, #bf4040, #e06a6a);
+  color: #071516;
+}
+
+/* side column panels */
+.side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* panel body */
+.panel-body {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.verify-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.verify-status {
+  font-weight: 700;
+  color: var(--accent-2);
+}
+.verify-desc {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+/* security section */
+.security-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.security-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* sessions */
+.session-info {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* account actions */
+.account-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* small notes */
+.note {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* toasts */
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 22px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  z-index: 9999;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+.toast.success {
+  background: linear-gradient(
+    90deg,
+    rgba(75, 200, 170, 0.12),
+    rgba(79, 160, 188, 0.12)
+  );
+  color: #dff8ff;
+  border: 1px solid rgba(79, 160, 188, 0.14);
+}
+.toast.error {
+  background: rgba(191, 64, 64, 0.08);
+  color: #ffd8d8;
+  border: 1px solid rgba(191, 64, 64, 0.12);
+}
+
+/* responsive */
+@media (max-width: 920px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
   }
-
-  .profile-card {
-    display: flex;
-    flex-direction: column;
+  .avatar-wrap {
+    width: 100%;
+    flex-direction: row;
     align-items: center;
-    gap: 1rem;
-    font-family: "Fira Code", monospace;
-
-    p {
-      font-size: 1rem;
-      color: #afd4ed;
-    }
-
-    .profile-photo {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      object-fit: cover;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    }
-
-    .profile-buttons {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-
-      button {
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: transform 0.12s ease, box-shadow 0.12s ease;
-      }
-
-      .sign-out-btn {
-        background-color: #3498db; // blue
-        color: #fff;
-        border: none;
-
-        &:hover {
-          transform: scale(1.04);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        &:active {
-          transform: scale(0.98);
-        }
-      }
-
-      .delete-account-btn {
-        background-color: #e74c3c; // red
-        color: #fff;
-        border: none;
-
-        &:hover {
-          transform: scale(1.04);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        &:active {
-          transform: scale(0.98);
-        }
-      }
-    }
+    gap: 12px;
   }
-
-  .message {
-    margin-top: 0.8rem;
-    font-size: 0.9rem;
-    color: #afd4ed;
+  .profile-main {
+    flex-direction: column;
   }
 }

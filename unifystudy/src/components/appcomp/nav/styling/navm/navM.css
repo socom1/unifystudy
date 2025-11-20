@@ -1,6 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+:root {
+  --bg: #0c1214;
+  --panel: #0f1516;
+  --muted: #9fb1bb;
+  --accent: #4b6c82;
+  --accent2: #8fd2ff;
+}
+
 * {
   padding: 0;
   margin: 0;
@@ -18,19 +26,21 @@ li {
 .app .flex-container #navm {
   transition: ease 0.3s;
   position: absolute;
+  top: 85px;
   left: 0;
+  transform: translateY(-60px);
   height: 100vh;
   width: 100vw;
   pointer-events: none;
   opacity: 0;
-  background-color: #1e1e1e;
+  background-color: var(--bg);
   z-index: 15;
 }
 .app .flex-container #navm .menu {
   margin-left: 10vw;
   flex-direction: column;
   align-items: left;
-  margin-top: 4.5vh;
+  margin-top: 0.5vh;
 }
 .app .flex-container #navm .menu li {
   margin-top: 100px;
@@ -49,7 +59,7 @@ li {
   transition: ease 0.3s;
   display: default;
   opacity: 1;
+  transform: translateY(-30px);
   height: 100vh;
   width: 100vw;
-  background-color: #1e1e1e;
 }/*# sourceMappingURL=navm.css.map */
