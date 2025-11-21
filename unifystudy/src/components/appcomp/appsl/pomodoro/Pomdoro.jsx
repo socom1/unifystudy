@@ -1,14 +1,6 @@
-// /mnt/data/Pomdoro.jsx
-// Full Pomodoro component with rAF-based ultra-smooth timer.
-// Replace your existing file with this content.
-//
-// Requirements:
-// - framer-motion installed (optional for editor modal animations)
-// - companion SCSS (pomodoro_terminal.scss or your existing pomodoro.scss)
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import "./pomodoro.scss"; // keep your main stylesheet if needed
+import "./pomodoro.scss";
 // import "./pomodoro_terminal.scss"; // optional alternate stylesheet
 
 // Helper: format mm:ss (display uses ceil so you don't see '00' flicker)

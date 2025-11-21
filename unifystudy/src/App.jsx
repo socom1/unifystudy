@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 
-import NavM from "./components/appcomp/nav/NavM";
-import NavS from "./components/appcomp/nav/NavS";
+import Nav from "./components/appcomp/nav/Nav"; // <-- NEW unified nav
 import AppS from "./components/appcomp/appsl/AppS";
 import "./App.css";
 
@@ -31,20 +30,17 @@ function App() {
   return (
     <Router>
       <div className="app">
-        {/* Mobile Menu */}
-        <NavM isActive={isActive} user={user} isMobile={isMobile} />
+        {/* Terminal Nav — works for BOTH desktop and mobile */}
+        <Nav
+          user={user}
+          isMobile={isMobile}
+          isOpen={isActive}
+          onClose={() => setIsActive(!isActive)}
+          onSignOut={handleSignOut}
+        />
 
         <div className="container">
-          {/* Desktop Navbar */}
-          <div className="navf">
-            <NavS
-              onToggle={() => setIsActive(!isActive)}
-              isMobile={isMobile}
-              user={user}
-            />
-          </div>
-
-          {/* Main App Content with Routes handled inside AppS */}
+          {/* All page content */}
           <AppS
             user={user}
             onLoginSuccess={handleLoginSuccess}

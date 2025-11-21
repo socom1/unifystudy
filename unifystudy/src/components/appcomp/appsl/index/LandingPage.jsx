@@ -387,6 +387,7 @@ export default function LandingPage() {
           </div>
         </motion.div>
       </section>
+      {/* Demo Section */}
       {/* Testimonials/Social Proof Section (Replaces Demo) */}
       <section id="testimonials" className="testimonials reveal">
         <div className="section-head">

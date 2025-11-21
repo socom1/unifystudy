@@ -1,3 +1,4 @@
+// SignUp.jsx
 import { useState, useEffect } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -20,8 +21,8 @@ export default function SignUp({ onLoginSuccess }) {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
-  const [name, setName] = useState(""); // Full name
-  const [username, setUsername] = useState(""); // Short username / handle
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(false);
   const [error, setError] = useState("");
@@ -31,15 +32,15 @@ export default function SignUp({ onLoginSuccess }) {
   const [showGoogleUsernameModal, setShowGoogleUsernameModal] = useState(false);
   const [googleUser, setGoogleUser] = useState(null);
   const [googleUsername, setGoogleUsername] = useState("");
+
   const [showEmailVerificationModal, setShowEmailVerificationModal] =
     useState(false);
+
   const [isBlockingUI, setIsBlockingUI] = useState(false);
 
-  // Validation
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePassword = (password) => password.length >= 6;
 
-  // Email/password submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -68,20 +69,22 @@ export default function SignUp({ onLoginSuccess }) {
         if (onLoginSuccess) onLoginSuccess(user);
         navigate("/profile");
       } else {
-        // SIGNUP
+        // SIGN UP
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           email,
           password
         );
+
         const user = userCredential.user;
+
         await updateProfile(user, { displayName: username });
+
         await sendEmailVerification(user, {
           url: "http://localhost:3000/login",
           handleCodeInApp: true,
         });
 
-        // Show email verification modal
         setShowEmailVerificationModal(true);
       }
     } catch (err) {
@@ -89,30 +92,28 @@ export default function SignUp({ onLoginSuccess }) {
     }
   };
 
-  // Google sign-in
   const handleGoogleSignIn = async () => {
     setError("");
     setSuccess("");
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
+      const googleFullName = user.displayName || "";
       const isGoogle = user.providerData.some(
         (p) => p.providerId === "google.com"
       );
-      const googleFullName = user.displayName || "";
+
       if (isGoogle) setName(googleFullName);
 
-      // If username missing or same as full name, show modal
-      if (!user.displayName || user.displayName === googleFullName) {
+      // If no username set yet → open modal
+      if (!user.displayName) {
         setGoogleUser(user);
         setShowGoogleUsernameModal(true);
-        setGoogleUsername("");
         setIsBlockingUI(true);
       } else {
         setUsername(user.displayName);
-        setIsBlockingUI(false);
-        setSuccess(`Signed in as ${user.displayName}`);
         if (onLoginSuccess) onLoginSuccess(user);
         navigate("/profile");
       }
@@ -121,24 +122,20 @@ export default function SignUp({ onLoginSuccess }) {
     }
   };
 
-  // Set Google username
   const handleSetGoogleUsername = async () => {
     if (!googleUsername.trim()) return setError("Username cannot be empty.");
+
     try {
-      // Update Firebase user
       await updateProfile(googleUser, { displayName: googleUsername });
 
       setShowGoogleUsernameModal(false);
       setUsername(googleUsername);
-
-      // Pass the real Firebase user, not a spread object
-      if (onLoginSuccess) onLoginSuccess(googleUser);
-
       setGoogleUser(null);
       setGoogleUsername("");
       setIsBlockingUI(false);
-      setError("");
-      setSuccess(`Signed in as ${googleUsername}`);
+
+      if (onLoginSuccess) onLoginSuccess(auth.currentUser);
+
       navigate("/profile");
     } catch (err) {
       setError(err.message);
@@ -154,33 +151,36 @@ export default function SignUp({ onLoginSuccess }) {
     setIsBlockingUI(false);
   };
 
-  // Listen to auth changes
+  // FIXED AUTH LISTENER
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const isGoogle = user.providerData.some(
-          (p) => p.providerId === "google.com"
-        );
-        const googleFullName = user.displayName || "";
-
-        if (isGoogle) {
-          setName(googleFullName);
-
-          if (!user.displayName || user.displayName === googleFullName) {
-            setGoogleUser(user);
-            setShowGoogleUsernameModal(true);
-            setIsBlockingUI(true);
-          } else {
-            setUsername(user.displayName);
-            setIsBlockingUI(false);
-          }
-        } else {
-          setIsBlockingUI(false);
-        }
-      } else {
+      if (!user) {
         setIsBlockingUI(false);
+        return;
       }
+
+      const isGoogle = user.providerData.some(
+        (p) => p.providerId === "google.com"
+      );
+
+      if (isGoogle) {
+        const fullName = user.displayName || "";
+        setName(fullName);
+
+        // If Google login but no username assigned yet
+        if (!user.displayName) {
+          setGoogleUser(user);
+          setShowGoogleUsernameModal(true);
+          setIsBlockingUI(true);
+        } else {
+          setUsername(user.displayName);
+        }
+      }
+
+      // Do NOT block UI for normal email users
+      setIsBlockingUI(false);
     });
+
     return unsubscribe;
   }, []);
 
@@ -198,6 +198,7 @@ export default function SignUp({ onLoginSuccess }) {
             transition={{ duration: 0.4, ease: "easeInOut" }}
           >
             <h2 className="signup-title">{isLogin ? "Log In" : "Sign Up"}</h2>
+
             <SignUpForm
               isLogin={isLogin}
               email={email}
@@ -220,7 +221,6 @@ export default function SignUp({ onLoginSuccess }) {
         )}
       </AnimatePresence>
 
-      {/* Google username modal */}
       {showGoogleUsernameModal && (
         <GoogleUsernameModal
           googleUsername={googleUsername}
@@ -232,7 +232,6 @@ export default function SignUp({ onLoginSuccess }) {
         />
       )}
 
-      {/* Email verification modal */}
       {showEmailVerificationModal && (
         <EmailVerificationModal
           isOpen={showEmailVerificationModal}

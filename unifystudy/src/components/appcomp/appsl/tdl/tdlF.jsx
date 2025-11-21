@@ -425,8 +425,12 @@ export default function TdlF() {
 
         <div className="detailBody">
           <label>Title</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} />
-
+          <input
+            className="t"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <br />
           <label>Description</label>
           <textarea value={desc} onChange={(e) => setDesc(e.target.value)} />
 
