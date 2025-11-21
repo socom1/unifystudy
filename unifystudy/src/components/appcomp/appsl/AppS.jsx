@@ -25,7 +25,7 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              style={{ width: "100%", height: "100%" }}
+              className="full-size"
             >
               <LandingPage />
             </motion.div>
@@ -40,7 +40,7 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              style={{ width: "100%", height: "100%" }}
+              className="full-size"
             >
               <SignUp onLoginSuccess={onLoginSuccess} />
             </motion.div>
@@ -55,7 +55,7 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              style={{ width: "100%", height: "100%" }}
+              className="full-size"
             >
               <Profile user={user} onSignOut={onSignOut} />
             </motion.div>
@@ -70,7 +70,7 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              style={{ width: "100%", height: "100%" }}
+              className="full-size"
             >
               <ResetPassword />
             </motion.div>
@@ -85,7 +85,7 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              style={{ width: "100%", height: "100%" }}
+              className="full-size"
             >
               <TdlOVERALL />
             </motion.div>
@@ -100,7 +100,7 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              style={{ width: "100%", height: "100%" }}
+              className="full-size"
             >
               <Pomodoro />
             </motion.div>
@@ -115,7 +115,7 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              style={{ width: "100%", height: "100%" }}
+              className="full-size"
             >
               <MyTimetable user={user} />
             </motion.div>

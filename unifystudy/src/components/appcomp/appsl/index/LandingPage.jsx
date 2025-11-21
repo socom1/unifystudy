@@ -44,7 +44,7 @@ function ParticleCanvas({ enabled = true }) {
       ctx.clearRect(0, 0, width, height);
       for (let p of parts) {
         ctx.beginPath();
-        ctx.fillStyle = `rgba(143,210,255,${p.a})`;
+        ctx.fillStyle = `rgba(143,210,255,${p.a})`; // Keeping rgba for alpha, but could map to variable if needed
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
       }
@@ -103,8 +103,8 @@ function FlowSVG() {
     <svg className="flow-svg" viewBox="0 0 1000 140" preserveAspectRatio="none">
       <defs>
         <linearGradient id="fg" x1="0" x2="1">
-          <stop offset="0" stopColor="#8fd2ff" />
-          <stop offset="1" stopColor="#4b6c82" />
+          <stop offset="0" stopColor="var(--color-secondary)" />
+          <stop offset="1" stopColor="var(--color-primary)" />
         </linearGradient>
       </defs>
       <path
@@ -261,7 +261,7 @@ export default function LandingPage() {
               </div>
 
               <div className="code-strings">
-                <span>const focus = ()=>start(25)</span>
+                <span>const focus = ()=&gt;start(25)</span>
                 <span>{"// quick-add"}</span>
               </div>
             </div>

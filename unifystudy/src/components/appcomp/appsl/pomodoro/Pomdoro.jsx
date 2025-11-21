@@ -194,6 +194,10 @@ export default function Pomodoro({
 
   // advanced: ensure we cancel rAF on unmount
   useEffect(() => {
+    // Request notification permission on mount
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
     return () => {
       cancelRaf();
     };
@@ -221,7 +225,12 @@ export default function Pomodoro({
       setSecondsLeft((selectedTemplate?.work || 25) * 60);
       secondsLeftRef.current = (selectedTemplate?.work || 25) * 60;
     }
-    // small place for notification/sound
+    // Notification
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("Pomodoro Timer", {
+        body: mode === "work" ? "Time for a break!" : "Back to work!",
+      });
+    }
   };
 
   // Apply template (expose hook)
@@ -289,7 +298,7 @@ export default function Pomodoro({
               <span style={{ marginRight: 12 }}>
                 <strong>{completedPomodoros}</strong> done
               </span>
-              <span style={{ color: "var(--muted)" }}>
+              <span className="muted-text">
                 Next:{" "}
                 {mode === "work"
                   ? (selectedTemplate?.short || 5) + "m break"
@@ -308,8 +317,8 @@ export default function Pomodoro({
               {/* Gradient */}
               <defs>
                 <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#4b6c82" />
-                  <stop offset="100%" stopColor="#8fd2ff" />
+                  <stop offset="0%" stopColor="var(--color-primary)" />
+                  <stop offset="100%" stopColor="var(--color-secondary)" />
                 </linearGradient>
               </defs>
 
@@ -496,10 +505,10 @@ export default function Pomodoro({
               <div
                 style={{
                   width: 80,
-                  background: "#061014",
+                  background: "var(--color-bg-dark)",
                   borderRadius: 6,
                   padding: 8,
-                  color: "var(--muted)",
+                  color: "var(--color-muted)",
                   fontSize: 12,
                 }}
               >
@@ -549,8 +558,8 @@ export default function Pomodoro({
                   style={{
                     width: "100%",
                     height: 380,
-                    background: "#06090b",
-                    color: "#cfeffb",
+                    background: "var(--color-bg-dark)",
+                    color: "var(--color-secondary)",
                     border: "1px solid rgba(255,255,255,0.03)",
                     padding: 12,
                     borderRadius: 6,

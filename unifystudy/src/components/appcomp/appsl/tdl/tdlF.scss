@@ -1,462 +1,696 @@
 /* tdlF_terminal.scss
-   Terminal / developer dashboard styling for tdlF
-   Matches Pomodoro / Profile / Signup look (glassy panels + neon blue accents)
+   Redesigned: 3-column layout, dark theme, clean UI
 */
 
 :root {
-  --bg-1: #071019;
-  --panel: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.01),
-    rgba(255, 255, 255, 0.006)
-  );
+  --topbar-height: 0px; /* Hidden on desktop */
+  --bg-1: #1e1e1e;
+  --bg-2: #252526;
+  --bg-3: #2d2d2d;
   --accent: #4b6c82;
-  --accent-2: #8fd2ff;
-  --muted: #9fb1bb;
-  --glass-border: rgba(255, 255, 255, 0.04);
-  --danger: #bf4040;
+  --accent-light: #afd4ed;
+  --text-main: #f2f2f2;
+  --text-muted: #888;
+  --border: rgba(255, 255, 255, 0.08);
+  --radius: 12px;
+  --sidebar-width: 260px;
+  --right-panel-width: 340px;
 }
 
 /* root */
 .tdl-root {
   min-height: 100vh;
-  padding: 28px;
-  background: linear-gradient(180deg, var(--bg-1), #07131a);
-  font-family: "Fira Code", monospace;
-  color: #e6eef3;
-}
-
-/* top search */
-.topRow {
+  background: var(--bg-1);
+  font-family: "Inter", sans-serif; /* Use a clean sans-serif */
+  color: var(--text-main);
   display: flex;
-  justify-content: center;
-  margin-bottom: 14px;
-}
-.searchInput {
-  width: 520px;
-  max-width: calc(100% - 40px);
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: #eaf6ff;
-  font-family: "Fira Code", monospace;
+  flex-direction: column;
 }
 
-/* layout */
-.layoutFinder {
+/* Mobile Topbar */
+.topBar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.topTitle {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* Layout Grid */
+.layoutFinder.threeCol {
   display: grid;
-  grid-template-columns: 300px 1fr 360px;
-  gap: 18px;
-  max-width: 1200px;
-  margin: 0 auto;
+  grid-template-columns: var(--sidebar-width) 1fr var(--right-panel-width);
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* Finder sidebar */
+/* Sidebar */
 .finderSidebar {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 12px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  height: fit-content;
+  background: var(--bg-2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 32px;
+  overflow-y: auto;
 }
-.finderHeader {
+
+.sidebarHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
-.folderAdd {
-  display: flex;
-  gap: 8px;
-}
-.folderAdd input {
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: #eaf6ff;
-}
-.folderAdd button {
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  color: #02161a;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
+.sidebarHeader h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
 }
 
-/* folder tree */
-.folderTree {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.folderNode {
-  padding: 8px;
+.sidebarSearch .searchInput {
+  width: 100%;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
   border-radius: 8px;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.sidebarSection {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
 }
-.folderRow {
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.navLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navLinks li {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: all 0.2s;
 }
-.caret {
+
+.navLinks li:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+}
+
+.navLinks li.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.navLinks li .icon {
+  font-size: 16px;
   width: 20px;
-  height: 20px;
-  background: transparent;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default;
+  text-align: center;
 }
-.caret.right span,
-.caret.down span {
-  display: block;
-  width: 9px;
-  height: 2px;
-  background: var(--muted);
-  transform-origin: center;
+
+.navLinks li .badge {
+  margin-left: auto;
+  background: var(--bg-3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--text-main);
 }
-.caret.down span {
-  transform: rotate(90deg);
+
+/* Folder Tree in Sidebar */
+.folderTreeWrap {
+  margin-left: -12px; /* Offset padding */
+}
+.folderTree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.folderNode {
+  margin-bottom: 2px;
+}
+.folderRow, .taskRow {
+  animation: fadeIn 0.15s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.folderRow:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+}
+.folderRow.open {
+  color: var(--text-main);
 }
 .folderIcon {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #eaf6ff;
-  font-size: 18px;
-  font-weight: 700;
-  box-shadow: inset 0 -4px 10px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  font-size: 12px;
 }
 .folderName {
   flex: 1;
-  color: #eaf6ff;
-  font-weight: 700;
+  font-size: 14px;
 }
-.folderActions {
+.caret {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+.caret span {
+  width: 0; 
+  height: 0; 
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid currentColor;
+  transform: rotate(-90deg);
+  transition: transform 0.2s;
+}
+.caret.down span {
+  transform: rotate(0deg);
+}
+
+.addListBtn, .addTagBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  text-align: left;
+  padding: 8px 0;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
-.folderActions button {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--muted);
-  padding: 6px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.folderChildren {
-  list-style: none;
-  padding-left: 44px;
-  margin: 6px 0 0 0;
-  color: var(--muted);
-  font-size: 13px;
+.addListBtn:hover, .addTagBtn:hover {
+  color: var(--text-main);
 }
 
-/* main content */
-.mainContent {
-  background: transparent;
-  min-height: 360px;
-}
-.placeholder {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 24px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-}
-.taskPane {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-}
-.paneHeader {
+/* Tags in Sidebar */
+.tagListSidebar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.progressMini {
-  font-weight: 700;
-  color: var(--accent-2);
-}
-
-/* add task */
-.taskAdd {
-  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
 }
-.taskAdd input {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: #eaf6ff;
-}
-.taskAdd button {
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  color: #02161a;
-  border: none;
+.tagPill {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
   cursor: pointer;
-  font-weight: 700;
+  transition: 0.2s;
+}
+.tagPill:hover, .tagPill.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
-/* task list */
-.taskList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.sidebarFooter {
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+.footerLink {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+/* Main Content */
+.mainContent {
+  background: var(--bg-1);
+  padding: 40px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.paneHeaderBig {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.paneHeaderBig h1 {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0;
+}
+.bigCount {
+  background: var(--bg-3);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.addTaskBig {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: 0.2s;
+}
+.addTaskBig:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(75, 108, 130, 0.2);
+}
+.plusIcon {
+  font-size: 24px;
+  color: var(--text-muted);
+  font-weight: 300;
+}
+.addTaskBig input {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--text-main);
+  flex: 1;
+  outline: none;
+}
+
+/* Task List */
+.taskList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .taskRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 16px;
+  background: var(--bg-1); /* Transparent on main bg */
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: 0.2s;
+}
+.taskRow:hover {
+  background: var(--bg-2);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.02);
-  cursor: grab;
+  border-bottom-color: transparent;
 }
-.taskRow:active {
-  cursor: grabbing;
+.taskRow.selected {
+  background: var(--bg-2);
+  border-radius: 8px;
+  border-bottom-color: transparent;
 }
+
 .taskLeft {
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.tick {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 2px solid var(--accent-2);
-  background: transparent;
-  cursor: pointer;
-}
-.tick.done {
-  background: linear-gradient(90deg, var(--accent-2), var(--accent));
-  border: none;
-}
-.taskText {
-  color: #eaf6ff;
-  font-weight: 600;
-}
-.taskText.finished {
-  color: var(--muted);
-  text-decoration: line-through;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
 }
 
-/* actions */
-.taskRight {
-  display: flex;
-  gap: 8px;
-}
-.opt {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--muted);
-  padding: 6px 8px;
+.customCheckbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-muted);
   border-radius: 6px;
   cursor: pointer;
+  position: relative;
+  margin-top: 2px;
+}
+.customCheckbox:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.customCheckbox:checked::after {
+  content: "✓";
+  position: absolute;
+  color: #fff;
+  font-size: 14px;
+  left: 3px;
+  top: -1px;
 }
 
-/* right panel */
-.rightInfo {
-  background: transparent;
-}
-.rightPanelInner {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 12px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  min-height: 200px;
-}
-
-/* detail panels */
-.detailWrap,
-.folderDetailWrap {
-  width: 90vw;
+.taskContent {
   display: flex;
   flex-direction: column;
-  align-items: left;
-  gap: 10px;
+  gap: 6px;
 }
+.taskText {
+  font-size: 16px;
+  font-weight: 500;
+}
+.taskText.finished {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.taskMeta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  align-items: center;
+}
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.metaTag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #000;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.taskRight .arrowIcon {
+  color: var(--text-muted);
+  font-size: 20px;
+  opacity: 0;
+  transition: 0.2s;
+}
+.taskRow:hover .taskRight .arrowIcon {
+  opacity: 1;
+}
+
+/* Folder Rows in Task List */
+.folderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.folderRow:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.folderRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.folderIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.folderName {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.taskCount {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.expandIcon {
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: 0.2s;
+}
+
+.folderRowRight .arrowIcon {
+  color: var(--text-muted);
+  font-size: 20px;
+  opacity: 0;
+  transition: 0.2s;
+}
+.folderRow:hover .folderRowRight .arrowIcon {
+  opacity: 1;
+}
+
+/* Nested tasks inside folders */
+.nestedTasksWrapper {
+  overflow: hidden;
+}
+
+.taskRow.nested {
+  padding-left: 48px;
+  background: rgba(255, 255, 255, 0.01);
+  border-left: 2px solid var(--accent);
+}
+
+/* Header Title Row */
+.headerTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerTitleRow .smallBtn {
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+/* Subfolder Add Row */
+.subfolderAddRow {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.subfolderAddRow input {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.subfolderAddRow button {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+
+/* Right Panel */
+.rightInfo {
+  background: var(--bg-1);
+  border-left: 1px solid var(--border);
+  padding: 32px;
+  overflow-y: auto;
+}
+
 .detailHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 24px;
 }
 .detailHeader h3 {
-  color: var(--accent-2);
-  margin: 0;
-}
-.detailBtns {
-  display: flex;
-  gap: 8px;
-}
-.primaryBtn {
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  color: #02161a;
-  border: none;
+  font-size: 20px;
   font-weight: 700;
-  cursor: pointer;
-}
-.ghostBtn {
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--muted);
-  cursor: pointer;
+  margin: 0;
 }
 
 .detailBody {
-  // width: 100%;
-
-  // display: flex;
-  // flex-direction: column;
-  // align-items: left;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 .detailBody label {
-  color: var(--muted);
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 700;
-  margin-top: 6px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-
-input {
-  background-color: rgba(255, 255, 255, 0.02);
-  border: none;
-  height: 50px;
-  padding-left: 5px;
-  border-radius: 5px;
-  font-size: 14px;
-  color: white;
-}
-
-.t {
-  margin-left: 10px;
-}
-.detailBody input[type="text"],
-.detailBody input[type="color"],
-.detailBody textarea {
-  width: 100%;
-  padding: 8px 10px;
+.detailBody input, .detailBody textarea {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  background: rgba(255, 255, 255, 0.02);
-  color: #eaf6ff;
-}
-
-input:focus,
-textarea:focus {
+  color: var(--text-main);
+  font-size: 14px;
+  width: 100%;
   outline: none;
 }
+.detailBody input:focus, .detailBody textarea:focus {
+  border-color: var(--accent);
+}
 .detailBody textarea {
-  // min-height: 90px;
-  height: 200px;
-  font-size: 14px;
+  min-height: 100px;
   resize: vertical;
 }
 
-/* folder name inline */
+/* Detail View Extras */
 .folderNameInline {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 12px;
+  background: var(--bg-2);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
 }
 .folderIconPreview {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #eaf6ff;
-  font-weight: 700;
+  font-size: 18px;
 }
 .folderNameText {
   font-weight: 700;
-  color: #eaf6ff;
+  font-size: 16px;
 }
 
-/* mobile overlay */
-.mobileOverlay {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(1, 6, 8, 0.9), rgba(1, 6, 8, 0.95));
-  z-index: 4000;
-  padding: 18px;
+.checkboxRow {
   display: flex;
-  align-items: left;
-  justify-content: center;
-}
-
-/* undo bar */
-.undoBar {
-  position: fixed;
-  left: 24px;
-  bottom: 22px;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  color: #eaf6ff;
-  padding: 10px 12px;
-  border-radius: 8px;
-  display: flex;
-  gap: 12px;
   align-items: center;
-  z-index: 5000;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-}
-.undoActions button {
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--muted);
+  gap: 10px;
   cursor: pointer;
+  padding: 8px 0;
+}
+.checkboxRow input {
+  width: auto;
+  margin: 0;
 }
 
-/* small screens */
-@media (max-width: 980px) {
-  .layoutFinder {
-    grid-template-columns: 1fr;
-    padding: 12px;
+.tagEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tagInputRow {
+  display: flex;
+  gap: 8px;
+}
+.tagInputRow .tagInput {
+  flex: 1;
+}
+.tagListEditor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tagX {
+  background: none;
+  border: none;
+  color: inherit;
+  margin-left: 6px;
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 0;
+}
+.tagX:hover {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .layoutFinder.threeCol {
+    grid-template-columns: 260px 1fr 320px;
   }
-  .rightInfo {
-    display: none;
+}
+@media (max-width: 900px) {
+  .layoutFinder.threeCol {
+    grid-template-columns: 1fr;
   }
   .finderSidebar {
-    order: 2;
+    position: fixed;
+    left: 0;
+    top: 60px;
+    bottom: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+    z-index: 100;
+  }
+  .finderSidebar.open {
+    transform: translateX(0);
+  }
+  .rightInfo {
+    display: none; /* Or overlay */
   }
   .mainContent {
-    order: 1;
+    padding: 20px;
+  }
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
   }
 }

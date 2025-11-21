@@ -3,6 +3,15 @@
 /* ============================================================
    🎨 COLOR VARIABLES — CODING THEME
    ============================================================ */
+:root {
+  --bg-1: #0c1214;
+  --bg-2: #0f1516;
+  --muted: #9fb1bb;
+  --accent: #4b6c82;
+  --accent-2: #8fd2ff;
+  --accent-3: #66c0ff;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -27,7 +36,7 @@
   max-width: 98vw; /* prevent overflow */
   overflow-x: hidden;
   padding: 1rem;
-  background-color: #1e1e1e;
+  background-color: var(--bg-2);
   color: #f2f2f2;
   min-height: 100vh;
 }
@@ -39,7 +48,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgb(19, 19, 19);
+  background: var(--bg-1);
   padding: 0.75rem 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -83,7 +92,7 @@
   flex-wrap: wrap;
   gap: 1rem;
   align-items: left;
-  background: rgb(19, 19, 19);
+  background: var(--bg-2);
   padding: 4rem;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -219,7 +228,7 @@
   display: grid;
   grid-template-columns: var(--time-col-width) repeat(7, 1fr);
   grid-template-rows: var(--header-height) repeat(12, var(--row-height));
-  background-color: rgb(19, 19, 19);
+  background-color: var(--bg-1);
   position: relative;
   border-radius: 6px;
   overflow: visible;

@@ -5,7 +5,7 @@ import { db, auth } from "../firebase";
 import { ref, onValue, push, set, remove } from "firebase/database";
 import "./mt.css";
 
-const colors = ["#4b6c82", "#afd4ed", "#e79950", "#e94f4f"];
+const colors = ["var(--color-primary)", "var(--color-secondary)", "#e79950", "#e94f4f"];
 const days = [
   "Monday",
   "Tuesday",
@@ -159,7 +159,7 @@ export default function WeeklyCalendar() {
               <div className="desc">
                 <label>
                   Description{" "}
-                  <span style={{ color: "#afd4ed" }}>(optional)</span>
+                  <span style={{ color: "var(--color-secondary)" }}>(optional)</span>
                 </label>
                 <textarea
                   type="text"

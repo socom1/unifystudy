@@ -9,6 +9,15 @@ $bC: #1e1e1e; // Background (dark)
 $wC: #f2f2f2; // White text
 $fB: rgb(19, 19, 19); // Form background
 
+:root {
+  --bg-1: #0c1214;
+  --bg-2: #0f1516;
+  --muted: #9fb1bb;
+  --accent: #4b6c82;
+  --accent-2: #8fd2ff;
+  --accent-3: #66c0ff;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -33,7 +42,7 @@ $fB: rgb(19, 19, 19); // Form background
   max-width: 98vw; /* prevent overflow */
   overflow-x: hidden;
   padding: 1rem;
-  background-color: $bC;
+  background-color: var(--bg-2);
   color: $wC;
   min-height: 100vh;
 }
@@ -45,7 +54,7 @@ $fB: rgb(19, 19, 19); // Form background
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: $fB;
+  background: var(--bg-1);
   padding: 0.75rem 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -92,7 +101,7 @@ $fB: rgb(19, 19, 19); // Form background
   flex-wrap: wrap;
   gap: 1rem;
   align-items: left;
-  background: $fB;
+  background: var(--bg-2);
   padding: 4rem;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -252,7 +261,7 @@ $fB: rgb(19, 19, 19); // Form background
   display: grid;
   grid-template-columns: var(--time-col-width) repeat(7, 1fr);
   grid-template-rows: var(--header-height) repeat(12, var(--row-height));
-  background-color: $fB;
+  background-color: var(--bg-1);
   position: relative;
   border-radius: 6px;
   overflow: visible;
