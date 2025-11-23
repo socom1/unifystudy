@@ -1,0 +1,392 @@
+.dashboard-container {
+  padding: 2rem;
+  min-height: 100vh;
+  color: var(--color-text-main);
+  background: radial-gradient(circle at 50% -20%, rgba(20, 40, 50, 0.4), transparent 70%);
+  animation: fadeIn 0.6s ease-out;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    padding-bottom: 5rem;
+  }
+
+  header {
+    margin-bottom: 3rem;
+    
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p {
+      color: var(--color-muted);
+      font-size: 1.1rem;
+    }
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+    backdrop-filter: blur(10px);
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-muted);
+      margin-bottom: 1rem;
+    }
+
+    .value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .sub {
+      font-size: 0.85rem;
+      color: var(--color-muted);
+      margin-top: 0.5rem;
+    }
+  }
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .action-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+      border-color: var(--color-primary);
+    }
+
+    .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    span {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .side-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .quote-widget, .notes-widget, .streak-widget, .events-widget, .sessions-widget {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    
+    h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-muted);
+      margin-bottom: 1rem;
+    }
+  }
+
+  .quick-notes-input {
+    width: 100%;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    color: #fff;
+    resize: none;
+    font-family: inherit;
+    font-size: 0.9rem;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &::placeholder {
+      color: var(--color-muted);
+    }
+  }
+
+  .streak-widget {
+    .streak-value {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem 0;
+
+      .fire-emoji {
+        font-size: 3rem;
+        animation: flicker 2s ease-in-out infinite;
+      }
+
+      .streak-number {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #ff6b35;
+      }
+
+      .streak-label {
+        font-size: 1.2rem;
+        color: var(--color-muted);
+      }
+    }
+  }
+
+  @keyframes flicker {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+
+  .events-list, .sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .event-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    .event-time {
+      font-weight: 700;
+      color: var(--color-primary);
+      min-width: 50px;
+    }
+
+    .event-title {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+  }
+
+  .session-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    .session-icon {
+      font-size: 1.5rem;
+    }
+
+    .session-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+
+      .session-duration {
+        font-weight: 600;
+        color: var(--color-primary);
+      }
+
+      .session-time {
+        font-size: 0.75rem;
+        color: var(--color-muted);
+      }
+    }
+  }
+
+  // Achievements Widget
+  .achievements-widget {
+    background: rgba(15, 20, 25, 0.6);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+
+    h2 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    .achievements-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      .expand-toggle {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-muted);
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.08);
+          color: #fff;
+        }
+      }
+    }
+
+    .achievements-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .achievement-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      &.unlocked {
+        border-left: 3px solid var(--color-primary);
+      }
+
+      &.locked {
+        opacity: 0.7;
+      }
+
+      .achievement-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        min-width: 0;
+
+        .achievement-icon {
+          font-size: 2rem;
+          flex-shrink: 0;
+
+          &.grayscale {
+            filter: grayscale(100%) opacity(0.5);
+          }
+        }
+
+        .achievement-details {
+          flex: 1;
+          min-width: 0;
+
+          .achievement-name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.9rem;
+            margin-bottom: 0.15rem;
+          }
+
+          .achievement-desc {
+            font-size: 0.75rem;
+            color: var(--color-muted);
+            margin-bottom: 0.15rem;
+          }
+
+          .achievement-progress-text {
+            font-size: 0.7rem;
+            color: var(--color-primary);
+            font-weight: 600;
+          }
+        }
+      }
+
+      .achievement-right {
+        flex-shrink: 0;
+        margin-left: 0.5rem;
+
+        .achievement-check {
+          font-size: 1.5rem;
+          color: var(--color-primary);
+          font-weight: 700;
+        }
+
+        .achievement-reward-badge {
+          padding: 0.3rem 0.6rem;
+          background: rgba(var(--color-primary-rgb, 75, 108, 130), 0.15);
+          color: var(--color-primary);
+          border-radius: 6px;
+          font-size: 0.75rem;
+          font-weight: 700;
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

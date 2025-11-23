@@ -8,6 +8,9 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence
 } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +28,7 @@ export default function SignUp({ onLoginSuccess }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(false);
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -55,6 +59,8 @@ export default function SignUp({ onLoginSuccess }) {
     try {
       if (isLogin) {
         // LOGIN
+        await setPersistence(auth, keepLoggedIn ? browserLocalPersistence : browserSessionPersistence);
+
         const userCredential = await signInWithEmailAndPassword(
           auth,
           email,
@@ -216,6 +222,8 @@ export default function SignUp({ onLoginSuccess }) {
               toggleLoginMode={toggleLoginMode}
               error={error}
               success={success}
+              keepLoggedIn={keepLoggedIn}
+              setKeepLoggedIn={setKeepLoggedIn}
             />
           </motion.div>
         )}

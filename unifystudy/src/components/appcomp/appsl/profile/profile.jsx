@@ -24,7 +24,7 @@ import {
   deleteUser as fbDeleteUser,
   signOut as fbSignOut,
 } from "firebase/auth";
-import { ref as dbRef, update as dbUpdate } from "firebase/database";
+import { ref as dbRef, update as dbUpdate, onValue } from "firebase/database";
 import {
   ref as storageRef,
   uploadBytesResumable,
@@ -51,6 +51,70 @@ export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [reauthRequired, setReauthRequired] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  // Customization state
+  const [ownedTags, setOwnedTags] = useState([]);
+  const [ownedBanners, setOwnedBanners] = useState([]);
+  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedBanner, setSelectedBanner] = useState("");
+
+  const presetBanners = [
+    { id: "gradient-1", name: "Ocean", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+    { id: "gradient-2", name: "Sunset", gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
+    { id: "gradient-3", name: "Forest", gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
+    { id: "gradient-4", name: "Aurora", gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
+  ];
+
+  // Fetch notification setting
+  useEffect(() => {
+    if (uid) {
+      const settingsRef = dbRef(db, `users/${uid}/settings/notifications`);
+      const unsub = onValue(settingsRef, (snapshot) => {
+        const val = snapshot.val();
+        setNotificationsEnabled(val !== false);
+      });
+      return () => unsub(); // This might conflict with the other useEffect if not careful, but onValue returns unsubscribe
+    }
+  }, [uid]);
+
+  const toggleNotifications = async () => {
+    if (!uid) return;
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue); // Optimistic update
+    try {
+      await dbUpdate(dbRef(db, `users/${uid}/settings`), { notifications: newValue });
+      setTempStatus(`Notifications ${newValue ? "enabled" : "disabled"}`);
+    } catch (err) {
+      console.error(err);
+      setNotificationsEnabled(!newValue); // Revert
+      setErrorMsg("Failed to update settings");
+    }
+  };
+
+  // Fetch owned items and current customization
+  useEffect(() => {
+    if (!uid) return;
+    
+    // Fetch owned tags
+    const tagsRef = dbRef(db, `users/${uid}/ownedItems/tags`);
+    const unsubTags = onValue(tagsRef, (snap) => {
+      setOwnedTags(snap.val() || []);
+    });
+
+    // Fetch current customization
+    const customRef = dbRef(db, `users/${uid}/settings/customization`);
+    const unsubCustom = onValue(customRef, (snap) => {
+      const data = snap.val();
+      setSelectedTag(data?.profileTag || "");
+      setSelectedBanner(data?.profileBanner || "gradient-1");
+    });
+
+    return () => {
+      unsubTags();
+      unsubCustom();
+    };
+  }, [uid]);
 
   // Avatar upload
   const fileInputRef = useRef(null);
@@ -254,6 +318,20 @@ export default function ProfilePage() {
     }
   };
 
+  const saveCustomization = async () => {
+    if (!uid) return;
+    try {
+      await dbUpdate(dbRef(db, `users/${uid}/settings/customization`), {
+        profileTag: selectedTag,
+        profileBanner: selectedBanner
+      });
+      setTempStatus("Customization saved!");
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Failed to save customization");
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       await fbSignOut(auth);
@@ -454,6 +532,109 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="panel"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, delay: 0.09 }}
+          >
+            <div className="section-title">// settings</div>
+            <div className="panel-body">
+              <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div className="setting-label" style={{ fontWeight: 600 }}>Notifications</div>
+                  <div className="setting-desc" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                    Receive alerts for upcoming timetable events.
+                  </div>
+                </div>
+                <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '40px', height: '24px' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={notificationsEnabled}
+                    onChange={toggleNotifications}
+                    style={{ opacity: 0, width: 0, height: 0 }}
+                  />
+                  <span className="slider round" style={{
+                    position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: notificationsEnabled ? 'var(--color-primary)' : '#ccc',
+                    transition: '.4s', borderRadius: '34px'
+                  }}>
+                    <span style={{
+                      position: 'absolute', content: '""', height: '16px', width: '16px',
+                      left: '4px', bottom: '4px', backgroundColor: 'white',
+                      transition: '.4s', borderRadius: '50%',
+                      transform: notificationsEnabled ? 'translateX(16px)' : 'translateX(0)'
+                    }}/>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Customize Panel */}
+          <motion.div
+            className="panel"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, delay: 0.08 }}
+          >
+            <div className="section-title">// customize</div>
+            <div className="panel-body">
+
+              {/* Profile Banner Selection */}
+              <div className="customize-section">
+                <h3>Profile Banner</h3>
+                <div className="banner-preview" style={{ background: presetBanners.find(b => b.id === selectedBanner)?.gradient }}>
+                  Preview
+                </div>
+                <div className="banner-grid">
+                  {presetBanners.map(banner => (
+                    <div
+                      key={banner.id}
+                      className={`banner-option ${selectedBanner === banner.id ? "selected" : ""}`}
+                      style={{ background: banner.gradient }}
+                      onClick={() => setSelectedBanner(banner.id)}
+                    >
+                      {banner.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Profile Tag Selection */}
+              <div className="customize-section">
+                <h3>Profile Tag</h3>
+                {ownedTags.length > 0 ? (
+                  <div className="tags-grid">
+                    <div
+                      className={`tag-option ${selectedTag === "" ? "selected" : ""}`}
+                      onClick={() => setSelectedTag("")}
+                    >
+                      None
+                    </div>
+                    {ownedTags.map(tag => (
+                      <div
+                        key={tag}
+                        className={`tag-option ${selectedTag === tag ? "selected" : ""}`}
+                        onClick={() => setSelectedTag(tag)}
+                      >
+                        {tag}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted-text">
+                    No tags owned. Visit the <a href="/shop">Shop</a> to purchase tags!
+                  </p>
+                )}
+              </div>
+
+              <button className="btn primary" onClick={saveCustomization}>
+                Save Customization
+              </button>
             </div>
           </motion.div>
 

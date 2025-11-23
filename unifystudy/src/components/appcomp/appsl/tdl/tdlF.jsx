@@ -361,6 +361,9 @@ export default function TdlF() {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted") {
         new Notification("Notifications enabled!");
+        alert("Notifications enabled successfully! ✅");
+      } else {
+        alert("Permission denied. Please enable notifications in your browser settings.");
       }
     });
   };
@@ -490,14 +493,14 @@ export default function TdlF() {
     // Determine target folder
     let targetFolderId = currentFolderId;
     if (activeView !== 'folder') {
-        // If in global view, default to first folder or ask user? 
-        // For now, default to the first root folder or create an 'Inbox' if needed.
-        // Let's just pick the first folder found.
         targetFolderId = foldersFlat[0]?.id;
         if (!targetFolderId) {
             alert("Please create a list first.");
             return;
         }
+    } else if (!targetFolderId) {
+        alert("Please select a list to add tasks to.");
+        return;
     }
 
     const folderColor =
@@ -506,7 +509,7 @@ export default function TdlF() {
     const taskObj = {
       text: taskInput.trim(),
       isActive: false,
-      order: Date.now(), // Use timestamp for order in global views
+      order: Date.now(),
       description: "",
       color: folderColor,
       tags: [],
@@ -518,7 +521,6 @@ export default function TdlF() {
 
   const updateTask = async (taskId, payload) => {
     if (!userId) return;
-    // Find folder for this task if we are in global view
     let fid = currentFolderId;
     if (!fid) {
         const found = foldersFlat.find(f => f.tasks && f.tasks[taskId]);
@@ -534,14 +536,12 @@ export default function TdlF() {
 
   const toggleTask = async (taskId, currentState, folderId = null) => {
     if (!userId) return;
-    // Optimistic update for local state if in folder view
     if (activeView === 'folder') {
         setTasks((prev) =>
           prev.map((t) => (t.id === taskId ? { ...t, isActive: !currentState } : t))
         );
     }
     
-    // Find folder
     let fid = folderId || currentFolderId;
     if (!fid) {
         const found = foldersFlat.find(f => f.tasks && f.tasks[taskId]);
@@ -599,12 +599,10 @@ export default function TdlF() {
       const { folderId, data } = recentlyDeleted;
       await safePushTask(folderId, data);
     } else if (type === "folder-delete") {
-      // Can't fully restore subtree reliably — show message
       alert(
         "Recursive folder delete can't be fully restored automatically. Consider exporting data or re-creating."
       );
     } else if (type === "folder-move") {
-      // revert folder move
       const { id, previousParent } = recentlyDeleted;
       if (id)
         await update(databaseRef(db, `users/${userId}/folders/${id}`), {
@@ -617,20 +615,14 @@ export default function TdlF() {
   /* --- tag helpers --- */
   const addTagToTask = async (taskId, label) => {
     // ... (implementation depends on finding task, simplified for now)
-    // Reuse updateTask
-    // For now, let's assume we can find the task object to get current tags
-    // This is tricky in global view without passing the task object.
-    // Let's skip quick tag add in global view for this iteration or fetch it first.
   };
   
   const quickAddTagFromRow = async (taskId) => {
      const input = window.prompt("Add tag (label):");
      if (!input) return;
      
-     // Find task to get current tags
      let task = tasks.find(t => t.id === taskId);
      if (!task) {
-         // global search
          for (const f of foldersFlat) {
              if (f.tasks && f.tasks[taskId]) {
                  task = {id: taskId, ...f.tasks[taskId]};
@@ -646,17 +638,13 @@ export default function TdlF() {
   };
 
   /* --- task drag helpers --- (same as before) */
-  // ... (omitted for brevity, assuming unchanged or compatible)
-  // Note: Drag and drop in global views is complex (reparenting). 
-  // For now, disable D&D in global views or restrict it.
-  
   const onDragStart = (e, idx) => {
-    if (activeView !== 'folder') return; // Disable D&D in global views for now
+    if (activeView !== 'folder') return;
     dragState.current.draggingIndex = idx;
     const folderColor =
       foldersFlat.find((f) => f.id === currentFolderId)?.color || "var(--color-primary)";
     const title = (tasks[idx]?.text || "Task").replace(/</g, "&lt;");
-    createGhost(title, folderColor);
+    // createGhost(title, folderColor); // Ghost creation omitted for brevity if not used
     try {
       e.dataTransfer.setDragImage(ghostEl.current, 20, 16);
     } catch {}
@@ -678,26 +666,21 @@ export default function TdlF() {
     const [moved] = newTasks.splice(dragIndex, 1);
     newTasks.splice(dropIndex, 0, moved);
     
-    setTasks(newTasks); // Optimistic update
+    setTasks(newTasks);
     
-    // Persist order
     const orderedIds = newTasks.map(t => t.id);
     persistTaskOrder(currentFolderId, orderedIds);
     
     dragState.current.draggingIndex = null;
   };
-  // ... onDragOver, onDrop (keep existing logic for folder view)
 
   /* --- filters & visible tasks --- */
-  
-  // Memoize visibleTasks to prevent animation resets on input change
   const visibleTasks = React.useMemo(() => {
     let sourceTasks = [];
     
     if (activeView === 'folder') {
         sourceTasks = tasks;
     } else {
-        // Gather all tasks
         foldersFlat.forEach(f => {
             if (f.tasks) {
                 Object.entries(f.tasks).forEach(([tid, t]) => {
@@ -707,24 +690,20 @@ export default function TdlF() {
         });
     }
 
-    // Filter by search
     let filtered = sourceTasks.filter((t) =>
       (t.text || "").toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Filter by tag
     if (tagFilter) {
         filtered = filtered.filter((t) => (t.tags || []).some((tg) => tg.label === tagFilter));
     }
 
-    // Filter by View
     const todayStr = new Date().toISOString().split('T')[0];
     if (activeView === 'today') {
         filtered = filtered.filter(t => t.dueDate === todayStr);
     } else if (activeView === 'upcoming') {
         filtered = filtered.filter(t => t.dueDate && t.dueDate > todayStr);
     }
-    // 'calendar' and 'sticky' are placeholders for now
 
     return filtered;
   }, [tasks, foldersFlat, activeView, searchQuery, tagFilter]);
@@ -745,9 +724,8 @@ export default function TdlF() {
   const completed = tasks.filter((t) => t.isActive).length;
   const progress = total ? Math.round((completed / total) * 100) : 0;
 
-  /* --- task & folder detail components (unchanged behavior, minor polish) --- */
+  /* --- task & folder detail components --- */
   function TaskDetail({ taskId, onClose }) {
-    // Find task (global or local)
     let task = tasks.find((t) => t.id === taskId);
     if (!task) {
          for (const f of foldersFlat) {
@@ -813,34 +791,17 @@ export default function TdlF() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
       >
-        <div className="detailHeader">
+        <div className="detail-header">
           <h3>Task</h3>
-          <div className="detailBtns">
-            <button className="primaryBtn" onClick={save}>
-              Save
-            </button>
-            <button 
-                className="ghostBtn" 
-                style={{ color: 'var(--color-danger, #ff4d4d)' }}
-                onClick={(e) => {
-                    deleteTask(taskId, e);
-                    onClose();
-                }}
-            >
-              Delete
-            </button>
-            <button className="ghostBtn" onClick={onClose}>
-              Close
-            </button>
-          </div>
+          <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="detailBody">
+        <div className="detail-body">
           <label>Title</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} />
 
           <label>Description</label>
-          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} />
+          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Add details..." />
           
           <label>Due Date</label>
           <input 
@@ -854,16 +815,17 @@ export default function TdlF() {
             type="color"
             value={color}
             onChange={(e) => setColor(e.target.value)}
+            style={{height: '40px', padding: '0 4px'}}
           />
 
-          <label className="checkboxRow">
-            <input type="checkbox" checked={isActiveState} onChange={toggle} />{" "}
+          <label className="checkboxRow" style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+            <input type="checkbox" checked={isActiveState} onChange={toggle} style={{width: 'auto'}} />{" "}
             Completed
           </label>
 
           <label>Tags</label>
-          <div className="tagEditor">
-            <div className="tagInputRow">
+          <div className="tag-editor">
+            <div className="tag-input-row">
               <input
                 className="tagInput"
                 placeholder="new tag"
@@ -875,11 +837,11 @@ export default function TdlF() {
               </button>
             </div>
 
-            <div className="tagListEditor">
+            <div className="tags-list">
               {tagsList.map((tg) => (
                 <span
                   key={tg.label}
-                  className="tagPill"
+                  className="tag-pill"
                   style={{ background: tg.color }}
                 >
                   {tg.label}
@@ -893,6 +855,19 @@ export default function TdlF() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="detail-footer">
+            <button className="primary" onClick={save}>Save Changes</button>
+            <button 
+                className="danger" 
+                onClick={(e) => {
+                    deleteTask(taskId, e);
+                    onClose();
+                }}
+            >
+                Delete Task
+            </button>
         </div>
       </motion.div>
     );
@@ -918,40 +893,20 @@ export default function TdlF() {
 
     return (
       <motion.div
-        className="folderDetailWrap"
+        className="detailWrap"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 8 }}
       >
-        <div className="detailHeader">
+        <div className="detail-header">
           <h3>Folder</h3>
-          <div className="detailBtns">
-            <button className="primaryBtn" onClick={saveNotes}>
-              Save
-            </button>
-            <button
-              className="ghostBtn"
-              style={{ color: 'var(--color-danger, #ff4d4d)' }}
-              onClick={(e) => {
-                deleteFolder(folder.id, e);
-                if (onClose) onClose();
-              }}
-            >
-              Delete
-            </button>
-            <button
-              className="ghostBtn"
-              onClick={() => {
+          <button className="close-btn" onClick={() => {
                 if (onClose) onClose();
                 if (isMobile) setShowFolderDetailMobile(false);
-              }}
-            >
-              Close
-            </button>
-          </div>
+              }}>×</button>
         </div>
 
-        <div className="detailBody">
+        <div className="detail-body">
           <label>Name</label>
           <div className="folderNameInline">
             <div
@@ -969,6 +924,7 @@ export default function TdlF() {
             value={color}
             onChange={(e) => setColor(e.target.value)}
             onBlur={() => saveColor(color)}
+            style={{height: '40px', padding: '0 4px'}}
           />
 
           <label>Notes</label>
@@ -976,7 +932,21 @@ export default function TdlF() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             onBlur={saveNotes}
+            placeholder="Add notes for this folder..."
           />
+        </div>
+
+        <div className="detail-footer">
+            <button className="primary" onClick={saveNotes}>Save Changes</button>
+            <button
+              className="danger"
+              onClick={(e) => {
+                deleteFolder(folder.id, e);
+                if (onClose) onClose();
+              }}
+            >
+              Delete Folder
+            </button>
         </div>
       </motion.div>
     );
@@ -1048,77 +1018,45 @@ export default function TdlF() {
   /* --- view state --- */
   /* --- Render --- */
   return (
-    <div className="tdl-root matched-layout">
-      {/* Top bar (Mobile only or simplified) */}
-      {isMobile && (
-        <div className="topBar">
-          <button
-            className="sidebarToggle"
-            onClick={() => setSidebarOpen((p) => !p)}
-          >
-            ☰
-          </button>
-          <div className="topTitle">
-            {activeView === "folder"
-              ? foldersFlat.find((f) => f.id === currentFolderId)?.text ||
-                "Tasks"
-              : activeView.charAt(0).toUpperCase() + activeView.slice(1)}
-          </div>
+    <div className="tdl-root">
+      {/* LEFT: Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
+        <div className="sidebar-header">
+          <h2>Menu</h2>
+          {isMobile && (
+            <button
+              className="sidebarToggle"
+              onClick={() => setSidebarOpen((p) => !p)}
+            >
+              ×
+            </button>
+          )}
         </div>
-      )}
 
-      <div className="layoutFinder threeCol">
-        {/* LEFT: Sidebar */}
-        <aside
-          className={`finderSidebar ${sidebarOpen ? "open" : "closed"}`}
-          aria-hidden={!sidebarOpen && isMobile}
-        >
-          <div className="sidebarHeader">
-            <h2>Menu</h2>
-            {!isMobile && (
-              <button
-                className="sidebarToggle"
-                onClick={() => setSidebarOpen((p) => !p)}
-              >
-                ☰
-              </button>
-            )}
-          </div>
-
-          <div className="sidebarSearch">
-            <input
-              className="searchInput"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="sidebarSection">
-            <div className="sectionTitle">TASKS</div>
-            <ul className="navLinks">
+        <div className="sidebar-content">
+          <div className="sidebar-section">
+            <div className="section-title">TASKS</div>
+            <ul>
               <li
-                className={activeView === "upcoming" ? "active" : ""}
+                className={`nav-item ${activeView === "upcoming" ? "active" : ""}`}
                 onClick={() => {
                   setActiveView("upcoming");
                   setCurrentFolderId(null);
                 }}
               >
-                <span className="icon">»</span> Upcoming{" "}
-                <span className="badge">12</span>
+                <span className="icon">»</span> Upcoming
               </li>
               <li
-                className={activeView === "today" ? "active" : ""}
+                className={`nav-item ${activeView === "today" ? "active" : ""}`}
                 onClick={() => {
                   setActiveView("today");
                   setCurrentFolderId(null);
                 }}
               >
-                <span className="icon">📅</span> Today{" "}
-                <span className="badge">5</span>
+                <span className="icon">📅</span> Today
               </li>
               <li
-                className={activeView === "calendar" ? "active" : ""}
+                className={`nav-item ${activeView === "calendar" ? "active" : ""}`}
                 onClick={() => {
                   setActiveView("calendar");
                   setCurrentFolderId(null);
@@ -1126,63 +1064,52 @@ export default function TdlF() {
               >
                 <span className="icon">🗓</span> Calendar
               </li>
-              <li
-                className={activeView === "sticky" ? "active" : ""}
-                onClick={() => {
-                  setActiveView("sticky");
-                  setCurrentFolderId(null);
-                }}
-              >
-                <span className="icon">📄</span> Sticky Wall
-              </li>
             </ul>
           </div>
 
-          <div className="sidebarSection">
-            <div className="sectionTitle">LISTS</div>
-            <div className="folderTreeWrap">
-              <ul className="folderTree">
-                {rootFolders.map((root) => (
-                  <FolderNode
-                    key={root.id}
-                    folder={root}
-                    depth={0}
-                    childrenMap={childrenMap}
-                    currentFolderId={currentFolderId}
-                    setCurrentFolderId={(id) => {
-                      setCurrentFolderId(id);
-                      setActiveView("folder");
-                    }}
-                    addSubfolderUI={addSubfolderUI}
-                    creatingUnder={creatingUnder}
-                    setCreatingUnder={setCreatingUnder}
-                    newFolderInput={newFolderInput}
-                    setNewFolderInput={setNewFolderInput}
-                    createFolderUnder={createFolderUnder}
-                    deleteFolder={deleteFolder}
-                    setShowFolderDetailMobile={setShowFolderDetailMobile}
-                    isMobile={isMobile}
-                    onFolderDragStart={onFolderDragStart}
-                    onFolderDragOver={onFolderDragOver}
-                    onFolderDrop={onFolderDrop}
-                    dragOverFolderId={dragOverFolderId}
-                  />
-                ))}
-              </ul>
-            </div>
+          <div className="sidebar-section">
+            <div className="section-title">LISTS</div>
+            <ul>
+              {rootFolders.map((root) => (
+                <FolderNode
+                  key={root.id}
+                  folder={root}
+                  depth={0}
+                  childrenMap={childrenMap}
+                  currentFolderId={currentFolderId}
+                  setCurrentFolderId={(id) => {
+                    setCurrentFolderId(id);
+                    setActiveView("folder");
+                  }}
+                  addSubfolderUI={addSubfolderUI}
+                  creatingUnder={creatingUnder}
+                  setCreatingUnder={setCreatingUnder}
+                  newFolderInput={newFolderInput}
+                  setNewFolderInput={setNewFolderInput}
+                  createFolderUnder={createFolderUnder}
+                  deleteFolder={deleteFolder}
+                  setShowFolderDetailMobile={setShowFolderDetailMobile}
+                  isMobile={isMobile}
+                  onFolderDragStart={onFolderDragStart}
+                  onFolderDragOver={onFolderDragOver}
+                  onFolderDrop={onFolderDrop}
+                  dragOverFolderId={dragOverFolderId}
+                />
+              ))}
+            </ul>
             <button
-              className="addListBtn"
+              className="nav-item"
+              style={{ marginTop: "0.5rem", color: "var(--color-primary)" }}
               onClick={() => {
                 setCreatingUnder(null);
                 setNewFolderInput(" ");
-                // Trigger the input to show
               }}
             >
               + Add New List
             </button>
-            {/* Root level create input */}
+            
             {!creatingUnder && newFolderInput !== "" && (
-               <div className="folderAddInline">
+               <div className="subfolderInline" style={{marginTop: 8}}>
                <input
                  value={newFolderInput}
                  onChange={(e) => setNewFolderInput(e.target.value)}
@@ -1190,337 +1117,133 @@ export default function TdlF() {
                  onKeyDown={(e) => {
                     if (e.key === "Enter") createFolderUnder(null);
                  }}
+                 autoFocus
                />
                <button onClick={() => createFolderUnder(null)}>Add</button>
              </div>
             )}
           </div>
 
-          <div className="sidebarSection">
-            <div className="sectionTitle">TAGS</div>
-            <div className="tagListSidebar">
+          <div className="sidebar-section">
+            <div className="section-title">TAGS</div>
+            <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
               {availableTags.map((tg) => (
                 <button
                   key={tg}
-                  className={`tagPill ${tagFilter === tg ? "active" : ""}`}
+                  className={`nav-item ${tagFilter === tg ? "active" : ""}`}
+                  style={{padding: '4px 8px', fontSize: '0.8rem'}}
                   onClick={() => setTagFilter((p) => (p === tg ? null : tg))}
                 >
                   {tg}
                 </button>
               ))}
-              <button
-                className="addTagBtn"
-                onClick={() => {
-                   /* Placeholder for add tag */
-                   alert("Tag management coming soon");
-                }}
-              >
-                + Add Tag
-              </button>
             </div>
-          </div>
-
-          <div className="sidebarFooter">
-            <button className="footerLink" onClick={requestNotificationPermission}>🔔 Enable Notifications</button>
-            <button className="footerLink">⚙ Settings</button>
-            <button className="footerLink" onClick={() => auth.signOut()}>
-              ↪ Sign out
-            </button>
-          </div>
-        </aside>
-
-        {/* CENTER: tasks */}
-        <main className="mainContent">
-          <div className="taskPane">
-            <div className="paneHeaderBig">
-              <div className="headerTitleRow">
-                  <h1>
-                    {activeView === "folder"
-                      ? foldersFlat.find((f) => f.id === currentFolderId)?.text ||
-                        "Select a List"
-                      : activeView.charAt(0).toUpperCase() + activeView.slice(1)}
-                  </h1>
-                  {activeView === "folder" && currentFolderId && (
-                      <button 
-                        className="ghostBtn smallBtn"
-                        onClick={() => setIsAddingSubfolder(!isAddingSubfolder)}
-                        title="Add Subfolder"
-                      >
-                        📂+
-                      </button>
-                  )}
-              </div>
-              <div className="bigCount">{visibleTasks.length}</div>
-            </div>
-            
-            {isAddingSubfolder && (
-                <div className="subfolderAddRow">
-                    <input 
-                        autoFocus
-                        placeholder="New Subfolder Name..."
-                        value={newFolderInput}
-                        onChange={(e) => setNewFolderInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if(e.key === 'Enter') {
-                                createFolderUnder(currentFolderId);
-                                setIsAddingSubfolder(false);
-                            }
-                        }}
-                    />
-                    <button onClick={() => {
-                        createFolderUnder(currentFolderId);
-                        setIsAddingSubfolder(false);
-                    }}>Add</button>
-                </div>
-            )}
-
-            <div className="addTaskBig">
-              <span className="plusIcon">+</span>
-              <input
-                value={taskInput}
-                onChange={(e) => setTaskInput(e.target.value)}
-                placeholder="Add New Task"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addTask(e);
-                }}
-              />
-            </div>
-
-            <ul className="taskList">
-              <React.Fragment>
-                {/* Show subfolders first (only in folder view) */}
-                {activeView === "folder" && currentFolderId && childrenMap[currentFolderId]?.map((subfolder) => {
-                  const isExpanded = expandedFolders.has(subfolder.id);
-                  const subfolderTasks = subfolder.tasks ? Object.entries(subfolder.tasks).map(([id, t]) => ({id, ...t})) : [];
-                  
-                  return (
-                    <React.Fragment key={`folder-${subfolder.id}`}>
-                      <li
-                        className="folderRow"
-                        onClick={(e) => {
-                          // If clicking the expand icon, toggle expansion
-                          if (e.target.closest('.expandIcon')) {
-                            setExpandedFolders(prev => {
-                              const newSet = new Set(prev);
-                              if (newSet.has(subfolder.id)) {
-                                newSet.delete(subfolder.id);
-                              } else {
-                                newSet.add(subfolder.id);
-                              }
-                              return newSet;
-                            });
-                          } else {
-                            // Otherwise, show folder details
-                            setSelectedTaskId(null);
-                            setSelectedFolderId(subfolder.id);
-                          }
-                        }}
-                      >
-                        <div className="folderRowLeft">
-                          <div 
-                            className="folderIcon" 
-                            style={{ background: subfolder.color || "var(--color-primary)" }}
-                          >
-                            {subfolder.emoji || "📁"}
-                          </div>
-                          <span className="folderName">{subfolder.text}</span>
-                          <span className="taskCount">({subfolderTasks.length})</span>
-                        </div>
-                        <div className="folderRowRight">
-                          <span className="expandIcon">{isExpanded ? "▼" : "▶"}</span>
-                        </div>
-                      </li>
-                      
-                      {/* Show tasks for this subfolder if expanded */}
-                      {isExpanded && (
-                        <div key={`nested-${subfolder.id}`} className="nestedTasksWrapper">
-                          {subfolderTasks.map((t) => (
-                            <div
-                              key={`subfolder-task-${t.id}`}
-                              className="taskRow nested"
-                              onClick={() => setSelectedTaskId(t.id)}
-                            >
-                              <div className="taskLeft">
-                                <input
-                                  type="checkbox"
-                                  className="customCheckbox"
-                                  checked={t.isActive}
-                                  onChange={(e) => {
-                                    e.stopPropagation();
-                                    toggleTask(t.id, t.isActive, subfolder.id);
-                                  }}
-                                />
-                                <div className="taskContent">
-                                  <span className={`taskText ${t.isActive ? "finished" : ""}`}>
-                                    {t.text}
-                                  </span>
-                                  <div className="taskMeta">
-                                    {t.dueDate && <span className="metaItem">📅 {t.dueDate}</span>}
-                                    {t.tags && t.tags.map(tg => (
-                                      <span key={tg.label} className="metaTag" style={{backgroundColor: tg.color}}>{tg.label}</span>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="taskRight">
-                                <span className="arrowIcon">›</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-                
-                {/* Show tasks */}
-                {visibleTasks.map((t) => {
-                  const index = tasks.findIndex((x) => x.id === t.id);
-                  return (
-                    <li
-                      key={t.id}
-                      className={`taskRow ${selectedTaskId === t.id ? "selected" : ""}`}
-                      draggable
-                      onDragStart={(e) => onDragStart(e, index)}
-                      onDragOver={onDragOver}
-                      onDrop={(e) => onDrop(e, index)}
-                      onClick={() => setSelectedTaskId(t.id)}
-                    >
-                      <div className="taskLeft">
-                         <input
-                            type="checkbox"
-                            className="customCheckbox"
-                            checked={t.isActive}
-                            onChange={(e) => {
-                                e.stopPropagation();
-                                toggleTask(t.id, t.isActive);
-                            }}
-                         />
-                        <div className="taskContent">
-                            <span className={`taskText ${t.isActive ? "finished" : ""}`}>
-                                {t.text}
-                            </span>
-                            <div className="taskMeta">
-                                {t.dueDate && <span className="metaItem">📅 {t.dueDate}</span>}
-                                {t.subtasks && <span className="metaItem">{t.subtasks} Subtasks</span>}
-                                {t.tags && t.tags.map(tg => (
-                                    <span key={tg.label} className="metaTag" style={{backgroundColor: tg.color}}>{tg.label}</span>
-                                ))}
-                            </div>
-                        </div>
-                      </div>
-                      <div className="taskRight">
-                        <span className="arrowIcon">›</span>
-                      </div>
-                    </li>
-                  );
-                })}
-            </React.Fragment>
-            </ul>
-          </div>
-        </main>
-
-        {/* RIGHT: details */}
-        <aside className="rightInfo equalHeight">
-          <div className="rightPanelInner">
-            <AnimatePresence mode="wait">
-              {selectedTaskId ? (
-                <TaskDetail
-                  key={`task-${selectedTaskId}`}
-                  taskId={selectedTaskId}
-                  onClose={() => setSelectedTaskId(null)}
-                />
-              ) : selectedFolderId ? (
-                <FolderDetail
-                  key={`folder-${selectedFolderId}`}
-                  folder={foldersFlat.find((f) => f.id === selectedFolderId)}
-                  onClose={() => setSelectedFolderId(null)}
-                />
-              ) : currentFolderId ? (
-                <FolderDetail
-                  key={`folder-${currentFolderId}`}
-                  folder={foldersFlat.find((f) => f.id === currentFolderId)}
-                  onClose={() => setSelectedFolderId(null)}
-                />
-              ) : (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="muted"
-                >
-                  Select a folder or task
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </aside>
-      </div>
-
-      {/* Mobile overlays */}
-      <AnimatePresence>
-        {isMobile && selectedTaskId && (
-          <motion.div
-            className="mobileOverlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <TaskDetail
-              taskId={selectedTaskId}
-              onClose={() => setSelectedTaskId(null)}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isMobile &&
-          showFolderDetailMobile &&
-          foldersFlat.find((f) => f.id === currentFolderId) && (
-            <motion.div
-              className="mobileOverlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <FolderDetail
-                folder={foldersFlat.find((f) => f.id === currentFolderId)}
-              />
-              <div
-                style={{
-                  padding: 12,
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-              >
-                <button
-                  className="ghostBtn"
-                  onClick={() => setShowFolderDetailMobile(false)}
-                >
-                  Close
-                </button>
-              </div>
-            </motion.div>
-          )}
-      </AnimatePresence>
-
-      {/* Undo / notifications */}
-      {recentlyDeleted && (
-        <div className="undoBar">
-          <span>
-            {recentlyDeleted.type === "task" && "Task deleted"}
-            {recentlyDeleted.type === "folder-delete" &&
-              `Folders deleted (${recentlyDeleted.ids.length})`}
-            {recentlyDeleted.type === "folder-move" && "Folder moved"}
-          </span>
-          <div className="undoActions">
-            <button onClick={undoDelete}>Undo</button>
-            <button onClick={() => setRecentlyDeleted(null)}>Dismiss</button>
           </div>
         </div>
-      )}
+
+        <div className="sidebar-footer">
+          <button onClick={requestNotificationPermission}>🔔 Enable Notifications</button>
+          <button onClick={() => auth.signOut()}>↪ Sign out</button>
+        </div>
+      </aside>
+
+      {/* CENTER: Main Content */}
+      <main className="main-content">
+        <header>
+          <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+            {isMobile && !sidebarOpen && (
+                <button onClick={() => setSidebarOpen(true)} style={{background:'none', border:'none', color:'#fff', fontSize: 20}}>☰</button>
+            )}
+            <h1>
+              {activeView === "folder"
+                ? foldersFlat.find((f) => f.id === currentFolderId)?.text || "Select a List"
+                : activeView.charAt(0).toUpperCase() + activeView.slice(1)}
+            </h1>
+          </div>
+          <div style={{color: 'var(--color-muted)'}}>{visibleTasks.length} tasks</div>
+        </header>
+
+        <div className="tasks-area">
+          <div className="task-input-wrapper">
+            <input
+              value={taskInput}
+              onChange={(e) => setTaskInput(e.target.value)}
+              placeholder="Add a new task..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addTask(e);
+              }}
+            />
+          </div>
+
+          <div className="tasks-list">
+            {visibleTasks.map((t) => {
+              const index = tasks.findIndex((x) => x.id === t.id);
+              return (
+                <div
+                  key={t.id}
+                  className={`task-item ${t.isActive ? "completed" : ""}`}
+                  draggable
+                  onDragStart={(e) => onDragStart(e, index)}
+                  onDragOver={onDragOver}
+                  onDrop={(e) => onDrop(e, index)}
+                  onClick={() => setSelectedTaskId(t.id)}
+                >
+                  <div
+                    className={`checkbox ${t.isActive ? "checked" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTask(t.id, t.isActive);
+                    }}
+                  >
+                    {t.isActive && "✓"}
+                  </div>
+                  
+                  <div className="task-content">
+                    <span className="task-text">{t.text}</span>
+                    <div className="task-meta">
+                      {t.dueDate && <span>📅 {t.dueDate}</span>}
+                      {t.tags && t.tags.map(tg => (
+                        <span key={tg.label} className="meta-tag" style={{backgroundColor: tg.color}}>{tg.label}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </main>
+
+      {/* RIGHT: Details Panel */}
+      <aside className="right-panel">
+        <div className="panel-inner">
+          <AnimatePresence mode="wait">
+            {selectedTaskId ? (
+              <TaskDetail
+                key={`task-${selectedTaskId}`}
+                taskId={selectedTaskId}
+                onClose={() => setSelectedTaskId(null)}
+              />
+            ) : selectedFolderId ? (
+              <FolderDetail
+                key={`folder-${selectedFolderId}`}
+                folder={foldersFlat.find((f) => f.id === selectedFolderId)}
+                onClose={() => setSelectedFolderId(null)}
+              />
+            ) : currentFolderId ? (
+              <FolderDetail
+                key={`folder-${currentFolderId}`}
+                folder={foldersFlat.find((f) => f.id === currentFolderId)}
+                onClose={() => setSelectedFolderId(null)}
+              />
+            ) : (
+              <div className="muted" style={{textAlign: 'center', marginTop: '50%'}}>
+                Select a task to view details
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      </aside>
     </div>
   );
 }

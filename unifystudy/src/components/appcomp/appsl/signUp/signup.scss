@@ -13,47 +13,53 @@ $rc: #071019;
 
 .signup-container {
   max-width: 420px;
-  margin: 2.6rem auto;
-  background: linear-gradient(
-    180deg,
-    $panel 0%,
-    rgba(143, 210, 255, 0.03) 100%
-  );
+  margin: 4rem auto;
+  background: rgba(12, 18, 20, 0.85);
+  backdrop-filter: blur(12px);
   color: #e8f3f7;
-  padding: 1.8rem;
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(2, 6, 10, 0.45);
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   font-family: $font;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 .signup-title {
-  color: $accent-2;
-  font-size: 1.6rem;
+  color: #fff;
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
   text-align: center;
+  letter-spacing: -1px;
 }
 .signup-form {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1.2rem;
   .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.5rem;
     label {
-      color: $accent-2;
-      font-weight: 700;
-      font-size: 0.95rem;
+      color: $muted;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     input {
-      background: rgba(255, 255, 255, 0.02);
-      color: #eaf6ff;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      padding: 0.6rem 0.8rem;
-      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.2s;
+      
       &:focus {
         outline: none;
-        box-shadow: 0 10px 26px rgba(75, 108, 130, 0.06);
+        border-color: $accent-2;
+        background: rgba(0, 0, 0, 0.4);
+        box-shadow: 0 0 0 4px rgba(143, 210, 255, 0.1);
       }
     }
     .pass {
@@ -61,66 +67,86 @@ $rc: #071019;
     }
   }
   button {
-    background: linear-gradient(90deg, $accent, $accent-2);
-    color: #02161a;
+    background: $accent-2;
+    color: #000;
     font-weight: 700;
     border: none;
-    padding: 0.65rem 1rem;
+    padding: 1rem;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.18s;
-    box-shadow: 0 10px 30px rgba(75, 108, 130, 0.12);
+    transition: all 0.2s;
+    font-size: 1rem;
+    margin-top: 1rem;
+    
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 14px 36px rgba(75, 108, 130, 0.2);
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+      box-shadow: 0 8px 20px rgba(143, 210, 255, 0.2);
     }
   }
   .btn-google {
-    background: linear-gradient(90deg, #4285f4, #367bf5);
-    color: #02161a;
-    padding: 0.6rem;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    padding: 0.8rem;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.6rem;
-    font-weight: 700;
-    border: none;
+    gap: 0.8rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0.5rem;
+    
     &:hover {
-      opacity: 0.95;
+      background: rgba(255, 255, 255, 0.1);
       transform: translateY(-2px);
     }
     img.google-logo {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
     }
   }
   .toggle-text {
     color: $muted;
     text-align: center;
     font-size: 0.9rem;
+    margin-top: 1rem;
+    
     .toggle-btn {
       color: $accent-2;
       cursor: pointer;
       font-weight: 700;
-      margin-left: 0.25rem;
+      margin-left: 0.4rem;
+      
+      &:hover { text-decoration: underline; }
     }
   }
   .error-msg {
-    // color: $rC;
-    margin-top: 0.6rem;
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.1);
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: center;
+    border: 1px solid rgba(255, 77, 77, 0.2);
   }
   .success-msg {
-    color: $accent-2;
-    margin-top: 0.6rem;
+    color: $success;
+    background: rgba(64, 191, 70, 0.1);
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: center;
+    border: 1px solid rgba(64, 191, 70, 0.2);
   }
 } /* responsive */
 @media (max-width: 500px) {
   .signup-container {
-    padding: 1rem;
-    margin: 1.6rem auto;
+    padding: 1.5rem;
+    margin: 1rem;
+    width: auto;
   }
   .signup-title {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
   }
 }

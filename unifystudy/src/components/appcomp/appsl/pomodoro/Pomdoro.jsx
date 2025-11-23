@@ -1,64 +1,27 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./pomodoro.scss";
-// import "./pomodoro_terminal.scss"; // optional alternate stylesheet
+import { useTimer } from "./TimerContext";
 
-// Helper: format mm:ss (display uses ceil so you don't see '00' flicker)
-const fmt = (s) => {
-  const secs = Math.max(0, Math.ceil(s));
-  const mm = Math.floor(secs / 60)
-    .toString()
-    .padStart(2, "0");
-  const ss = Math.floor(secs % 60)
-    .toString()
-    .padStart(2, "0");
-  return `${mm}:${ss}`;
-};
+export default function Pomodoro() {
+  const {
+    templateList,
+    setTemplateList,
+    selectedTemplateId,
+    setSelectedTemplateId,
+    selectedTemplate,
+    mode,
+    setMode,
+    running,
+    startPause,
+    reset,
+    secondsLeft,
+    totalSeconds,
+    completedPomodoros,
+    formatTime,
+  } = useTimer();
 
-// Default templates if none provided
-const defaultTemplates = [
-  {
-    id: "t1",
-    name: "Default Pomodoro",
-    work: 25,
-    short: 5,
-    long: 15,
-    cycles: 4,
-  },
-  { id: "t2", name: "Deep Work", work: 50, short: 10, long: 30, cycles: 3 },
-];
-
-export default function Pomodoro({
-  templates = defaultTemplates,
-  onApplyTemplate,
-}) {
-  // templates
-  const [templateList, setTemplateList] = useState(templates);
-  const [selectedTemplateId, setSelectedTemplateId] = useState(
-    templateList[0]?.id || null
-  );
-  const selectedTemplate =
-    templateList.find((t) => t.id === selectedTemplateId) || templateList[0];
-
-  // timer / mode state
-  const [mode, setMode] = useState("work"); // "work" | "short" | "long"
-  const [running, setRunning] = useState(false);
-  // secondsLeft is a float (seconds). Initialize on selected template.
-  const [secondsLeft, setSecondsLeft] = useState(
-    (selectedTemplate?.work || 25) * 60
-  );
-
-  // mutable refs for rAF engine
-  const rafRef = useRef(null);
-  const endTimeRef = useRef(null); // absolute timestamp (ms) when current session ends
-  const lastNowRef = useRef(null); // last animation frame time
-  const secondsLeftRef = useRef(secondsLeft); // mirror of secondsLeft for stable closures
-
-  // sessions tracking
-  const [completedPomodoros, setCompletedPomodoros] = useState(0);
-  const [cycleCount, setCycleCount] = useState(0);
-
-  // editor UI
+  // editor UI (Local state is fine for editor)
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorContent, setEditorContent] = useState(
     templateList
@@ -81,35 +44,6 @@ export default function Pomodoro({
     return arr;
   }, []);
 
-  // Derived total seconds for current mode
-  const totalSeconds = useMemo(() => {
-    if (mode === "work") return (selectedTemplate?.work || 25) * 60;
-    if (mode === "short") return (selectedTemplate?.short || 5) * 60;
-    return (selectedTemplate?.long || 15) * 60;
-  }, [mode, selectedTemplate]);
-
-  // keep secondsLeftRef in sync with state
-  useEffect(() => {
-    secondsLeftRef.current = secondsLeft;
-  }, [secondsLeft]);
-
-  // When totalSeconds changes (mode/template change), reset secondsLeft to that total (do not auto-start)
-  useEffect(() => {
-    cancelRaf();
-    setRunning(false);
-    setSecondsLeft(totalSeconds);
-    secondsLeftRef.current = totalSeconds;
-    endTimeRef.current = null;
-    lastNowRef.current = null;
-  }, [totalSeconds]);
-
-  // On template selection change, switch to work mode and reset
-  useEffect(() => {
-    setMode("work");
-    setRunning(false);
-    setSecondsLeft((selectedTemplate?.work || 25) * 60);
-  }, [selectedTemplateId]);
-
   // circumference constant (r = 100 matches CSS/SVG)
   const CIRC = 2 * Math.PI * 100;
 
@@ -119,127 +53,12 @@ export default function Pomodoro({
     Math.min(100, ((totalSeconds - secondsLeft) / totalSeconds) * 100)
   );
 
-  // rAF engine functions
-  function cancelRaf() {
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-  }
-
-  // core rAF loop: updates secondsLeft based on endTimeRef
-  const rafLoop = (now) => {
-    if (!endTimeRef.current) {
-      // safety - shouldn't happen
-      cancelRaf();
-      setRunning(false);
-      return;
-    }
-
-    // compute remaining ms
-    const remainingMs = endTimeRef.current - now;
-    const remainingSec = Math.max(0, remainingMs / 1000);
-    // update state and ref
-    secondsLeftRef.current = remainingSec;
-    setSecondsLeft(remainingSec);
-
-    if (remainingMs <= 0) {
-      // finished
-      cancelRaf();
-      rafRef.current = null;
-      setRunning(false);
-      // ensure secondsLeft is exactly 0
-      secondsLeftRef.current = 0;
-      setSecondsLeft(0);
-      handleComplete(); // advance mode / breaks
-      return;
-    }
-
-    // schedule next frame
-    rafRef.current = requestAnimationFrame(rafLoop);
-  };
-
-  // start rAF timer: set endTimeRef using current performance.now()
-  const startRaf = () => {
-    // compute endTime from now + secondsLeft
-    const now = performance.now();
-    endTimeRef.current = now + Math.max(0, secondsLeftRef.current) * 1000;
-    // start loop
-    cancelRaf();
-    rafRef.current = requestAnimationFrame(rafLoop);
-  };
-
-  // start / pause control
-  const startPause = () => {
-    if (running) {
-      // pause: cancel rAF but keep secondsLeftRef updated (it already is)
-      cancelRaf();
-      setRunning(false);
-      endTimeRef.current = null;
-    } else {
-      // start: set endTime and begin rAF
-      startRaf();
-      setRunning(true);
-    }
-  };
-
-  // reset to current mode's total
-  const reset = () => {
-    cancelRaf();
-    setRunning(false);
-    endTimeRef.current = null;
-    setSecondsLeft(totalSeconds);
-    secondsLeftRef.current = totalSeconds;
-  };
-
-  // advanced: ensure we cancel rAF on unmount
-  useEffect(() => {
-    // Request notification permission on mount
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-    return () => {
-      cancelRaf();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // completion handling (same logic as before)
-  const handleComplete = () => {
-    if (mode === "work") {
-      setCompletedPomodoros((c) => c + 1);
-      setCycleCount((c) => c + 1);
-      const nextIsLong = cycleCount + 1 >= (selectedTemplate?.cycles || 4);
-      if (nextIsLong) {
-        setMode("long");
-        setSecondsLeft((selectedTemplate?.long || 15) * 60);
-        secondsLeftRef.current = (selectedTemplate?.long || 15) * 60;
-        setCycleCount(0);
-      } else {
-        setMode("short");
-        setSecondsLeft((selectedTemplate?.short || 5) * 60);
-        secondsLeftRef.current = (selectedTemplate?.short || 5) * 60;
-      }
-    } else {
-      setMode("work");
-      setSecondsLeft((selectedTemplate?.work || 25) * 60);
-      secondsLeftRef.current = (selectedTemplate?.work || 25) * 60;
-    }
-    // Notification
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("Pomodoro Timer", {
-        body: mode === "work" ? "Time for a break!" : "Back to work!",
-      });
-    }
-  };
-
-  // Apply template (expose hook)
+  // Apply template
   const applyTemplate = (tpl) => {
     setSelectedTemplateId(tpl.id);
-    if (onApplyTemplate) onApplyTemplate(tpl);
   };
 
-  // Editor save: parse simple format and update templateList (keeps user templates)
+  // Editor save
   const saveEditor = () => {
     const blocks = editorContent
       .split(/\n\s*\n/)
@@ -333,7 +152,7 @@ export default function Pomodoro({
                 stroke="rgba(255,255,255,0.08)"
               />
 
-              {/* Progress ring (uses CIRC and the smooth secondsLeft) */}
+              {/* Progress ring */}
               <circle
                 className="circle-progress"
                 cx="120"
@@ -345,7 +164,7 @@ export default function Pomodoro({
                 strokeDasharray={CIRC}
                 strokeDashoffset={CIRC * (1 - progressPercent / 100)}
                 strokeLinecap="round"
-                style={{ transition: "none" }} // rAF updates, so no CSS transition required
+                style={{ transition: "none" }}
               />
             </svg>
 
@@ -361,7 +180,7 @@ export default function Pomodoro({
             ))}
 
             <div className="timer__center">
-              <div className="timer__time">{fmt(secondsLeft)}</div>
+              <div className="timer__time">{formatTime(secondsLeft)}</div>
               <div className="timer__sub">{selectedTemplate?.name}</div>
             </div>
           </div>
@@ -372,39 +191,9 @@ export default function Pomodoro({
               {running ? "Pause" : "Start"}
             </button>
             <button onClick={reset}>Reset</button>
-            <button
-              onClick={() => {
-                setMode("work");
-                setSecondsLeft((selectedTemplate?.work || 25) * 60);
-                secondsLeftRef.current = (selectedTemplate?.work || 25) * 60;
-                setRunning(false);
-                cancelRaf();
-              }}
-            >
-              Jump to Work
-            </button>
-            <button
-              onClick={() => {
-                setMode("short");
-                setSecondsLeft((selectedTemplate?.short || 5) * 60);
-                secondsLeftRef.current = (selectedTemplate?.short || 5) * 60;
-                setRunning(false);
-                cancelRaf();
-              }}
-            >
-              Short Break
-            </button>
-            <button
-              onClick={() => {
-                setMode("long");
-                setSecondsLeft((selectedTemplate?.long || 15) * 60);
-                secondsLeftRef.current = (selectedTemplate?.long || 15) * 60;
-                setRunning(false);
-                cancelRaf();
-              }}
-            >
-              Long Break
-            </button>
+            <button onClick={() => setMode("work")}>Jump to Work</button>
+            <button onClick={() => setMode("short")}>Short Break</button>
+            <button onClick={() => setMode("long")}>Long Break</button>
           </div>
 
           <div className="timer__progress-bar" aria-hidden>
@@ -454,37 +243,19 @@ export default function Pomodoro({
           <div className="quick-bar">
             <button
               className={`quick-bar__btn ${mode === "work" ? "active" : ""}`}
-              onClick={() => {
-                setMode("work");
-                setSecondsLeft((selectedTemplate?.work || 25) * 60);
-                secondsLeftRef.current = (selectedTemplate?.work || 25) * 60;
-                setRunning(false);
-                cancelRaf();
-              }}
+              onClick={() => setMode("work")}
             >
               Work
             </button>
             <button
               className={`quick-bar__btn ${mode === "short" ? "active" : ""}`}
-              onClick={() => {
-                setMode("short");
-                setSecondsLeft((selectedTemplate?.short || 5) * 60);
-                secondsLeftRef.current = (selectedTemplate?.short || 5) * 60;
-                setRunning(false);
-                cancelRaf();
-              }}
+              onClick={() => setMode("short")}
             >
               Short
             </button>
             <button
               className={`quick-bar__btn ${mode === "long" ? "active" : ""}`}
-              onClick={() => {
-                setMode("long");
-                setSecondsLeft((selectedTemplate?.long || 15) * 60);
-                secondsLeftRef.current = (selectedTemplate?.long || 15) * 60;
-                setRunning(false);
-                cancelRaf();
-              }}
+              onClick={() => setMode("long")}
             >
               Long
             </button>
@@ -504,26 +275,56 @@ export default function Pomodoro({
             <div style={{ display: "flex", gap: 12 }}>
               <div
                 style={{
-                  width: 80,
-                  background: "var(--color-bg-dark)",
-                  borderRadius: 6,
-                  padding: 8,
-                  color: "var(--color-muted)",
-                  fontSize: 12,
+                  marginTop: 12.5,
+                  width: 60,
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                <div style={{ fontWeight: 700, marginBottom: 8 }}>Line</div>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    marginBottom: 20,
+                    fontSize: 12,
+                    color: "var(--color-muted)",
+                    textAlign: "center",
+                    height: "auto",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  Line
+                </div>
                 <div
                   ref={editorScrollRef}
-                  style={{ maxHeight: 380, overflowY: "auto" }}
+                  style={{
+                    maxHeight: 380,
+                    overflowY: "auto",
+                    lineHeight: "1.6",
+                    paddingTop: 12,
+                    paddingBottom: 12,
+                    paddingRight: 8,
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                    background: "rgba(255, 255, 255, 0.02)",
+                    borderRadius: 6,
+                    paddingLeft: 8,
+                  }}
+                  className="line-numbers-scrollable"
                 >
                   {editorLines.map((_, i) => (
                     <div
                       key={i}
                       style={{
-                        padding: "2px 0",
-                        textAlign: "right",
+                        padding: 0,
+                        textAlign: "center",
                         opacity: 0.7,
+                        fontSize: 13,
+                        lineHeight: "1.6",
+                        fontFamily: '"Fira Code", monospace',
+                        height: "auto",
+                        color: "var(--color-muted)",
                       }}
                     >
                       {i + 1}
@@ -555,6 +356,11 @@ export default function Pomodoro({
                 <textarea
                   value={editorContent}
                   onChange={(e) => setEditorContent(e.target.value)}
+                  onScroll={(e) => {
+                    if (editorScrollRef.current) {
+                      editorScrollRef.current.scrollTop = e.target.scrollTop;
+                    }
+                  }}
                   style={{
                     width: "100%",
                     height: 380,
@@ -565,6 +371,7 @@ export default function Pomodoro({
                     borderRadius: 6,
                     fontFamily: '"Fira Code", monospace',
                     fontSize: 13,
+                    lineHeight: "1.6",
                     resize: "vertical",
                   }}
                 />

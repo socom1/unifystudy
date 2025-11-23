@@ -1,0 +1,154 @@
+.sticky-wall {
+  width: 100%;
+  height: 100vh;
+  background-color: #0f0f13;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+
+  .wall-header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 15, 20, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 10;
+
+    h1 {
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    button {
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  .wall-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    
+    .empty-state {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: rgba(255,255,255,0.2);
+        font-size: 1rem;
+        pointer-events: none;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+  }
+
+  .sticky-note {
+    position: absolute;
+    padding: 1.2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    cursor: grab;
+    border-radius: 12px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: box-shadow 0.2s;
+    overflow: hidden;
+
+    &:active {
+      cursor: grabbing;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .note-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+
+      button {
+        background: rgba(0, 0, 0, 0.2);
+        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+
+        &:hover {
+          background: rgba(255, 0, 0, 0.5);
+          color: #fff;
+        }
+      }
+    }
+
+    &:hover .note-actions {
+      opacity: 1;
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      resize: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.5;
+      font-weight: 400;
+
+      &:focus {
+        outline: none;
+      }
+      
+      &::placeholder {
+          color: rgba(255,255,255,0.3);
+      }
+    }
+
+    .resize-handle {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      cursor: nwse-resize;
+      background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.2) 50%);
+      border-bottom-right-radius: 12px;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}

@@ -15,6 +15,8 @@ export default function SignUpForm({
   toggleLoginMode,
   error,
   success,
+  keepLoggedIn,
+  setKeepLoggedIn,
 }) {
   return (
     <form className="signup-form" onSubmit={handleSubmit}>
@@ -61,6 +63,21 @@ export default function SignUpForm({
           </button>
         </div>
       </div>
+
+      {isLogin && (
+        <div className="form-group checkbox-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <input
+            type="checkbox"
+            id="keepLoggedIn"
+            checked={keepLoggedIn}
+            onChange={(e) => setKeepLoggedIn(e.target.checked)}
+            style={{ width: 'auto', margin: 0 }}
+          />
+          <label htmlFor="keepLoggedIn" style={{ margin: 0, fontSize: '0.9rem', cursor: 'pointer' }}>
+            Keep me logged in
+          </label>
+        </div>
+      )}
 
       <button type="submit" className="btn-primary">
         {isLogin ? "Log In" : "Sign Up"}

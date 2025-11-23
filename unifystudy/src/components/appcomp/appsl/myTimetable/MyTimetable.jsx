@@ -30,6 +30,7 @@ export default function WeeklyCalendar() {
   });
   const [userId, setUserId] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
+  const [notifiedEvents, setNotifiedEvents] = useState({});
 
   // Track logged-in user
   useEffect(() => {
@@ -123,13 +124,96 @@ export default function WeeklyCalendar() {
     setIsFormOpen(true);
   };
 
+  // Notification check
+  useEffect(() => {
+    if (!("Notification" in window)) return;
+
+    const checkUpcomingEvents = async () => {
+      if (Notification.permission !== "granted") return;
+
+      // Check user settings
+      if (userId) {
+        const settingsRef = ref(db, `users/${userId}/settings/notifications`);
+        // We need to read the setting. Since this is inside an interval, we should be careful.
+        // However, onValue is better for real-time, but here we just want a snapshot check.
+        // To avoid complexity, let's assume we want to respect the setting.
+        // We can fetch it once per check or subscribe to it.
+        // Let's subscribe to it in a separate effect to keep this clean.
+      }
+      
+      // We will use a ref or state to store the current setting value
+      // See below for the separate effect.
+      if (notificationsEnabled === false) return; // If explicitly false
+
+      const now = new Date();
+      const currentDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()];
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      events.forEach(evt => {
+        if (evt.day === currentDay) {
+          const evtHour = evt.start; // Assuming start is the hour, minutes are 00
+          const evtMinute = 0; // Assuming events start on the hour
+
+          // Check if event is in 10 minutes
+          const eventTimeInMinutes = evtHour * 60 + evtMinute;
+          const currentTimeInMinutes = currentHour * 60 + currentMinute;
+          const diff = eventTimeInMinutes - currentTimeInMinutes;
+
+          // Notify if event is exactly 10 minutes away and hasn't been notified yet for this instance
+          if (diff === 10 && !notifiedEvents[evt.id]) {
+             new Notification(`Upcoming Event: ${evt.title}`, {
+               body: `Starts in 10 minutes at ${evt.start}:00`, // Adjusted to use evt.start
+             });
+             // Mark as notified in local state
+             setNotifiedEvents(prev => ({ ...prev, [evt.id]: true }));
+          }
+          // Reset notification status for events that have passed or are far away
+          if (diff < 10 && notifiedEvents[evt.id]) {
+            setNotifiedEvents(prev => {
+              const newState = { ...prev };
+              delete newState[evt.id];
+              return newState;
+            });
+          }
+        }
+      });
+    };
+
+    const interval = setInterval(checkUpcomingEvents, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [events, notifiedEvents, userId]); // Add userId if we use it, but we need notificationsEnabled state
+
+  // New state for notification setting
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  useEffect(() => {
+      if (!userId) return;
+      const settingsRef = ref(db, `users/${userId}/settings/notifications`);
+      const unsub = onValue(settingsRef, (snapshot) => {
+          const val = snapshot.val();
+          setNotificationsEnabled(val !== false); // Default to true if null
+      });
+      return () => unsub();
+  }, [userId]);
+
   return (
     <div className="calendar-container">
       <div className="calendar-nav">
-        <h2>Weekly Schedule</h2>
-        <button onClick={() => setIsFormOpen((s) => !s)}>
-          {isFormOpen ? "Close" : "Create Event"}
-        </button>
+        <h2>Weekly Timetable</h2>
+        <div style={{display: 'flex', gap: '1rem'}}>
+            {("Notification" in window && Notification.permission !== "granted") && (
+                <button onClick={() => {
+                    Notification.requestPermission().then(() => {
+                        // Force re-render or just let the user know
+                        window.location.reload(); // Simple way to refresh permission state in UI
+                    });
+                }}>
+                    Enable Notifications
+                </button>
+            )}
+            <button onClick={() => setIsFormOpen(true)}>+ Add Event</button>
+        </div>
       </div>
 
       <AnimatePresence>
