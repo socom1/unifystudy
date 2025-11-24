@@ -287,6 +287,39 @@ export default function Dashboard({ user }) {
             </Link>
           </div>
 
+          <div className="dashboard-widgets-row">
+            {upcomingEvents.length > 0 && (
+              <div className="widget-card events-widget">
+                <h3>Upcoming Today</h3>
+                <div className="events-list">
+                  {upcomingEvents.map((evt, i) => (
+                    <div key={i} className="event-item">
+                      <div className="event-time">{evt.start}:00</div>
+                      <div className="event-title">{evt.title}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {recentSessions.length > 0 && (
+              <div className="widget-card sessions-widget">
+                <h3>Recent Sessions</h3>
+                <div className="sessions-list">
+                  {recentSessions.map((session, i) => (
+                    <div key={i} className="session-item">
+                      <div className="session-icon">⏱️</div>
+                      <div className="session-info">
+                        <div className="session-duration">{session.duration} min</div>
+                        <div className="session-time">{formatDate(session.timestamp)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="quote-widget" style={{marginTop: '2rem'}}>
             <h3>Quote of the Day</h3>
             <blockquote style={{fontStyle: 'italic', color: 'var(--color-muted)', borderLeft: '3px solid var(--color-primary)', paddingLeft: '1rem'}}>
@@ -314,37 +347,6 @@ export default function Dashboard({ user }) {
               <span className="streak-label">{streak === 1 ? 'day' : 'days'}</span>
             </div>
           </div>
-
-          {upcomingEvents.length > 0 && (
-            <div className="events-widget">
-              <h3>Upcoming Today</h3>
-              <div className="events-list">
-                {upcomingEvents.map((evt, i) => (
-                  <div key={i} className="event-item">
-                    <div className="event-time">{evt.start}:00</div>
-                    <div className="event-title">{evt.title}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {recentSessions.length > 0 && (
-            <div className="sessions-widget">
-              <h3>Recent Sessions</h3>
-              <div className="sessions-list">
-                {recentSessions.map((session, i) => (
-                  <div key={i} className="session-item">
-                    <div className="session-icon">⏱️</div>
-                    <div className="session-info">
-                      <div className="session-duration">{session.duration} min</div>
-                      <div className="session-time">{formatDate(session.timestamp)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Achievements Widget */}
           <motion.div

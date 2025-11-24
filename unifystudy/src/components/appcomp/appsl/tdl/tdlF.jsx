@@ -9,6 +9,16 @@ import { db, auth } from "../firebase";
 import { ref as databaseRef, push, set, remove, onValue, update } from "firebase/database";
 import "./tdlF.scss";
 
+// Add this style block or ensure it's in tdlF.scss
+// .glowing-tag {
+//   color: #fff;
+//   padding: 2px 8px;
+//   border-radius: 12px;
+//   font-size: 0.75rem;
+//   font-weight: 600;
+//   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+// }
+
 /* --- small helpers --- */
 const SAMPLE_TAG_COLORS = [
   "var(--color-secondary)",
@@ -331,7 +341,7 @@ export default function TdlF() {
     const checkDueTasks = () => {
         if (Notification.permission !== "granted") return;
         const now = new Date();
-        const todayStr = now.toISOString().split("T")[0];
+        const todayStr = now.toLocaleDateString('en-CA');
         
         // Check all tasks in all folders
         foldersFlat.forEach(folder => {
@@ -513,7 +523,7 @@ export default function TdlF() {
       description: "",
       color: folderColor,
       tags: [],
-      dueDate: activeView === 'today' ? new Date().toISOString().split('T')[0] : "",
+      dueDate: activeView === 'today' ? new Date().toLocaleDateString('en-CA') : "",
     };
     await safePushTask(targetFolderId, taskObj);
     setTaskInput("");
@@ -698,7 +708,10 @@ export default function TdlF() {
         filtered = filtered.filter((t) => (t.tags || []).some((tg) => tg.label === tagFilter));
     }
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    // Get local date string YYYY-MM-DD
+    const todayStr = now.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD format
+    
     if (activeView === 'today') {
         filtered = filtered.filter(t => t.dueDate === todayStr);
     } else if (activeView === 'upcoming') {
@@ -1199,12 +1212,23 @@ export default function TdlF() {
                   </div>
                   
                   <div className="task-content">
-                    <span className="task-text">{t.text}</span>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
+                        <span className="task-text">{t.text}</span>
+                        {t.tags && t.tags.map(tg => (
+                            <span 
+                                key={tg.label} 
+                                className="meta-tag glowing-tag" 
+                                style={{
+                                    backgroundColor: tg.color,
+                                    boxShadow: `0 0 8px ${tg.color}, 0 0 4px ${tg.color}`
+                                }}
+                            >
+                                {tg.label}
+                            </span>
+                        ))}
+                    </div>
                     <div className="task-meta">
                       {t.dueDate && <span>📅 {t.dueDate}</span>}
-                      {t.tags && t.tags.map(tg => (
-                        <span key={tg.label} className="meta-tag" style={{backgroundColor: tg.color}}>{tg.label}</span>
-                      ))}
                     </div>
                   </div>
                 </div>

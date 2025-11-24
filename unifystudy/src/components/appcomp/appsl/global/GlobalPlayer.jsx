@@ -49,7 +49,7 @@ export default function GlobalPlayer() {
   // Initialize YouTube player when mode changes or video ID changes
   useEffect(() => {
     const initPlayer = () => {
-      if (mode === "youtube" && window.YT && window.YT.Player && isOpen) {
+      if (mode === "youtube" && window.YT && window.YT.Player) {
         const iframe = document.getElementById('youtube-player-iframe');
         if (iframe && !playerRef.current) {
           playerRef.current = new window.YT.Player('youtube-player-iframe', {
@@ -72,7 +72,7 @@ export default function GlobalPlayer() {
         playerRef.current = null;
       }
     };
-  }, [mode, youtubeId, isOpen]);
+  }, [mode, youtubeId]);
 
   const handleYoutubeSubmit = (e) => {
     e.preventDefault();
@@ -91,89 +91,90 @@ export default function GlobalPlayer() {
 
   return (
     <div className="global-player" ref={containerRef}>
-      <AnimatePresence mode="wait">
-        {isOpen ? (
-          <motion.div
-            key="player-content"
-            className="player-content"
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-          >
-            <div className="player-header">
-              <div className="mode-switch">
-                <button
-                  className={mode === "spotify" ? "active" : ""}
-                  onClick={() => setMode("spotify")}
-                >
-                  Spotify
-                </button>
-                <button
-                  className={mode === "youtube" ? "active" : ""}
-                  onClick={() => setMode("youtube")}
-                >
-                  YouTube
-                </button>
-              </div>
+    <div className="global-player" ref={containerRef}>
+      <motion.div
+        key="player-content"
+        className="player-content"
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={isOpen ? { opacity: 1, scale: 1, y: 0, pointerEvents: "auto" } : { opacity: 0, scale: 0.95, y: 10, pointerEvents: "none" }}
+        transition={{ duration: 0.25, ease: "easeInOut" }}
+        style={{ position: isOpen ? 'relative' : 'absolute', zIndex: isOpen ? 10 : -1 }}
+      >
+        <div className="player-header">
+          <div className="mode-switch">
+            <button
+              className={mode === "spotify" ? "active" : ""}
+              onClick={() => setMode("spotify")}
+            >
+              Spotify
+            </button>
+            <button
+              className={mode === "youtube" ? "active" : ""}
+              onClick={() => setMode("youtube")}
+            >
+              YouTube
+            </button>
+          </div>
 
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {mode === "youtube" && (
-                  <button
-                    onClick={togglePlay}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: isPlaying ? 'var(--color-primary)' : 'var(--color-muted)',
-                      cursor: 'pointer',
-                      fontSize: '1.2rem'
-                    }}
-                    title={isPlaying ? "Pause" : "Play"}
-                  >
-                    {isPlaying ? "⏸" : "▶"}
-                  </button>
-                )}
-                <button className="close-btn" onClick={toggleOpen}>×</button>
-              </div>
-            </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {mode === "youtube" && (
+              <button
+                onClick={togglePlay}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: isPlaying ? 'var(--color-primary)' : 'var(--color-muted)',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem'
+                }}
+                title={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? "⏸" : "▶"}
+              </button>
+            )}
+            <button className="close-btn" onClick={toggleOpen}>×</button>
+          </div>
+        </div>
 
-            <div className="player-body">
-              {mode === "spotify" ? (
-                <iframe
-                  style={{ borderRadius: 12 }}
-                  src="https://open.spotify.com/embed/playlist/37i9dQZF1DWWQRwui0ExPn?utm_source=generator&theme=0"
-                  width="100%"
-                  height="152"
-                  frameBorder="0"
-                  allowFullScreen=""
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                ></iframe>
-              ) : (
-                <div className="youtube-player">
-                  <iframe
-                    id="youtube-player-iframe"
-                    width="100%"
-                    height="200"
-                    src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1`}
-                    title="YouTube video player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                  <form onSubmit={handleYoutubeSubmit} className="yt-input">
-                    <input
-                      placeholder="Paste YouTube URL or ID"
-                      value={inputVal}
-                      onChange={(e) => setInputVal(e.target.value)}
-                    />
-                    <button type="submit">Load</button>
-                  </form>
-                </div>
-              )}
+        <div className="player-body">
+          {mode === "spotify" ? (
+            <iframe
+              style={{ borderRadius: 12 }}
+              src="https://open.spotify.com/embed/playlist/37i9dQZF1DWWQRwui0ExPn?utm_source=generator&theme=0"
+              width="100%"
+              height="152"
+              frameBorder="0"
+              allowFullScreen=""
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+            ></iframe>
+          ) : (
+            <div className="youtube-player">
+              <iframe
+                id="youtube-player-iframe"
+                width="100%"
+                height="200"
+                src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1`}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+              <form onSubmit={handleYoutubeSubmit} className="yt-input">
+                <input
+                  placeholder="Paste YouTube URL or ID"
+                  value={inputVal}
+                  onChange={(e) => setInputVal(e.target.value)}
+                />
+                <button type="submit">Load</button>
+              </form>
             </div>
-          </motion.div>
-        ) : (
+          )}
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {!isOpen && (
           <motion.div 
             key="player-toggle"
             className="player-toggle" 
@@ -193,6 +194,7 @@ export default function GlobalPlayer() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
     </div>
   );
 }

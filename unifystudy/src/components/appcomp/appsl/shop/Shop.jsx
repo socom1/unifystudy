@@ -6,10 +6,15 @@ import "./Shop.scss";
 
 const THEMES = [
   { id: "default", name: "Default Dark", price: 0, color: "#4b6c82" },
-  { id: "midnight", name: "Midnight Purple", price: 120, color: "#6c5ce7" },
-  { id: "forest", name: "Forest Green", price: 300, color: "#00b894" },
-  { id: "cyberpunk", name: "Cyberpunk", price: 600, color: "#ff0055" },
-  { id: "sunset", name: "Sunset Orange", price: 1000, color: "#e17055" },
+  // Basic Themes
+  { id: "midnight", name: "Midnight Purple", price: 100, color: "#6c5ce7" },
+  { id: "forest", name: "Forest Green", price: 100, color: "#00b894" },
+  { id: "ocean", name: "Ocean Blue", price: 100, color: "#0984e3" },
+  // Premium Themes
+  { id: "obsidian", name: "Obsidian", price: 5000, color: "#ffd700" }, // Gold
+  { id: "nebula", name: "Nebula", price: 3500, color: "#d900ff" }, // Neon Purple
+  { id: "glass", name: "Glass", price: 3000, color: "#a8d0e6" }, // Light Blue/White
+  { id: "sunset", name: "Sunset", price: 2500, color: "#e17055" },
 ];
 
 const PROFILE_TAGS = [
@@ -23,10 +28,10 @@ const PROFILE_TAGS = [
 
 const ICON_SETS = [
   { id: "default", name: "Classic", description: "Standard icon pack", price: 0, preview: "📚" },
-  { id: "minimalist", name: "Minimalist", description: "Clean and simple", price: 400, preview: "○" },
-  { id: "neon", name: "Neon Glow", description: "Vibrant futuristic", price: 600, preview: "◆" },
-  { id: "kawaii", name: "Kawaii", description: "Cute and playful", price: 500, preview: "✿" },
-  { id: "retro", name: "Retro Pixel", description: "8-bit nostalgia", price: 700, preview: "▣" },
+  { id: "minimalist", name: "Minimalist Pro", description: "Clean, distraction-free", price: 1500, preview: "○" },
+  { id: "neon", name: "Cyber Glow", description: "High-contrast neon", price: 2500, preview: "◆" },
+  { id: "gold", name: "Luxury Gold", description: "Exclusive gold finish", price: 5000, preview: "⚜️" },
+  { id: "retro", name: "Retro Pixel", description: "8-bit nostalgia", price: 1200, preview: "▣" },
 ];
 
 export default function Shop() {

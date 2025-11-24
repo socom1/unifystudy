@@ -33,15 +33,7 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
               user ? (
                 <Navigate to="/dashboard" replace />
               ) : (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.45, ease: "easeInOut" }}
-                  className="full-size"
-                >
-                  <LandingPage />
-                </motion.div>
+                <Navigate to="/signup" replace />
               )
             }
           />
@@ -216,7 +208,6 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
           />
         </Routes>
       </AnimatePresence>
-      {user && <GlobalPlayer />}
       {user && <TimerWidget />}
     </TimerProvider>
   );

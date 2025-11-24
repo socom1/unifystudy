@@ -52,12 +52,16 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [reauthRequired, setReauthRequired] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  // Anonymous mode state
+  const [anonymousMode, setAnonymousMode] = useState(false);
 
   // Customization state
   const [ownedTags, setOwnedTags] = useState([]);
   const [ownedBanners, setOwnedBanners] = useState([]);
+  const [ownedThemes, setOwnedThemes] = useState(["default"]);
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedBanner, setSelectedBanner] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState("default");
 
   const presetBanners = [
     { id: "gradient-1", name: "Ocean", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
@@ -66,15 +70,18 @@ export default function ProfilePage() {
     { id: "gradient-4", name: "Aurora", gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
   ];
 
-  // Fetch notification setting
+  // Fetch settings including anonymous mode
   useEffect(() => {
     if (uid) {
-      const settingsRef = dbRef(db, `users/${uid}/settings/notifications`);
+      const settingsRef = dbRef(db, `users/${uid}/settings`);
       const unsub = onValue(settingsRef, (snapshot) => {
-        const val = snapshot.val();
-        setNotificationsEnabled(val !== false);
+        const val = snapshot.val() || {};
+        setNotificationsEnabled(val.notifications !== false);
+        setAnonymousMode(val.anonymousMode === true);
+        // Also fetch theme if it's stored here, though we fetch it in customization below too.
+        // Let's rely on the customization listener for theme to be safe.
       });
-      return () => unsub(); // This might conflict with the other useEffect if not careful, but onValue returns unsubscribe
+      return () => unsub();
     }
   }, [uid]);
 
@@ -92,14 +99,34 @@ export default function ProfilePage() {
     }
   };
 
+  const toggleAnonymousMode = async () => {
+    if (!uid) return;
+    const newValue = !anonymousMode;
+    setAnonymousMode(newValue);
+    try {
+      await dbUpdate(dbRef(db, `users/${uid}/settings`), { anonymousMode: newValue });
+      setTempStatus(`Anonymous mode ${newValue ? "enabled" : "disabled"}`);
+    } catch (err) {
+      console.error(err);
+      setAnonymousMode(!newValue);
+      setErrorMsg("Failed to update settings");
+    }
+  };
+
   // Fetch owned items and current customization
   useEffect(() => {
     if (!uid) return;
     
     // Fetch owned tags
-    const tagsRef = dbRef(db, `users/${uid}/ownedItems/tags`);
+    const tagsRef = dbRef(db, `users/${uid}/unlockedTags`);
     const unsubTags = onValue(tagsRef, (snap) => {
       setOwnedTags(snap.val() || []);
+    });
+
+    // Fetch owned themes
+    const themesRef = dbRef(db, `users/${uid}/unlockedThemes`);
+    const unsubThemes = onValue(themesRef, (snap) => {
+      setOwnedThemes(snap.val() || ["default"]);
     });
 
     // Fetch current customization
@@ -108,10 +135,12 @@ export default function ProfilePage() {
       const data = snap.val();
       setSelectedTag(data?.profileTag || "");
       setSelectedBanner(data?.profileBanner || "gradient-1");
+      setSelectedTheme(data?.theme || "default");
     });
 
     return () => {
       unsubTags();
+      unsubThemes();
       unsubCustom();
     };
   }, [uid]);
@@ -323,8 +352,11 @@ export default function ProfilePage() {
     try {
       await dbUpdate(dbRef(db, `users/${uid}/settings/customization`), {
         profileTag: selectedTag,
-        profileBanner: selectedBanner
+        profileBanner: selectedBanner,
+        theme: selectedTheme
       });
+      // Apply theme immediately
+      document.body.className = `theme-${selectedTheme}`;
       setTempStatus("Customization saved!");
     } catch (err) {
       console.error(err);
@@ -355,27 +387,35 @@ export default function ProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
         >
-          <div className="card-header">
-            <div className="section-title">// profile</div>
-            <div className="completion">
-              <div className="completion-bar">
-                <div
-                  className="completion-fill"
-                  style={{ width: `${completeness}%` }}
-                />
-              </div>
-              <div className="completion-label">{completeness}% complete</div>
-            </div>
-          </div>
+          {/* Full Width Banner */}
+          <div 
+            className="profile-banner"
+            style={{ 
+              background: presetBanners.find(b => b.id === selectedBanner)?.gradient || presetBanners[0].gradient,
+              height: '180px',
+              width: '100%',
+              borderRadius: '16px 16px 0 0',
+              position: 'relative',
+              zIndex: 0
+            }}
+          />
 
-          <div className="profile-main">
-            <div className="avatar-wrap">
+          <div className="profile-main" style={{ marginTop: '-60px', padding: '0 2rem 2rem', position: 'relative', zIndex: 2 }}>
+            <div className="avatar-wrap" style={{ marginBottom: '1rem' }}>
               <img
                 alt="avatar"
                 src={photoURL || "/avatar-placeholder.png"}
                 className="profile-photo"
+                style={{ 
+                  width: '120px', 
+                  height: '120px', 
+                  border: '4px solid var(--bg-secondary)',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  background: 'var(--bg-secondary)'
+                }}
               />
-              <div className="avatar-actions">
+              <div className="avatar-actions" style={{ marginTop: '1rem' }}>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -403,13 +443,28 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="profile-fields">
+            <div className="profile-fields" style={{ paddingTop: '70px' }}>
               <label className="field-label">Display name</label>
-              <input
-                className="field-input"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <input
+                  className="field-input"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  style={{ flex: 1, marginBottom: 0 }}
+                />
+                {selectedTag && (
+                  <span className="profile-tag-badge" style={{ 
+                    padding: '0.4rem 0.8rem', 
+                    background: 'rgba(255,255,255,0.1)', 
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    border: '1px solid rgba(255,255,255,0.1)'
+                  }}>
+                    {selectedTag}
+                  </span>
+                )}
+              </div>
+
               <label className="field-label">Email</label>
               <input
                 className="field-input"
@@ -426,7 +481,7 @@ export default function ProfilePage() {
                 )) || <div className="provider-chip">email</div>}
               </div>
 
-              <div className="profile-actions">
+              <div className="profile-actions" style={{ marginTop: '1rem', marginBottom: '1.5rem' }}>
                 <button
                   className="btn primary"
                   onClick={saveProfile}
@@ -445,9 +500,123 @@ export default function ProfilePage() {
                   Revert
                 </button>
               </div>
+
+              <div className="completion">
+                <div className="completion-bar">
+                  <div
+                    className="completion-fill"
+                    style={{ width: `${completeness}%` }}
+                  />
+                </div>
+                <div className="completion-label">{completeness}% complete</div>
+              </div>
             </div>
           </div>
         </motion.div>
+
+        {/* Customize Panel (Moved to Left Column) */}
+        <motion.div
+            className="panel"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, delay: 0.08 }}
+            style={{ marginTop: '1.5rem' }}
+          >
+            <div className="section-title">// customize</div>
+            <div className="panel-body">
+
+              {/* Profile Banner Selection */}
+              <div className="customize-section">
+                <h3>Profile Banner</h3>
+                <div className="banner-grid">
+                  {presetBanners.map(banner => (
+                    <motion.div
+                      layout
+                      key={banner.id}
+                      className={`banner-option ${selectedBanner === banner.id ? "selected" : ""}`}
+                      style={{ background: banner.gradient }}
+                      onClick={() => setSelectedBanner(banner.id)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {banner.name}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Profile Tag Selection */}
+              <div className="customize-section">
+                <h3>Profile Tag</h3>
+                {ownedTags.length > 0 ? (
+                  <div className="tags-grid">
+                    <div
+                      className={`tag-option ${selectedTag === "" ? "selected" : ""}`}
+                      onClick={() => setSelectedTag("")}
+                    >
+                      None
+                    </div>
+                    {ownedTags.map(tag => (
+                      <motion.div
+                        layout
+                        key={tag}
+                        className={`tag-option ${selectedTag === tag ? "selected" : ""}`}
+                        onClick={() => setSelectedTag(tag)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {tag}
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted-text">
+                    No tags owned. Visit the <a href="/shop">Shop</a> to purchase tags!
+                  </p>
+                )}
+              </div>
+
+              {/* Theme Selection */}
+              <div className="customize-section">
+                <h3>App Theme</h3>
+                <div className="banner-grid">
+                  {[
+                    { id: "default", name: "Default", color: "#0c1214" },
+                    // Basic
+                    { id: "midnight", name: "Midnight", color: "#6c5ce7" },
+                    { id: "forest", name: "Forest", color: "#00b894" },
+                    { id: "ocean", name: "Ocean", color: "#0984e3" },
+                    // Premium
+                    { id: "obsidian", name: "Obsidian", color: "#000000" },
+                    { id: "nebula", name: "Nebula", color: "#0b0014" },
+                    { id: "glass", name: "Glass", color: "#1a1a2e" },
+                    { id: "sunset", name: "Sunset", color: "#14100c" },
+                  ].filter(t => ownedThemes.includes(t.id)).map(theme => (
+                    <motion.div
+                      layout
+                      key={theme.id}
+                      className={`banner-option ${selectedTheme === theme.id ? "selected" : ""}`}
+                      style={{ background: theme.color, border: selectedTheme === theme.id ? '2px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)' }}
+                      onClick={() => setSelectedTheme(theme.id)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {theme.name}
+                    </motion.div>
+                  ))}
+                </div>
+                {ownedThemes.length === 1 && (
+                  <p className="muted-text" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                    Visit the <a href="/shop" style={{ color: 'var(--color-primary)' }}>Shop</a> to unlock premium themes!
+                  </p>
+                )}
+              </div>
+
+              <button className="btn primary" onClick={saveCustomization}>
+                Save Customization
+              </button>
+            </div>
+          </motion.div>
 
         {/* Right column: verification, security, account */}
         <div className="side-column">
@@ -535,6 +704,7 @@ export default function ProfilePage() {
             </div>
           </motion.div>
 
+          {/* Settings Panel */}
           <motion.div
             className="panel"
             initial={{ opacity: 0, y: 6 }}
@@ -543,7 +713,8 @@ export default function ProfilePage() {
           >
             <div className="section-title">// settings</div>
             <div className="panel-body">
-              <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* Notification Toggle */}
+              <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
                   <div className="setting-label" style={{ fontWeight: 600 }}>Notifications</div>
                   <div className="setting-desc" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
@@ -571,94 +742,35 @@ export default function ProfilePage() {
                   </span>
                 </label>
               </div>
-            </div>
-          </motion.div>
 
-          {/* Customize Panel */}
-          <motion.div
-            className="panel"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.08 }}
-          >
-            <div className="section-title">// customize</div>
-            <div className="panel-body">
-
-              {/* Profile Banner Selection */}
-              <div className="customize-section">
-                <h3>Profile Banner</h3>
-                <div className="banner-preview" style={{ background: presetBanners.find(b => b.id === selectedBanner)?.gradient }}>
-                  Preview
-                </div>
-                <div className="banner-grid">
-                  {presetBanners.map(banner => (
-                    <div
-                      key={banner.id}
-                      className={`banner-option ${selectedBanner === banner.id ? "selected" : ""}`}
-                      style={{ background: banner.gradient }}
-                      onClick={() => setSelectedBanner(banner.id)}
-                    >
-                      {banner.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Profile Tag Selection */}
-              <div className="customize-section">
-                <h3>Profile Tag</h3>
-                {ownedTags.length > 0 ? (
-                  <div className="tags-grid">
-                    <div
-                      className={`tag-option ${selectedTag === "" ? "selected" : ""}`}
-                      onClick={() => setSelectedTag("")}
-                    >
-                      None
-                    </div>
-                    {ownedTags.map(tag => (
-                      <div
-                        key={tag}
-                        className={`tag-option ${selectedTag === tag ? "selected" : ""}`}
-                        onClick={() => setSelectedTag(tag)}
-                      >
-                        {tag}
-                      </div>
-                    ))}
+              {/* Anonymous Mode Toggle */}
+              <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div className="setting-label" style={{ fontWeight: 600 }}>Anonymous Mode</div>
+                  <div className="setting-desc" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                    Hide your name and avatar on the leaderboard.
                   </div>
-                ) : (
-                  <p className="muted-text">
-                    No tags owned. Visit the <a href="/shop">Shop</a> to purchase tags!
-                  </p>
-                )}
-              </div>
-
-              <button className="btn primary" onClick={saveCustomization}>
-                Save Customization
-              </button>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="panel"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.1 }}
-          >
-            <div className="section-title">// sessions</div>
-            <div className="panel-body">
-              <div className="session-info">
-                Active session info is not implemented. You can extend this area
-                to list user's active devices and sign-out remote sessions.
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <button
-                  className="btn ghost"
-                  onClick={() =>
-                    setTempStatus("Session list refresh is a TODO")
-                  }
-                >
-                  Refresh
-                </button>
+                </div>
+                <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '40px', height: '24px' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={anonymousMode}
+                    onChange={toggleAnonymousMode}
+                    style={{ opacity: 0, width: 0, height: 0 }}
+                  />
+                  <span className="slider round" style={{
+                    position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: anonymousMode ? 'var(--color-primary)' : '#ccc',
+                    transition: '.4s', borderRadius: '34px'
+                  }}>
+                    <span style={{
+                      position: 'absolute', content: '""', height: '16px', width: '16px',
+                      left: '4px', bottom: '4px', backgroundColor: 'white',
+                      transition: '.4s', borderRadius: '50%',
+                      transform: anonymousMode ? 'translateX(16px)' : 'translateX(0)'
+                    }}/>
+                  </span>
+                </label>
               </div>
             </div>
           </motion.div>

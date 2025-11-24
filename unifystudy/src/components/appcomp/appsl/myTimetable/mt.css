@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   background: radial-gradient(circle at 50% -20%, rgba(20, 40, 50, 0.2), transparent 70%);
-  color: var(--color-text-main);
+  color: var(--color-text);
 
   .calendar-nav {
     display: flex;
@@ -29,6 +29,9 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
 
       &:hover {
         transform: translateY(-2px);
@@ -39,176 +42,440 @@
 
   .calendar-wrapper {
     flex: 1;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--glass-bg, rgba(255, 255, 255, 0.02));
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
     border-radius: 16px;
     overflow: hidden;
     position: relative;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--glow, none);
+    display: flex;
+    flex-direction: column;
   }
 
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: 60px repeat(7, 1fr);
-    grid-auto-rows: 60px; /* 1 hour = 60px */
-    height: 100%;
+  .calendar-body {
+    display: flex;
+    flex: 1;
     overflow-y: auto;
-    
-    .calendar-header {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: 60px repeat(7, 1fr);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    padding-top: 10px; /* Give some breathing room so 8 AM isn't cut off */
+  }
+
+  /* Time Sidebar */
+  .time-sidebar {
+    width: 60px;
+    flex-shrink: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(15, 20, 25, 0.95);
+    position: sticky;
+    left: 0;
+    z-index: 20;
+
+    .time-header-spacer {
+      height: 50px; /* Matches day header height */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(15, 20, 25, 0.95);
       position: sticky;
       top: 0;
-      z-index: 10;
-
-      .time-column-header {
-        padding: 1rem;
-        font-size: 0.8rem;
-        color: var(--color-muted);
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-      }
-
-      .day-header {
-        padding: 1rem;
-        text-align: center;
-        font-weight: 600;
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-        
-        &:last-child { border-right: none; }
-      }
+      z-index: 21;
     }
 
-    .time-column {
-      grid-column: 1;
-      grid-row: 2 / span 12;
-      border-right: 1px solid rgba(255, 255, 255, 0.05);
-      background: rgba(15, 20, 25, 0.5);
-
-      .time-slot {
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        color: var(--color-muted);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      }
-    }
-
-    .grid-cell {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      border-right: 1px solid rgba(255, 255, 255, 0.03);
-    }
-
-    .event-box {
-      margin: 2px;
-      padding: 0.5rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      color: #fff;
-      cursor: pointer;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.2s;
-      z-index: 1;
-
-      &:hover {
-        transform: scale(1.02);
-        z-index: 5;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-      }
-
+    .time-label {
+      display: flex;
+      justify-content: center;
+      position: relative;
+      color: var(--color-muted);
+      font-size: 0.75rem;
+      
       span {
-        font-weight: 600;
-        display: block;
-        margin-bottom: 2px;
+        position: absolute;
+        top: -10px; /* Center on the line */
+        background: var(--bg-1);
+        padding: 0 4px;
+        z-index: 2;
       }
+    }
+  }
 
-      .event-details {
-        font-size: 0.75rem;
-        opacity: 0.8;
-      }
+  /* Days Grid */
+  .days-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    min-width: 800px; /* Ensure it doesn't squish too much */
+    position: relative; /* For global time line */
+  }
+
+  /* Global Dashed Time Line */
+  .global-time-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    border-top: 2px dashed rgba(255, 255, 255, 0.2);
+    z-index: 24; /* Below red line (25) but above events (10) */
+    pointer-events: none;
+    grid-column: 1 / -1; /* Span all columns */
+  }
+
+  .day-column {
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    .day-header {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      background: rgba(15, 20, 25, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--color-secondary);
+      position: sticky;
+      top: 0;
+      z-index: 15;
+    }
+
+    .day-content {
+      position: relative;
+      flex: 1;
+    }
+
+    .grid-line {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      box-sizing: border-box;
+    }
+  }
+
+  /* Event Box */
+  .event-box {
+    position: absolute;
+    left: 2%;
+    width: 96%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    
+    /* Clean "Card" Look matching reference */
+    /* Body is 85% transparent version of the color */
+    background: color-mix(in srgb, var(--event-color), transparent 85%);
+    
+    /* Solid accent on left */
+    border-left: 4px solid var(--event-color);
+    
+    /* Subtle border elsewhere */
+    border-top: 1px solid color-mix(in srgb, var(--event-color), transparent 70%);
+    border-right: 1px solid color-mix(in srgb, var(--event-color), transparent 70%);
+    border-bottom: 1px solid color-mix(in srgb, var(--event-color), transparent 70%);
+    
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+
+    &:hover {
+      transform: translateY(-2px) scale(1.02);
+      z-index: 20;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      filter: brightness(1.2);
+    }
+
+    .event-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+      color: color-mix(in srgb, var(--event-color), #fff 80%); /* Light tint of color */
+    }
+
+    .event-time {
+      font-size: 0.75rem;
+      opacity: 0.8;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  /* Current Time Line */
+  /* Current Time Line */
+  .current-time-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #ff3b30; /* Bright Red (Apple style) */
+    z-index: 25; /* Above events */
+    pointer-events: none;
+    box-shadow: 0 0 4px rgba(255, 59, 48, 0.4);
+
+    .time-dot {
+      position: absolute;
+      left: -5px;
+      top: -4px;
+      width: 10px;
+      height: 10px;
+      background: #ff3b30;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255, 59, 48, 0.6);
     }
   }
 }
 
-/* Form Styles */
-.event-form {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #1a1f24;
-  padding: 2rem;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  width: 90%;
-  max-width: 400px;
-  z-index: 100;
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+}
 
-  .header h3 {
-    margin-bottom: 1.5rem;
-    font-size: 1.2rem;
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-      color: var(--color-muted);
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      color: #fff;
-      font-family: inherit;
-
-      &:focus {
-        outline: none;
-        border-color: var(--color-primary);
-      }
-    }
-  }
-
-  .form-buttons {
+  /* Form Styles */
+  .event-form {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    /* transform is handled by motion.div */
+    background: #1a1f24;
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 500px;
+    z-index: 100;
     display: flex;
-    gap: 0.75rem;
-    margin-top: 2rem;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
 
-    button {
-      flex: 1;
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
+    .header h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--color-text);
+      font-weight: 700;
+      text-align: center;
+    }
 
-      &[type="submit"] {
-        background: var(--color-primary);
-        color: #000;
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+
+      label {
+        font-size: 0.95rem;
+        color: var(--color-muted);
+        font-weight: 500;
+        margin-left: 4px;
+        display: block; /* Force label to own line */
+        margin-bottom: 0.5rem; /* Space between label and input */
       }
 
-      &.delete-btn {
+      input, textarea, select {
+        width: 100%; /* Full width */
+        box-sizing: border-box; /* Include padding in width */
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 1rem;
+        color: #fff;
+        font-size: 1rem;
+        outline: none;
+        transition: all 0.2s;
+        /* Remove default webkit styles for cleaner look */
+        -webkit-appearance: none;
+        appearance: none;
+
+        &:focus {
+          border-color: var(--color-primary);
+          background: rgba(255, 255, 255, 0.08);
+          box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+        }
+      }
+
+      /* Add custom arrow for selects since we removed appearance */
+      select {
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1em;
+        padding-right: 2.5rem;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+        line-height: 1.5;
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      padding: 0.5rem 0;
+      
+      .color-option {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        
+        &.selected {
+          border-color: #fff;
+          transform: scale(1.15);
+          box-shadow: 0 0 15px rgba(255,255,255,0.2);
+
+          &::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+          }
+        }
+        
+        &:hover {
+          transform: scale(1.1);
+        }
+      }
+    }
+
+    .form-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+      button {
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 1rem;
+      }
+
+      .cancel-btn {
+        background: transparent;
+        color: var(--color-muted);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+
+      .save-btn {
+        background: var(--color-primary);
+        color: #000; /* Assuming primary is bright */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+
+        &:hover {
+          filter: brightness(1.1);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+        }
+      }
+
+      .delete-btn {
         background: rgba(231, 76, 60, 0.1);
         color: #e74c3c;
-      }
+        padding: 0.9rem;
+        margin-right: auto; /* Push to left */
 
-      &.close-btn {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--color-muted);
+        &:hover {
+          background: #e74c3c;
+          color: #fff;
+        }
       }
+    }
+  }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 1rem;
+    
+    .calendar-nav {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+      
+      h2 {
+        font-size: 1.5rem;
+      }
+      
+      div {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  }
+
+  .calendar-body {
+    /* Allow horizontal scroll for days on mobile */
+    overflow-x: auto;
+  }
+
+  .days-grid {
+    min-width: 700px; /* Force width so columns don't squash */
+  }
+  
+  .time-sidebar {
+    position: sticky;
+    left: 0;
+    z-index: 30;
+    background: #0f1419; /* Ensure opaque background */
+  }
+
+  .event-form {
+    width: 95%;
+    padding: 1.5rem;
+    max-height: 85vh;
+    
+    .form-row {
+      grid-template-columns: 1fr; /* Stack inputs */
     }
   }
 }

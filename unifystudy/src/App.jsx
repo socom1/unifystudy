@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 
-import Nav from "./components/appcomp/nav/Nav"; // <-- NEW unified nav
+import Sidebar from "./components/appcomp/nav/Sidebar"; // <-- NEW Sidebar
 import AppS from "./components/appcomp/appsl/AppS";
 import "./App.css";
 
+import "./styles/Themes.scss";
+
+import GlobalPlayer from "./components/appcomp/appsl/global/GlobalPlayer";
+
 function App() {
-  const [isActive, setIsActive] = useState(false);
   const [user, setUser] = useState(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Handle login
   const handleLoginSuccess = (userData) => {
     setUser(userData);
+    // Apply theme if saved
+    if (userData?.settings?.theme) {
+      document.body.className = `theme-${userData.settings.theme}`;
+    }
   };
 
   // Handle sign out
@@ -20,33 +26,22 @@ function App() {
     setUser(null);
   };
 
-  // Listen for window resize
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   return (
     <Router>
-      <div className="app">
-        {/* Terminal Nav — works for BOTH desktop and mobile */}
-        <Nav
-          user={user}
-          isMobile={isMobile}
-          isOpen={isActive}
-          onClose={() => setIsActive(!isActive)}
-          onSignOut={handleSignOut}
-        />
+      <div className="app-layout">
+        {/* Sidebar Navigation */}
+        <Sidebar user={user} onSignOut={handleSignOut} />
 
-        <div className="container">
-          {/* All page content */}
+        {/* Main Content Area */}
+        <div className="main-content">
           <AppS
             user={user}
             onLoginSuccess={handleLoginSuccess}
             onSignOut={handleSignOut}
           />
         </div>
+        
+        {user && <GlobalPlayer />}
       </div>
     </Router>
   );
