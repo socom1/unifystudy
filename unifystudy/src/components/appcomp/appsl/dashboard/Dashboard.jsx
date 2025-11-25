@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { db } from "../firebase";
 import { ref, onValue } from "firebase/database";
-import { ACHIEVEMENTS, getAchievementById } from "../../../../utils/achievements";
+import {
+  ACHIEVEMENTS,
+  getAchievementById,
+} from "../../../../utils/achievements";
 import "./Dashboard.scss";
 
 export default function Dashboard({ user }) {
@@ -13,7 +16,7 @@ export default function Dashboard({ user }) {
     nextEvent: null,
     lumens: 0,
     gpa: "N/A",
-    rank: "N/A"
+    rank: "N/A",
   });
 
   const [recentSessions, setRecentSessions] = useState([]);
@@ -22,6 +25,8 @@ export default function Dashboard({ user }) {
   const [unlockedAchievements, setUnlockedAchievements] = useState([]);
   const [achievementProgress, setAchievementProgress] = useState({});
   const [achievementsExpanded, setAchievementsExpanded] = useState(false);
+  const [weeklyActivity, setWeeklyActivity] = useState([]);
+  const [urgentTasks, setUrgentTasks] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -33,6 +38,7 @@ export default function Dashboard({ user }) {
       let dueCount = 0;
       let activeCount = 0;
       const today = new Date().toISOString().split("T")[0];
+      const allTasks = [];
 
       Object.values(data).forEach((folder) => {
         if (folder.tasks) {
@@ -40,10 +46,25 @@ export default function Dashboard({ user }) {
             if (!task.isActive) {
               activeCount++;
               if (task.dueDate === today) dueCount++;
+              allTasks.push(task);
             }
           });
         }
       });
+
+      // Sort tasks by due date and priority
+      const sortedTasks = allTasks
+        .sort((a, b) => {
+          if (a.dueDate && b.dueDate)
+            return new Date(a.dueDate) - new Date(b.dueDate);
+          if (a.dueDate) return -1;
+          if (b.dueDate) return 1;
+          return 0;
+        })
+        .slice(0, 3);
+
+      setUrgentTasks(sortedTasks);
+
       setStats((prev) => ({
         ...prev,
         tasksDue: dueCount,
@@ -51,63 +72,89 @@ export default function Dashboard({ user }) {
       }));
     });
 
-    // Fetch User Stats
+    // ... (User Stats fetch remains same) ...
     const userRef = ref(db, `users/${user.uid}`);
     const unsubUser = onValue(userRef, (snap) => {
-        const data = snap.val();
-        if (data) {
-            // Calculate GPA
-            let gpa = "N/A";
-            if (data.grades) {
-                let sum = 0;
-                let count = 0;
-                Object.values(data.grades).forEach(sub => {
-                    if (sub.assessments) {
-                        let totalW = 0;
-                        let totalS = 0;
-                        Object.values(sub.assessments).forEach(a => {
-                            totalS += (a.score / a.total) * 100 * a.weight;
-                            totalW += a.weight;
-                        });
-                        if (totalW > 0) {
-                            sum += (totalS / totalW);
-                            count++;
-                        }
-                    }
-                });
-                if (count > 0) gpa = (sum / count).toFixed(1) + "%";
+      const data = snap.val();
+      if (data) {
+        // Calculate GPA
+        let gpa = "N/A";
+        if (data.grades) {
+          let sum = 0;
+          let count = 0;
+          Object.values(data.grades).forEach((sub) => {
+            if (sub.assessments) {
+              let totalW = 0;
+              let totalS = 0;
+              Object.values(sub.assessments).forEach((a) => {
+                totalS += (a.score / a.total) * 100 * a.weight;
+                totalW += a.weight;
+              });
+              if (totalW > 0) {
+                sum += totalS / totalW;
+                count++;
+              }
             }
-
-            setStats(prev => ({
-                ...prev,
-                lumens: data.currency || 0,
-                gpa: gpa
-            }));
+          });
+          if (count > 0) gpa = (sum / count).toFixed(1) + "%";
         }
+
+        setStats((prev) => ({
+          ...prev,
+          lumens: data.currency || 0,
+          gpa: gpa,
+        }));
+      }
     });
 
-    // Fetch Recent Study Sessions
+    // Fetch Recent Study Sessions & Calculate Weekly Activity
     const sessionsRef = ref(db, `users/${user.uid}/study_sessions`);
     const unsubSessions = onValue(sessionsRef, (snap) => {
       const data = snap.val();
       if (data) {
-        const sessions = Object.values(data)
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .slice(0, 5);
-        setRecentSessions(sessions);
+        const sessions = Object.values(data).sort(
+          (a, b) => b.timestamp - a.timestamp
+        );
+        setRecentSessions(sessions.slice(0, 5));
+
+        // Calculate Weekly Activity (Last 7 Days)
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          last7Days.push({
+            day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()],
+            date: d.toISOString().split("T")[0],
+            minutes: 0,
+          });
+        }
+
+        sessions.forEach((session) => {
+          const sessionDate = new Date(session.timestamp)
+            .toISOString()
+            .split("T")[0];
+          const dayStat = last7Days.find((d) => d.date === sessionDate);
+          if (dayStat) {
+            dayStat.minutes += session.duration || 0;
+          }
+        });
+        setWeeklyActivity(last7Days);
 
         // Calculate streak
-        const sorted = Object.values(data).sort((a, b) => b.timestamp - a.timestamp);
+        // ... (streak logic remains same) ...
         let currentStreak = 0;
         let lastDate = null;
-        
-        for (const session of sorted) {
+
+        for (const session of sessions) {
           const sessionDate = new Date(session.timestamp).toDateString();
           if (!lastDate) {
             lastDate = sessionDate;
             currentStreak = 1;
           } else {
-            const dayDiff = Math.floor((new Date(lastDate) - new Date(sessionDate)) / (1000 * 60 * 60 * 24));
+            const dayDiff = Math.floor(
+              (new Date(lastDate) - new Date(sessionDate)) /
+                (1000 * 60 * 60 * 24)
+            );
             if (dayDiff === 1) {
               currentStreak++;
               lastDate = sessionDate;
@@ -120,41 +167,50 @@ export default function Dashboard({ user }) {
       }
     });
 
-    // Fetch Upcoming Events
+    // ... (Events, Rank, Achievements fetch remain same) ...
     const eventsRef = ref(db, `users/${user.uid}/events`);
     const unsubEvents = onValue(eventsRef, (snap) => {
       const data = snap.val();
       if (data) {
         const now = new Date();
-        const currentDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()];
+        const currentDay = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ][now.getDay()];
         const currentHour = now.getHours();
 
         const upcoming = Object.values(data)
-          .filter(evt => {
+          .filter((evt) => {
             if (evt.day !== currentDay) return false;
             return evt.start >= currentHour;
           })
           .sort((a, b) => a.start - b.start)
           .slice(0, 3);
-        
+
         setUpcomingEvents(upcoming);
       }
     });
 
-    // Fetch Rank
-    const allUsersRef = ref(db, 'users');
+    const allUsersRef = ref(db, "users");
     const unsubRank = onValue(allUsersRef, (snap) => {
-        const data = snap.val();
-        if (data) {
-            const sorted = Object.entries(data)
-                .map(([uid, val]) => ({ uid, time: val.stats?.totalStudyTime || 0 }))
-                .sort((a, b) => b.time - a.time);
-            const myRank = sorted.findIndex(u => u.uid === user.uid) + 1;
-            setStats(prev => ({ ...prev, rank: myRank > 0 ? `#${myRank}` : "-" }));
-        }
+      const data = snap.val();
+      if (data) {
+        const sorted = Object.entries(data)
+          .map(([uid, val]) => ({ uid, time: val.stats?.totalStudyTime || 0 }))
+          .sort((a, b) => b.time - a.time);
+        const myRank = sorted.findIndex((u) => u.uid === user.uid) + 1;
+        setStats((prev) => ({
+          ...prev,
+          rank: myRank > 0 ? `#${myRank}` : "-",
+        }));
+      }
     });
 
-    // Fetch Achievements
     const achievementsRef = ref(db, `users/${user.uid}/achievements`);
     const unsubAchievements = onValue(achievementsRef, (snap) => {
       const data = snap.val();
@@ -172,6 +228,7 @@ export default function Dashboard({ user }) {
     };
   }, [user]);
 
+  // ... (helper functions remain same) ...
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -184,7 +241,7 @@ export default function Dashboard({ user }) {
     const now = new Date();
     const diff = now - date;
     const hours = Math.floor(diff / (1000 * 60 * 60));
-    
+
     if (hours < 1) return "Just now";
     if (hours < 24) return `${hours}h ago`;
     return date.toLocaleDateString();
@@ -192,213 +249,333 @@ export default function Dashboard({ user }) {
 
   return (
     <div className="dashboard-container">
-      <header>
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {getGreeting()}, {user?.displayName || "Student"}.
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          Ready to focus? Here is your overview.
-        </motion.p>
+      {/* 1. Header Section */}
+      <header className="dashboard-header">
+        <div className="header-left">
+          <div className="logo-area">
+            <span className="logo-icon">⚡</span>
+            <span className="logo-text">UnifyStudy</span>
+          </div>
+          <div className="user-welcome">
+            <div className="avatar-circle">
+              {user?.photoURL ? <img src={user.photoURL} alt="User" /> : "U"}
+            </div>
+            <div className="user-text">
+              <span className="greeting">{getGreeting()}</span>
+              <span className="username">{user?.displayName || "Student"}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="header-right">
+          {/* <div className="search-bar">
+            <span className="search-icon">🔍</span>
+            <input type="text" placeholder="Search..." />
+          </div> */}
+          <button className="icon-btn">🔔</button>
+          <button className="icon-btn">⚙️</button>
+        </div>
       </header>
 
-      <div className="stats-grid">
-        <motion.div
-          className="stat-card highlight"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <h3>Lumens Balance</h3>
-          <div className="value">💡 {stats.lumens}</div>
-          <div className="sub">Earn more by studying!</div>
-        </motion.div>
-
-        <motion.div
-          className="stat-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h3>Overall GPA</h3>
-          <div className="value">{stats.gpa}</div>
-          <div className="sub">Keep it up!</div>
-        </motion.div>
-
-        <motion.div
-          className="stat-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <h3>Global Rank</h3>
-          <div className="value">{stats.rank}</div>
-          <div className="sub">Based on study time</div>
-        </motion.div>
-        
-        <motion.div
-          className="stat-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <h3>Tasks Due</h3>
-          <div className="value">{stats.tasksDue}</div>
-          <div className="sub">Deadlines today</div>
-        </motion.div>
-      </div>
-
-      <div className="dashboard-grid">
-        <div className="main-col">
-          <h2 style={{ marginBottom: "1.5rem", fontSize: "1.5rem" }}>
-            Quick Actions
-          </h2>
-          <div className="actions-grid">
-            <Link to="/pomodoro" className="action-btn">
-              <span className="icon">⏱️</span>
-              <span>Focus Timer</span>
-            </Link>
-            <Link to="/todo" className="action-btn">
-              <span className="icon">📝</span>
-              <span>Tasks</span>
-            </Link>
-            <Link to="/timetable" className="action-btn">
-              <span className="icon">📅</span>
-              <span>Schedule</span>
-            </Link>
-            <Link to="/notes" className="action-btn">
-              <span className="icon">📌</span>
-              <span>Sticky Wall</span>
-            </Link>
-            <Link to="/grades" className="action-btn">
-              <span className="icon">🎓</span>
-              <span>Grades</span>
-            </Link>
-            <Link to="/shop" className="action-btn">
-              <span className="icon">🛒</span>
-              <span>Shop</span>
-            </Link>
+      {/* 2. Top Section: Stats & Hero */}
+      <div className="top-section">
+        <div className="stats-column">
+          <div className="section-title">
+            <h2>Your Stats</h2>
+            <span className="badge">3 Metrics</span>
           </div>
 
-          <div className="dashboard-widgets-row">
-            {upcomingEvents.length > 0 && (
-              <div className="widget-card events-widget">
-                <h3>Upcoming Today</h3>
-                <div className="events-list">
-                  {upcomingEvents.map((evt, i) => (
-                    <div key={i} className="event-item">
-                      <div className="event-time">{evt.start}:00</div>
-                      <div className="event-title">{evt.title}</div>
-                    </div>
-                  ))}
-                </div>
+          <div className="stats-cards">
+            {/* Stat 1: Lumens */}
+            <motion.div
+              className="stat-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="stat-icon-box lumens">💡</div>
+              <div className="stat-info">
+                <span className="stat-label">Lumens Balance</span>
+                <span className="stat-value">{stats.lumens}</span>
+                <span className="stat-change positive">
+                  Earn more by studying
+                </span>
               </div>
-            )}
+              <div className="stat-chart-mini"></div>
+            </motion.div>
 
-            {recentSessions.length > 0 && (
-              <div className="widget-card sessions-widget">
-                <h3>Recent Sessions</h3>
-                <div className="sessions-list">
-                  {recentSessions.map((session, i) => (
-                    <div key={i} className="session-item">
-                      <div className="session-icon">⏱️</div>
-                      <div className="session-info">
-                        <div className="session-duration">{session.duration} min</div>
-                        <div className="session-time">{formatDate(session.timestamp)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* Stat 2: GPA */}
+            <motion.div
+              className="stat-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="stat-icon-box gpa">🎓</div>
+              <div className="stat-info">
+                <span className="stat-label">Overall GPA</span>
+                <span className="stat-value">{stats.gpa}</span>
+                <span className="stat-change neutral">Keep it up!</span>
               </div>
-            )}
-          </div>
+              <div className="stat-chart-mini"></div>
+            </motion.div>
 
-          <div className="quote-widget" style={{marginTop: '2rem'}}>
-            <h3>Quote of the Day</h3>
-            <blockquote style={{fontStyle: 'italic', color: 'var(--color-muted)', borderLeft: '3px solid var(--color-primary)', paddingLeft: '1rem'}}>
-              "The secret of getting ahead is getting started."
-            </blockquote>
+            {/* Stat 3: Rank */}
+            <motion.div
+              className="stat-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="stat-icon-box rank">🏆</div>
+              <div className="stat-info">
+                <span className="stat-label">Global Rank</span>
+                <span className="stat-value">{stats.rank}</span>
+                <span className="stat-change">Based on time</span>
+              </div>
+              <div className="stat-chart-mini"></div>
+            </motion.div>
           </div>
         </div>
 
-        <div className="side-col">
-          <div className="notes-widget">
-            <h3>Quick Notes</h3>
-            <textarea
-              placeholder="Jot down something..."
-              className="quick-notes-input"
-              onChange={(e) => localStorage.setItem('quick_notes', e.target.value)}
-              defaultValue={localStorage.getItem('quick_notes') || ""}
-            />
-          </div>
-
-          <div className="streak-widget">
-            <h3>Study Streak</h3>
-            <div className="streak-value">
-              <span className="fire-emoji">🔥</span>
-              <span className="streak-number">{streak}</span>
-              <span className="streak-label">{streak === 1 ? 'day' : 'days'}</span>
-            </div>
-          </div>
-
-          {/* Achievements Widget */}
+        {/* Hero Card: Focus Timer */}
+        <div className="hero-column">
           <motion.div
-            className="widget achievements-widget"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            className="hero-card"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
           >
-            <div className="achievements-header">
-              <h2>🏆 Achievements</h2>
-              <button 
-                className="expand-toggle"
-                onClick={() => setAchievementsExpanded(!achievementsExpanded)}
-              >
-                {achievementsExpanded ? "Show Less ▲" : "Show All ▼"}
-              </button>
+            <div className="hero-content">
+              <div className="hero-header">
+                <span className="hero-logo">⏱️</span>
+                <span className="hero-badge">New Session</span>
+              </div>
+              <h2>Ready to Focus?</h2>
+              <p>
+                Start a Pomodoro session to boost your productivity and earn
+                Lumens.
+              </p>
+
+              <div className="hero-actions">
+                <div className="quick-start-row">
+                  <Link to="/pomodoro?time=25" className="quick-btn">
+                    25m
+                  </Link>
+                  <Link to="/pomodoro?time=50" className="quick-btn">
+                    50m
+                  </Link>
+                </div>
+                <Link to="/pomodoro" className="primary-btn">
+                  Open Timer ⚡
+                </Link>
+              </div>
             </div>
-            
-            <div className="achievements-list">
-              {ACHIEVEMENTS.slice(0, achievementsExpanded ? ACHIEVEMENTS.length : 3).map(achievement => {
-                const isUnlocked = unlockedAchievements.includes(achievement.id);
-                const progress = achievementProgress[achievement.id];
-                
-                return (
-                  <div key={achievement.id} className={`achievement-item ${isUnlocked ? 'unlocked' : 'locked'}`}>
-                    <div className="achievement-left">
-                      <span className={`achievement-icon ${!isUnlocked ? 'grayscale' : ''}`}>
-                        {achievement.icon}
-                      </span>
-                      <div className="achievement-details">
-                        <div className="achievement-name">{achievement.name}</div>
-                        <div className="achievement-desc">{achievement.description}</div>
-                        {!isUnlocked && progress && (
-                          <div className="achievement-progress-text">
-                            {progress.current}/{progress.target} ({Math.floor(progress.percentage)}%)
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="achievement-right">
-                      {isUnlocked ? (
-                        <span className="achievement-check">✓</span>
-                      ) : (
-                        <span className="achievement-reward-badge">+{achievement.reward}</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <div className="hero-bg-effect"></div>
           </motion.div>
         </div>
+      </div>
+
+      {/* 3. Middle Section: Quick Actions */}
+      <div className="middle-section">
+        <h3 className="section-title-simple">Quick Actions</h3>
+        <div className="quick-actions-grid">
+          <Link to="/pomodoro" className="quick-action-card">
+            <span className="qa-icon">⏱️</span>
+            <span className="qa-label">Focus</span>
+          </Link>
+          <Link to="/todo" className="quick-action-card">
+            <span className="qa-icon">📝</span>
+            <span className="qa-label">Tasks</span>
+          </Link>
+          <Link to="/timetable" className="quick-action-card">
+            <span className="qa-icon">📅</span>
+            <span className="qa-label">Schedule</span>
+          </Link>
+          <Link to="/notes" className="quick-action-card">
+            <span className="qa-icon">📌</span>
+            <span className="qa-label">Notes</span>
+          </Link>
+          <Link to="/grades" className="quick-action-card">
+            <span className="qa-icon">🎓</span>
+            <span className="qa-label">Grades</span>
+          </Link>
+          <Link to="/leaderboard" className="quick-action-card">
+            <span className="qa-icon">🏆</span>
+            <span className="qa-label">Ranks</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 4. Bottom Section: 3-Column Grid */}
+      <div className="bottom-section">
+        {/* Column 1: Weekly Activity (spans 2 columns) */}
+        <div className="main-chart-area span-2">
+          <div className="section-header">
+            <h3>Weekly Activity</h3>
+            <div className="streak-badge">🔥 {streak} Day Streak</div>
+          </div>
+
+          <div className="activity-chart">
+            {weeklyActivity.map((day, i) => {
+              const maxMinutes = Math.max(
+                ...weeklyActivity.map((d) => d.minutes),
+                60
+              ); // Min 60 for scale
+              const heightPercent = (day.minutes / maxMinutes) * 100;
+
+              return (
+                <div key={i} className="chart-bar-col">
+                  <div className="bar-container">
+                    <motion.div
+                      className="bar-fill"
+                      initial={{ height: 0 }}
+                      animate={{ height: `${heightPercent}%` }}
+                      transition={{ delay: i * 0.1, duration: 0.5 }}
+                    />
+                    {day.minutes > 0 && (
+                      <div className="bar-tooltip">{day.minutes}m</div>
+                    )}
+                  </div>
+                  <span className="bar-label">{day.day}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Column 2: Side Widgets Stack */}
+        <div className="side-widgets-area">
+          {/* Urgent Tasks */}
+          <div className="widget-card task-widget">
+            <div className="widget-header">
+              <h3>Urgent Tasks</h3>
+              <Link to="/todo" className="link">
+                View All
+              </Link>
+            </div>
+            <div className="tasks-list-compact">
+              {urgentTasks.length > 0 ? (
+                urgentTasks.map((task, i) => (
+                  <div key={i} className="task-row">
+                    <div
+                      className={`priority-dot ${task.priority || "low"}`}
+                    ></div>
+                    <span className="task-title">{task.text}</span>
+                    <span className="task-date">
+                      {task.dueDate
+                        ? new Date(task.dueDate).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : ""}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">No urgent tasks! 🎉</div>
+              )}
+            </div>
+          </div>
+
+          {/* Upcoming Events */}
+          <div className="widget-card">
+            <div className="widget-header">
+              <h3>Upcoming</h3>
+              <Link to="/timetable" className="link">
+                View All
+              </Link>
+            </div>
+            <div className="events-list-compact">
+              {upcomingEvents.length > 0 ? (
+                upcomingEvents.map((evt, i) => (
+                  <div key={i} className="event-row">
+                    <span className="time">{evt.start}:00</span>
+                    <span className="title">{evt.title}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">No events today</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Extra Widgets Row */}
+      <div className="extra-widgets-row">
+        {/* Quote of the Day */}
+        <motion.div
+          className="widget-card quote-card"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <div className="quote-icon">💭</div>
+          <div className="quote-content">
+            <p className="quote-text">
+              "The secret of getting ahead is getting started."
+            </p>
+            <span className="quote-author">— Mark Twain</span>
+          </div>
+        </motion.div>
+
+        {/* Recent Achievements */}
+        <motion.div
+          className="widget-card achievements-card"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <div className="widget-header">
+            <h3>Recent Achievements</h3>
+            <Link to="/profile" className="link">
+              View All
+            </Link>
+          </div>
+          <div className="achievements-mini-list">
+            {unlockedAchievements.length > 0 ? (
+              ACHIEVEMENTS.filter((a) => unlockedAchievements.includes(a.id))
+                .slice(0, 3)
+                .map((achievement, i) => (
+                  <div key={i} className="achievement-mini">
+                    <span className="achievement-icon-mini">
+                      {achievement.icon}
+                    </span>
+                    <div className="achievement-info-mini">
+                      <span className="achievement-name-mini">
+                        {achievement.name}
+                      </span>
+                      <span className="achievement-reward-mini">
+                        +{achievement.reward} 💡
+                      </span>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <div className="empty-state">
+                Start studying to unlock achievements!
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Study Tip */}
+        <motion.div
+          className="widget-card tip-card"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <div className="tip-icon">💡</div>
+          <div className="tip-content">
+            <h4>Study Tip</h4>
+            <p>
+              Take a 5-minute break every 25 minutes to stay focused and retain
+              information better.
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

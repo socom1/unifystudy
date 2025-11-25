@@ -11,6 +11,26 @@ $font: "Fira Code", monospace;
 
 $rc: #071019;
 
+:root {
+  --bg-1: #071019;
+  --panel: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01),
+    rgba(255, 255, 255, 0.006)
+  );
+  --accent: #4b6c82;
+  --accent-2: #8fd2ff;
+  --muted: #9fb1bb;
+  --danger: #bf4040;
+  --glass-border: rgba(255, 255, 255, 0.04);
+}
+
+h1 {
+  color: var(--accent-2);
+  text-align: center;
+  font-size: 22px;
+}
+
 .signup-container {
   max-width: 420px;
   margin: 4rem auto;
@@ -35,6 +55,15 @@ $rc: #071019;
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
+
+  .divider {
+    margin-top: 40px;
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid rgba(175, 212, 237, 0.3);
+    line-height: 0.1em;
+  }
+
   .form-group {
     display: flex;
     flex-direction: column;
@@ -54,7 +83,7 @@ $rc: #071019;
       border-radius: 10px;
       font-size: 1rem;
       transition: all 0.2s;
-      
+
       &:focus {
         outline: none;
         border-color: $accent-2;
@@ -67,7 +96,7 @@ $rc: #071019;
     }
   }
   button {
-    background: $accent-2;
+    background: var(--accent);
     color: #000;
     font-weight: 700;
     border: none;
@@ -77,7 +106,7 @@ $rc: #071019;
     transition: all 0.2s;
     font-size: 1rem;
     margin-top: 1rem;
-    
+
     &:hover {
       transform: translateY(-2px);
       filter: brightness(1.1);
@@ -96,10 +125,14 @@ $rc: #071019;
     font-weight: 600;
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: 0.5rem;
-    
+
+    span {
+    }
+
     &:hover {
       background: rgba(255, 255, 255, 0.1);
       transform: translateY(-2px);
+      color: #fff;
     }
     img.google-logo {
       width: 20px;
@@ -107,18 +140,20 @@ $rc: #071019;
     }
   }
   .toggle-text {
-    color: $muted;
+    color: var(--muted);
     text-align: center;
     font-size: 0.9rem;
     margin-top: 1rem;
-    
+
     .toggle-btn {
       color: $accent-2;
       cursor: pointer;
       font-weight: 700;
       margin-left: 0.4rem;
-      
-      &:hover { text-decoration: underline; }
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
   .error-msg {

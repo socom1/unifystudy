@@ -37,8 +37,8 @@ export default function Sidebar({ user, onSignOut }) {
       {/* Header / Logo */}
       <div className="sidebar-header">
         <div className="logo-container">
-          {/* Placeholder logo or icon */}
-          <div className="logo-icon">U</div>
+          {/* Terminal-style logo */}
+          <div className="logo-icon">&gt;_</div>
           {!isCollapsed && <span className="logo-text">UnifyStudy</span>}
         </div>
         <button 

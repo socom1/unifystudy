@@ -1,5 +1,5 @@
 // src/components/myTimetable/WeeklyCalendar.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "../firebase";
 import { ref, onValue, push, set, remove } from "firebase/database";
@@ -17,8 +17,8 @@ const days = [
   "Sunday",
 ];
 const hours = Array.from({ length: 14 }, (_, i) => i + 8); // 8 → 21 (8am - 9pm)
-
-// CurrentTimeLine removed from here (moved to bottom)
+const ROW_HEIGHT = 100;
+const START_HOUR = 8;
 
 export default function WeeklyCalendar() {
   const [events, setEvents] = useState([]);
@@ -34,6 +34,7 @@ export default function WeeklyCalendar() {
   const [userId, setUserId] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
   const [notifiedEvents, setNotifiedEvents] = useState({});
+  const [now, setNow] = useState(new Date());
 
   // Track logged-in user
   useEffect(() => {
@@ -42,6 +43,12 @@ export default function WeeklyCalendar() {
       else setUserId(null);
     });
     return unsubscribe;
+  }, []);
+
+  // Global Time Timer (One single interval for the whole app)
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
   }, []);
 
   // Load events from Firebase
@@ -64,6 +71,18 @@ export default function WeeklyCalendar() {
 
     return () => unsubscribe();
   }, [userId]);
+
+  // Memoize events grouped by day to avoid re-filtering on every render
+  const eventsByDay = useMemo(() => {
+    const grouped = {};
+    days.forEach(day => grouped[day] = []);
+    events.forEach(ev => {
+      if (grouped[ev.day]) {
+        grouped[ev.day].push(ev);
+      }
+    });
+    return grouped;
+  }, [events]);
 
   // Add or update event
   const addEvent = (e) => {
@@ -134,7 +153,6 @@ export default function WeeklyCalendar() {
       if (Notification.permission !== "granted") return;
       if (notificationsEnabled === false) return;
 
-      const now = new Date();
       const currentDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()];
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
@@ -162,9 +180,9 @@ export default function WeeklyCalendar() {
         }
       });
     };
-    const interval = setInterval(checkUpcomingEvents, 60000);
-    return () => clearInterval(interval);
-  }, [events, notifiedEvents, userId]); // notificationsEnabled missing in dep array but defined below
+    // Check every minute
+    checkUpcomingEvents();
+  }, [now, events, notifiedEvents, userId]); // Added 'now' dependency to run every minute
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   useEffect(() => {
@@ -176,10 +194,6 @@ export default function WeeklyCalendar() {
       });
       return () => unsub();
   }, [userId]);
-
-  // --- RENDER HELPERS ---
-  const ROW_HEIGHT = 100;
-  const START_HOUR = 8;
 
   return (
     <div className="calendar-container">
@@ -316,48 +330,16 @@ export default function WeeklyCalendar() {
           {/* Days Columns */}
           <div className="days-grid">
             {days.map(day => (
-              <div key={day} className="day-column">
-                <div className="day-header">{day}</div>
-                <div className="day-content">
-                  {/* Background Grid Lines */}
-                  {hours.map(hour => (
-                    <div key={hour} className="grid-line" style={{ height: ROW_HEIGHT }}></div>
-                  ))}
-
-                  {/* Events for this day */}
-                  <AnimatePresence>
-                    {events.filter(ev => ev.day === day).map(ev => {
-                      const top = (ev.start - START_HOUR) * ROW_HEIGHT;
-                      const height = (ev.end - ev.start) * ROW_HEIGHT;
-                      return (
-                        <motion.div
-                          key={ev.id}
-                          className="event-box"
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          transition={{ duration: 0.2 }}
-                          style={{
-                            top: `${top}px`,
-                            height: `${height}px`,
-                            "--event-color": ev.color,
-                          }}
-                          onClick={() => editEvent(ev)}
-                        >
-                          <div className="event-title">{ev.title}</div>
-                          <div className="event-time">{ev.start}:00 - {ev.end}:00</div>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
-                  
-                  {/* Current Time Line (Red Solid - Local) */}
-                  <CurrentTimeLine day={day} />
-                </div>
-              </div>
+              <DayColumn 
+                key={day}
+                day={day}
+                events={eventsByDay[day]}
+                now={now}
+                onEditEvent={editEvent}
+              />
             ))}
             {/* Global Dashed Line */}
-            <CurrentTimeLine isGlobal />
+            <CurrentTimeLine now={now} isGlobal />
           </div>
         </div>
       </div>
@@ -365,20 +347,58 @@ export default function WeeklyCalendar() {
   );
 }
 
-// Helper for Current Time
-const CurrentTimeLine = ({ day, isGlobal }) => {
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60000);
-    return () => clearInterval(interval);
-  }, []);
+// Memoized Day Column to prevent unnecessary re-renders
+const DayColumn = memo(({ day, events, now, onEditEvent }) => {
+  return (
+    <div className="day-column">
+      <div className="day-header">{day}</div>
+      <div className="day-content">
+        {/* Background Grid Lines */}
+        {hours.map(hour => (
+          <div key={hour} className="grid-line" style={{ height: ROW_HEIGHT }}></div>
+        ))}
 
+        {/* Events for this day */}
+        <AnimatePresence>
+          {events && events.map(ev => {
+            const top = (ev.start - START_HOUR) * ROW_HEIGHT;
+            const height = (ev.end - ev.start) * ROW_HEIGHT;
+            return (
+              <motion.div
+                key={ev.id}
+                className="event-box"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  top: `${top}px`,
+                  height: `${height}px`,
+                  "--event-color": ev.color,
+                }}
+                onClick={() => onEditEvent(ev)}
+              >
+                <div className="event-title">{ev.title}</div>
+                <div className="event-time">{ev.start}:00 - {ev.end}:00</div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+        
+        {/* Current Time Line (Red Solid - Local) */}
+        <CurrentTimeLine now={now} day={day} />
+      </div>
+    </div>
+  );
+});
+
+// Helper for Current Time - now passed as prop
+const CurrentTimeLine = ({ now, day, isGlobal }) => {
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
   const startHour = 8;
   const endHour = 21; // 9 PM
-  const ROW_HEIGHT = 100; // Must match main component
-
+  
   if (currentHour < startHour || currentHour >= endHour) return null;
 
   // Calculate pixel offset

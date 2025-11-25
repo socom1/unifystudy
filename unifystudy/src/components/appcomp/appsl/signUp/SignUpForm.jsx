@@ -1,4 +1,5 @@
 import React from "react";
+import "./signup.scss";
 
 export default function SignUpForm({
   isLogin,
@@ -65,15 +66,26 @@ export default function SignUpForm({
       </div>
 
       {isLogin && (
-        <div className="form-group checkbox-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <div
+          className="form-group checkbox-group"
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: "0.5rem",
+            marginTop: "0.5rem",
+          }}
+        >
           <input
             type="checkbox"
             id="keepLoggedIn"
             checked={keepLoggedIn}
             onChange={(e) => setKeepLoggedIn(e.target.checked)}
-            style={{ width: 'auto', margin: 0 }}
+            style={{ width: "auto", margin: 0 }}
           />
-          <label htmlFor="keepLoggedIn" style={{ margin: 0, fontSize: '0.9rem', cursor: 'pointer' }}>
+          <label
+            htmlFor="keepLoggedIn"
+            style={{ margin: 0, fontSize: "0.9rem", cursor: "pointer" }}
+          >
             Keep me logged in
           </label>
         </div>
@@ -87,11 +99,11 @@ export default function SignUpForm({
       <h1>OR</h1>
 
       <button className="btn-google" onClick={handleGoogleSignIn}>
-        <img
+        {/* <img
           src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
           alt="Google logo"
           className="google-logo"
-        />
+        /> */}
         <span>{isLogin ? "Log in with Google" : "Sign up with Google"}</span>
       </button>
 

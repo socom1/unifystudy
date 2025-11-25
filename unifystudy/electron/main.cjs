@@ -2,6 +2,12 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const isDev = !app.isPackaged;
 
+// Ignore certificate errors in development (for self-signed certs)
+if (isDev) {
+  app.commandLine.appendSwitch('ignore-certificate-errors');
+  app.commandLine.appendSwitch('allow-insecure-localhost', 'true');
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
@@ -11,13 +17,14 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      webSecurity: false, // Disable web security in dev
     },
     titleBarStyle: 'hiddenInset', // Mac style title bar
   });
 
   // In dev, load from localhost. In prod, load index.html
   if (isDev) {
-    win.loadURL('http://localhost:5173');
+    win.loadURL('http://localhost:5173'); // Use HTTP (Vite serves on both)
     win.webContents.openDevTools();
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'));
