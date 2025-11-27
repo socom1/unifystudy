@@ -17,6 +17,8 @@ import StickyWall from "./stickyWall/StickyWall";
 import Grades from "./grades/Grades";
 import Leaderboard from "./leaderboard/Leaderboard";
 import Shop from "./shop/Shop";
+import Chat from "./chat/Chat";
+import Settings from "./settings/Settings";
 import { TimerProvider } from "./pomodoro/TimerContext";
 import TimerWidget from "./pomodoro/TimerWidget";
 
@@ -203,6 +205,36 @@ const AppS = ({ user, onLoginSuccess, onSignOut }) => {
                 className="full-size"
               >
                 <Shop />
+              </motion.div>
+            }
+          />
+
+          <Route
+            path="/chat"
+            element={
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.45, ease: "easeInOut" }}
+                className="full-size"
+              >
+                <Chat />
+              </motion.div>
+            }
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.45, ease: "easeInOut" }}
+                className="full-size"
+              >
+                <Settings />
               </motion.div>
             }
           />

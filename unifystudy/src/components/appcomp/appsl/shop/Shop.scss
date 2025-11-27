@@ -1,7 +1,8 @@
 .shop-root {
   min-height: calc(100vh - 60px);
   padding: 2rem;
-  background: linear-gradient(135deg, #0c1214 0%, #1a1f23 100%);
+  background: var(--bg-1);
+  /* background: linear-gradient(135deg, #0c1214 0%, #1a1f23 100%); */
 }
 
 .shop-header {
@@ -52,8 +53,8 @@
   gap: 1rem;
   max-width: 1200px;
   margin: 0 auto 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
   border-radius: 12px;
   padding: 0.5rem;
   backdrop-filter: blur(10px);
@@ -72,12 +73,12 @@
 
     &:hover {
       background: rgba(255, 255, 255, 0.05);
-      color: #fff;
+      color: var(--color-text, #fff);
     }
 
     &.active {
       background: var(--color-primary);
-      color: #000;
+      color: var(--bg-1, #000);
       box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 75, 108, 130), 0.3);
     }
   }
@@ -92,8 +93,8 @@
 }
 
 .item-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
   border-radius: 16px;
   overflow: hidden;
   display: flex;
@@ -157,7 +158,7 @@
       margin: 0 0 0.5rem; 
       font-size: 1.2rem; 
       font-weight: 700;
-      color: #fff;
+      color: var(--color-text, #fff);
     }
 
     .description {
@@ -200,12 +201,12 @@
       
       &.equip-btn {
         background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-text, #fff);
+        border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
 
         &:hover:not(:disabled) { 
           background: var(--color-primary); 
-          color: #000;
+          color: var(--bg-1, #000);
           border-color: var(--color-primary);
           transform: translateY(-2px);
         }

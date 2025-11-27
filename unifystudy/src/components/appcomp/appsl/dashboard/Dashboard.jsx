@@ -376,37 +376,6 @@ export default function Dashboard({ user }) {
         </div>
       </div>
 
-      {/* 3. Middle Section: Quick Actions */}
-      <div className="middle-section">
-        <h3 className="section-title-simple">Quick Actions</h3>
-        <div className="quick-actions-grid">
-          <Link to="/pomodoro" className="quick-action-card">
-            <span className="qa-icon">⏱️</span>
-            <span className="qa-label">Focus</span>
-          </Link>
-          <Link to="/todo" className="quick-action-card">
-            <span className="qa-icon">📝</span>
-            <span className="qa-label">Tasks</span>
-          </Link>
-          <Link to="/timetable" className="quick-action-card">
-            <span className="qa-icon">📅</span>
-            <span className="qa-label">Schedule</span>
-          </Link>
-          <Link to="/notes" className="quick-action-card">
-            <span className="qa-icon">📌</span>
-            <span className="qa-label">Notes</span>
-          </Link>
-          <Link to="/grades" className="quick-action-card">
-            <span className="qa-icon">🎓</span>
-            <span className="qa-label">Grades</span>
-          </Link>
-          <Link to="/leaderboard" className="quick-action-card">
-            <span className="qa-icon">🏆</span>
-            <span className="qa-label">Ranks</span>
-          </Link>
-        </div>
-      </div>
-
       {/* 4. Bottom Section: 3-Column Grid */}
       <div className="bottom-section">
         {/* Column 1: Weekly Activity (spans 2 columns) */}

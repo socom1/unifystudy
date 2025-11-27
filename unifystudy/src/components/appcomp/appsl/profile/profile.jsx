@@ -62,6 +62,7 @@ export default function ProfilePage() {
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedBanner, setSelectedBanner] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("default");
+  const [avatarColor, setAvatarColor] = useState("#1f6feb");
 
   const presetBanners = [
     { id: "gradient-1", name: "Ocean", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
@@ -136,6 +137,7 @@ export default function ProfilePage() {
       setSelectedTag(data?.profileTag || "");
       setSelectedBanner(data?.profileBanner || "gradient-1");
       setSelectedTheme(data?.theme || "default");
+      setAvatarColor(data?.avatarColor || "#1f6feb");
     });
 
     return () => {
@@ -353,7 +355,8 @@ export default function ProfilePage() {
       await dbUpdate(dbRef(db, `users/${uid}/settings/customization`), {
         profileTag: selectedTag,
         profileBanner: selectedBanner,
-        theme: selectedTheme
+        theme: selectedTheme,
+        avatarColor: avatarColor
       });
       // Apply theme immediately
       document.body.className = `theme-${selectedTheme}`;
@@ -402,19 +405,40 @@ export default function ProfilePage() {
 
           <div className="profile-main" style={{ marginTop: '-60px', padding: '0 2rem 2rem', position: 'relative', zIndex: 2 }}>
             <div className="avatar-wrap" style={{ marginBottom: '1rem' }}>
-              <img
-                alt="avatar"
-                src={photoURL || "/avatar-placeholder.png"}
-                className="profile-photo"
-                style={{ 
-                  width: '120px', 
-                  height: '120px', 
-                  border: '4px solid var(--bg-secondary)',
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  background: 'var(--bg-secondary)'
-                }}
-              />
+              {photoURL ? (
+                <img
+                  alt="avatar"
+                  src={photoURL}
+                  className="profile-photo"
+                  style={{ 
+                    width: '120px', 
+                    height: '120px', 
+                    border: '4px solid var(--bg-secondary)',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    background: 'var(--bg-secondary)'
+                  }}
+                />
+              ) : (
+                <div
+                  className="profile-photo"
+                  style={{ 
+                    width: '120px', 
+                    height: '120px', 
+                    border: '4px solid var(--bg-secondary)',
+                    borderRadius: '50%',
+                    background: avatarColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '3rem',
+                    color: 'white',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {displayName ? displayName[0].toUpperCase() : "U"}
+                </div>
+              )}
               <div className="avatar-actions" style={{ marginTop: '1rem' }}>
                 <input
                   ref={fileInputRef}
@@ -610,6 +634,31 @@ export default function ProfilePage() {
                     Visit the <a href="/shop" style={{ color: 'var(--color-primary)' }}>Shop</a> to unlock premium themes!
                   </p>
                 )}
+              </div>
+
+              {/* Default Avatar Customization */}
+              <div className="customize-section">
+                <h3>Default Avatar Style</h3>
+                <div className="banner-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', gap: '0.5rem' }}>
+                  {[
+                    "#1f6feb", "#238636", "#8957e5", "#da3633", "#d29922", 
+                    "#f0883e", "#db6d28", "#bd561d", "#9e4213", "#7d320f"
+                  ].map(color => (
+                    <motion.div
+                      key={color}
+                      className={`banner-option ${avatarColor === color ? "selected" : ""}`}
+                      style={{ 
+                        background: color, 
+                        height: '40px', 
+                        borderRadius: '50%',
+                        border: avatarColor === color ? '2px solid white' : 'none'
+                      }}
+                      onClick={() => setAvatarColor(color)}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    />
+                  ))}
+                </div>
               </div>
 
               <button className="btn primary" onClick={saveCustomization}>

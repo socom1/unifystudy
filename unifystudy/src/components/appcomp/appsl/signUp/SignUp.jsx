@@ -103,6 +103,7 @@ export default function SignUp({ onLoginSuccess }) {
     setSuccess("");
 
     try {
+      await setPersistence(auth, keepLoggedIn ? browserLocalPersistence : browserSessionPersistence);
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 

@@ -4,13 +4,13 @@
 
 .sidebar {
   height: 100vh;
-  width: 260px;
+  width: 280px; /* Increased from 260px */
   /* Use theme background or fallback to dark default */
   background: var(--bg-2, #0f1516);
   border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
   display: flex;
   flex-direction: column;
-  padding: 1.5rem 1rem;
+  padding: 2rem 1rem; /* Increased top/bottom padding */
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: sticky;
   top: 0;
@@ -20,8 +20,8 @@
   font-family: "Fira Code", monospace; /* Enforce code font */
 
   &.collapsed {
-    width: 80px;
-    padding: 1.5rem 0.5rem;
+    width: 85px; /* Slightly wider when collapsed */
+    padding: 2rem 0.75rem;
 
     .sidebar-header {
       justify-content: center;
@@ -56,31 +56,31 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2.5rem;
-    padding: 0 0.5rem;
+    margin-bottom: 2.5rem; /* Keep good spacing */
+    padding: 0 0.75rem; /* Increased padding */
 
     .logo-container {
       display: flex;
       align-items: center;
-      gap: 0.8rem;
+      gap: 1rem; /* Increased from 0.8rem */
 
       .logo-icon {
-        width: 36px;
-        height: 36px;
+        width: 40px; /* Slightly larger */
+        height: 40px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid var(--color-primary, #4f46e5);
-        border-radius: 8px;
+        border-radius: 10px; /* More rounded */
         display: flex;
         align-items: center;
         justify-content: center;
         color: var(--color-primary, #4f46e5);
         font-weight: bold;
-        font-size: 1.2rem;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        font-size: 1.3rem; /* Slightly larger */
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
       }
 
       .logo-text {
-        font-size: 1.25rem;
+        font-size: 1.3rem; /* Slightly larger */
         font-weight: 700;
         color: var(--color-text, #fff);
         letter-spacing: -0.5px;
@@ -92,15 +92,15 @@
       border: none;
       color: var(--color-muted, #6b7280);
       cursor: pointer;
-      padding: 6px;
-      border-radius: 6px;
+      padding: 8px; /* Increased from 6px */
+      border-radius: 8px; /* More rounded */
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.08); /* More visible */
         color: var(--color-text, #fff);
       }
     }
@@ -110,41 +110,99 @@
   .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
     flex: 1;
+    overflow-y: auto;
+    padding: 1rem 0;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    .nav-section {
+      margin-bottom: 2rem; /* Increased from 1.5rem */
+
+      .section-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em; /* Increased letter spacing */
+        color: #8b949e;
+        padding: 0 1.25rem; /* Increased horizontal padding */
+        margin-bottom: 0.75rem; /* Increased from 0.5rem */
+        font-family: 'Fira Code', monospace;
+        text-transform: uppercase;
+      }
+    }
 
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      padding: 0.8rem 1rem;
-      border-radius: 8px;
+      gap: 1rem; /* Increased from 0.75rem */
+      padding: 0.875rem 1.25rem; /* Increased padding */
+      margin: 0 0.5rem 0.35rem 0.5rem; /* Added horizontal margins and spacing between items */
+      border-radius: 10px; /* Slightly more rounded */
       color: var(--color-muted, #8d99ae);
       text-decoration: none;
       font-weight: 500;
+      font-size: 0.95rem; /* Slightly larger text */
       transition: all 0.2s ease;
       white-space: nowrap;
       overflow: hidden;
       border: 1px solid transparent; /* Prevent layout shift on hover */
+      position: relative;
+
+      .nav-icon-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .notification-badge {
+          position: absolute;
+          top: -6px;
+          right: -8px;
+          background: #ef4444;
+          color: white;
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 0.15rem 0.35rem;
+          border-radius: 10px;
+          min-width: 18px;
+          height: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+          animation: pulse-badge 2s infinite;
+        }
+      }
 
       &:hover {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.05); /* Slightly more visible */
         color: var(--color-text, #fff);
-        border-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.08);
+        transform: translateX(2px); /* Subtle slide effect */
       }
 
       &.active {
-        background: color-mix(in srgb, var(--color-primary), transparent 85%);
+        background: color-mix(in srgb, var(--color-primary), transparent 88%); /* Slightly more subtle */
         color: var(--color-primary, #4f46e5);
         font-weight: 600;
-        border-color: color-mix(in srgb, var(--color-primary), transparent 70%);
-        box-shadow: 0 0 15px
-          color-mix(in srgb, var(--color-primary), transparent 90%);
+        border-color: color-mix(in srgb, var(--color-primary), transparent 75%);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary), transparent 92%); /* Softer shadow */
 
         /* "Code Vibe" Active Indicator */
         &::before {
           content: ">";
-          margin-right: -0.5rem;
+          margin-right: -0.35rem;
           font-weight: bold;
           color: var(--color-primary);
           animation: blink 1s infinite;
@@ -160,7 +218,7 @@
   /* Footer */
   .sidebar-footer {
     margin-top: auto;
-    padding-top: 1rem;
+    padding-top: 1.25rem; /* Increased spacing */
     border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
 
     a {
@@ -249,5 +307,14 @@
   }
   50% {
     opacity: 0;
+  }
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
   }
 }

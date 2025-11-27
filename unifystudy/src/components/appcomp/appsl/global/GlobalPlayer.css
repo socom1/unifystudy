@@ -1,0 +1,137 @@
+.global-player {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.global-player .player-toggle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+.global-player .player-toggle .music-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+}
+.global-player .player-toggle .music-bars .bar {
+  width: 4px;
+  background: #fff;
+  border-radius: 2px;
+  height: 4px; /* Default static height */
+  transition: height 0.2s;
+}
+.global-player .player-toggle .music-bars.playing .bar {
+  animation: equalizer 1s ease-in-out infinite;
+}
+.global-player .player-toggle .music-bars.playing .bar:nth-child(1) {
+  height: 60%;
+  animation-delay: 0s;
+}
+.global-player .player-toggle .music-bars.playing .bar:nth-child(2) {
+  height: 100%;
+  animation-delay: 0.2s;
+}
+.global-player .player-toggle .music-bars.playing .bar:nth-child(3) {
+  height: 80%;
+  animation-delay: 0.4s;
+}
+.global-player .player-toggle:hover {
+  transform: scale(1.1);
+}
+@keyframes equalizer {
+  0%, 100% {
+    height: 40%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+.global-player .player-content {
+  background: rgba(15, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1rem;
+  width: 320px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+}
+.global-player .player-content .player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.global-player .player-content .player-header .mode-switch {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 2px;
+}
+.global-player .player-content .player-header .mode-switch button {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.global-player .player-content .player-header .mode-switch button.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.global-player .player-content .player-header .close-btn {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.global-player .player-content .player-header .close-btn:hover {
+  color: #fff;
+}
+.global-player .player-content .youtube-player iframe {
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+.global-player .player-content .youtube-player .yt-input {
+  display: flex;
+  gap: 0.5rem;
+}
+.global-player .player-content .youtube-player .yt-input input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 0.8rem;
+}
+.global-player .player-content .youtube-player .yt-input input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.global-player .player-content .youtube-player .yt-input button {
+  background: var(--color-primary);
+  border: none;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+}/*# sourceMappingURL=GlobalPlayer.css.map */

@@ -165,11 +165,7 @@ body,
 
 .mockup {
   width: 360px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0.01)
-  );
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.03);
   box-shadow: 0 16px 40px rgba(2, 6, 10, 0.6);
@@ -345,12 +341,7 @@ body,
 /* ---------------- Features Section ---------------- */
 .features-divider {
   width: 100%;
-  background: linear-gradient(
-    180deg,
-    #112a32 0%,
-    #0a0e12 80%,
-    rgba(10, 14, 18, 0) 100%
-  );
+  background: linear-gradient(180deg, #112a32 0%, #0a0e12 80%, rgba(10, 14, 18, 0) 100%);
   height: 60px;
   overflow: hidden;
 }
@@ -496,11 +487,7 @@ body,
   gap: 12px;
 }
 .demo .demo-grid .demo-card {
-  background: linear-gradient(
-    180deg,
-    #0f1516 0%,
-    rgba(143, 210, 255, 0.04) 100%
-  );
+  background: linear-gradient(180deg, #0f1516 0%, rgba(143, 210, 255, 0.04) 100%);
   border: 1px solid rgba(143, 210, 255, 0.08);
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(2, 6, 10, 0.35);
@@ -602,11 +589,7 @@ body,
   margin: 0 auto;
 }
 .coming .coming-grid .coming-card {
-  background: linear-gradient(
-    180deg,
-    #0f1516 0%,
-    rgba(75, 108, 130, 0.05) 100%
-  );
+  background: linear-gradient(180deg, #0f1516 0%, rgba(75, 108, 130, 0.05) 100%);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 12px;
   padding: 14px;
@@ -658,11 +641,7 @@ body,
   gap: 1.5rem;
 }
 .testimonials .testimonial-card {
-  background: linear-gradient(
-    180deg,
-    #0f1516 0%,
-    rgba(143, 210, 255, 0.05) 100%
-  );
+  background: linear-gradient(180deg, #0f1516 0%, rgba(143, 210, 255, 0.05) 100%);
   border: 1px solid rgba(143, 210, 255, 0.08);
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(2, 6, 10, 0.35);
@@ -742,11 +721,7 @@ body,
 /* ---------------- Feature CTA Section (New Section) ---------------- */
 .feature-cta {
   padding: 3rem 1.2rem;
-  background: rgb(
-    13,
-    18,
-    20
-  ); /* Matches Features background for smooth transition */
+  background: rgb(13, 18, 20); /* Matches Features background for smooth transition */
 }
 .feature-cta .cta-panel {
   max-width: 1000px;
@@ -755,11 +730,7 @@ body,
   justify-content: space-between;
   align-items: center;
   padding: 2.5rem 3rem;
-  background: linear-gradient(
-    90deg,
-    #0f1516 0%,
-    rgba(143, 210, 255, 0.05) 100%
-  );
+  background: linear-gradient(90deg, #0f1516 0%, rgba(143, 210, 255, 0.05) 100%);
   border: 1px solid rgba(143, 210, 255, 0.08);
   border-radius: 18px;
   box-shadow: 0 8px 30px rgba(2, 6, 10, 0.5);
@@ -858,12 +829,10 @@ body,
 
 /* ---------------- Animations ---------------- */
 @keyframes blink {
-  0%,
-  49% {
+  0%, 49% {
     opacity: 1;
   }
-  50%,
-  100% {
+  50%, 100% {
     opacity: 0;
   }
 }
@@ -959,4 +928,4 @@ body,
   .folder-contents {
     padding-left: 16px;
   }
-} /*# sourceMappingURL=LandingPage.css.map */
+}/*# sourceMappingURL=LandingPage.css.map */

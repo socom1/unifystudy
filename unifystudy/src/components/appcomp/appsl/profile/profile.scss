@@ -3,49 +3,53 @@
    Drop into your project and import in profile.jsx
 */
 
-:root {
-  --bg-1: #071019;
-  --panel: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.01),
-    rgba(255, 255, 255, 0.006)
-  );
-  --accent: #4b6c82;
-  --accent-2: #8fd2ff;
-  --muted: #9fb1bb;
-  --danger: #bf4040;
-  --glass-border: rgba(255, 255, 255, 0.04);
-}
-
 .profile-root {
   min-height: 100vh;
-  padding: 28px;
-  background: linear-gradient(180deg, var(--bg-1) 0%, #07131a 100%);
-  color: #e6eef3;
+  padding: 2rem;
+  background: var(--bg-1);
+  color: var(--color-text, #c9d1d9);
   font-family: "Fira Code", monospace;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .profile-grid {
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 20px;
-  max-width: 1080px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 900px; /* Centered, single column */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 /* Card base */
 .profile-card,
 .panel {
-  background: var(--panel);
+  background: var(--glass-bg, rgba(22, 27, 34, 0.8));
   border-radius: 12px;
-  border: 1px solid var(--glass-border);
-  padding: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  backdrop-filter: blur(12px);
+}
+
+/* Sections grid for panels */
+.profile-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* special danger panel */
 .panel.danger {
-  border-color: rgba(191, 64, 64, 0.12);
+  border-color: rgba(218, 54, 51, 0.3);
+  background: rgba(218, 54, 51, 0.05);
 }
 
 /* header inside card */
@@ -53,78 +57,90 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 1.5rem; /* Increased from 12px */
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
 }
 .section-title {
-  color: var(--accent-2);
+  color: var(--color-text, #c9d1d9);
   font-weight: 700;
-  letter-spacing: 0.3px;
-  font-size: 14px;
+  letter-spacing: 0.5px;
+  font-size: 1.1rem; /* Increased from 14px */
+  text-transform: uppercase;
 }
 
 /* completion bar */
 .completion {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 1rem; /* Increased from 10px */
 }
 .completion-bar {
-  width: 140px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.02);
+  width: 180px; /* Increased from 140px */
+  height: 10px; /* Increased from 8px */
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 999px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
 }
 .completion-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  background: var(--color-primary);
   width: 20%;
   transition: width 0.5s ease;
 }
 .completion-label {
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-muted);
+  font-size: 0.9rem; /* Increased from 12px */
+  font-weight: 600;
 }
 
 /* profile main layout */
 .profile-main {
   display: flex;
-  gap: 16px;
+  gap: 2.5rem;
   align-items: flex-start;
+  flex-wrap: wrap;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 .avatar-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  width: 200px;
+  gap: 1rem;
+  flex-shrink: 0;
 }
 .profile-photo {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
+  width: 140px;
+  height: 140px;
+  border-radius: 12px;
   object-fit: cover;
-  border: 2px solid rgba(143, 210, 255, 0.12);
-  box-shadow: 0 6px 18px rgba(75, 108, 130, 0.08);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0.005)
-  );
+  border: 2px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.02);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.02);
+  }
 }
 
 /* avatar actions */
 .avatar-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.75rem;
   width: 100%;
+  max-width: 200px;
   align-items: center;
 }
 .upload-progress {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 0.85rem;
+  color: var(--color-muted);
 }
 
 /* fields */
@@ -132,137 +148,198 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 1.25rem; /* Increased from 8px */
 }
 .field-label {
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-muted);
+  font-size: 0.875rem; /* Increased from 12px */
   font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .field-input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 0.875rem 1rem; /* Increased from 10px 12px */
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: #e6eef3;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  color: var(--color-text, #c9d1d9);
   font-family: "Fira Code", monospace;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  &::placeholder {
+    color: var(--color-muted);
+    opacity: 0.5;
+  }
 }
 
 /* providers */
 .providers {
   display: flex;
-  gap: 8px;
+  gap: 0.75rem; /* Increased from 8px */
   flex-wrap: wrap;
-  margin-bottom: 4px;
+  margin-bottom: 0.75rem; /* Increased from 4px */
 }
 .provider-chip {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 0.8rem; /* Increased from 12px */
+  color: var(--color-muted);
   border-radius: 6px;
-  padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  padding: 0.5rem 0.75rem; /* Increased from 6px 8px */
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  font-weight: 600;
 }
 
 /* action buttons */
 .profile-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 0.75rem; /* Increased from 8px */
+  margin-top: 1.25rem; /* Increased from 8px */
 }
 .btn {
-  padding: 8px 12px;
+  padding: 0.75rem 1.25rem; /* Increased from 8px 12px */
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 0.9rem;
   border: none;
   background: transparent;
-  color: var(--accent-2);
+  color: var(--color-primary);
+  transition: all 0.2s;
+  font-family: "Fira Code", monospace;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 .btn.primary {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  color: #031516;
-  box-shadow: 0 8px 20px rgba(75, 108, 130, 0.06);
+  background: var(--color-primary);
+  color: var(--bg-1, #0d1117);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+
+  &:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 6px 16px rgba(var(--color-primary-rgb), 0.4);
+  }
 }
 .btn.secondary {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  color: var(--color-text, #c9d1d9);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
 }
 .btn.ghost {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--muted);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  color: var(--color-muted);
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--color-text, #c9d1d9);
+  }
 }
 .btn.outline {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  color: var(--muted);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  color: var(--color-muted);
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
 }
 .btn.danger {
-  background: linear-gradient(90deg, #bf4040, #e06a6a);
-  color: #071516;
+  background: var(--color-danger, #da3633);
+  color: white;
+
+  &:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 4px 12px rgba(218, 54, 51, 0.3);
+  }
 }
 
-/* side column panels */
+/* panels in single column */
 .side-column {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1.5rem;
+  
+  .panel {
+    width: 100%;
+  }
 }
 
 /* panel body */
 .panel-body {
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 14px;
+  margin-top: 1rem; /* Increased from 8px */
+  color: var(--color-muted);
+  font-size: 0.95rem; /* Increased from 14px */
+  line-height: 1.6;
 }
 .verify-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 1rem; /* Increased from 12px */
   align-items: center;
 }
 .verify-status {
   font-weight: 700;
-  color: var(--accent-2);
+  color: var(--color-primary);
 }
 .verify-desc {
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: 6px;
+  color: var(--color-muted);
+  font-size: 0.875rem; /* Increased from 13px */
+  margin-top: 0.75rem; /* Increased from 6px */
+  line-height: 1.5;
 }
 
 /* security section */
 .security-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 1rem; /* Increased from 8px */
 }
 .security-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 0.75rem; /* Increased from 8px */
+  margin-top: 0.75rem; /* Increased from 6px */
 }
 
 /* sessions */
 .session-info {
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 0.9rem; /* Increased from 13px */
+  color: var(--color-muted);
+  line-height: 1.5;
 }
 
 /* account actions */
 .account-actions {
   display: flex;
-  gap: 8px;
+  gap: 0.75rem; /* Increased from 8px */
 }
 
 /* small notes */
 .note {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 6px;
+  font-size: 0.875rem; /* Increased from 13px */
+  color: var(--color-muted);
+  margin-top: 0.75rem; /* Increased from 6px */
+  line-height: 1.5;
 }
 
 /* toasts */
@@ -297,17 +374,17 @@
 
   h3 {
     font-size: 0.9rem;
-    color: var(--accent-2);
+    color: var(--color-secondary, #8fd2ff);
     margin-bottom: 0.75rem;
     font-weight: 700;
   }
 
   .muted-text {
-    color: var(--muted);
+    color: var(--color-muted);
     font-size: 0.85rem;
 
     a {
-      color: var(--accent-2);
+      color: var(--color-secondary);
       text-decoration: underline;
     }
   }
@@ -350,7 +427,7 @@
   }
 
   &.selected {
-    border-color: var(--accent-2);
+    border-color: var(--color-secondary);
     box-shadow: 0 0 20px rgba(143, 210, 255, 0.3);
   }
 }
@@ -364,13 +441,13 @@
 .tag-option {
   padding: 0.6rem 0.8rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
   border-radius: 8px;
   text-align: center;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
-  color: var(--muted);
+  color: var(--color-muted);
 
   &:hover {
     background: rgba(255, 255, 255, 0.06);
@@ -378,26 +455,34 @@
   }
 
   &.selected {
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
     color: #031516;
-    border-color: var(--accent-2);
+    border-color: var(--color-secondary);
     font-weight: 700;
   }
 }
 
 /* responsive */
 @media (max-width: 920px) {
+  .profile-root {
+    padding: 1.5rem;
+  }
+  
   .profile-grid {
-    grid-template-columns: 1fr;
-    padding: 16px;
+    max-width: 100%;
   }
-  .avatar-wrap {
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-  }
+  
   .profile-main {
     flex-direction: column;
+    align-items: center;
+  }
+  
+  .avatar-wrap {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .profile-sections {
+    grid-template-columns: 1fr;
   }
 }

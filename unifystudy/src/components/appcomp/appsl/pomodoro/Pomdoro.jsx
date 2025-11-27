@@ -23,6 +23,9 @@ export default function Pomodoro() {
 
   // editor UI (Local state is fine for editor)
   const [editorOpen, setEditorOpen] = useState(false);
+  const [selectorMode, setSelectorMode] = useState(
+    typeof window !== 'undefined' && window.innerWidth < 768
+  ); // Auto-detect mobile
   const [editorContent, setEditorContent] = useState(
     templateList
       .map(
@@ -32,6 +35,15 @@ export default function Pomodoro() {
       .join("\n\n")
   );
   const editorScrollRef = useRef(null);
+
+  // Selector mode template state
+  const [selectorTemplate, setSelectorTemplate] = useState({
+    name: "Custom Template",
+    work: 25,
+    short: 5,
+    long: 15,
+    cycles: 4,
+  });
 
   // markers
   const MARKERS = 24;
@@ -56,6 +68,17 @@ export default function Pomodoro() {
   // Apply template
   const applyTemplate = (tpl) => {
     setSelectedTemplateId(tpl.id);
+  };
+
+  // Save selector template
+  const saveSelectorTemplate = () => {
+    const newTemplate = {
+      ...selectorTemplate,
+      id: `selector_${Date.now()}`,
+    };
+    setTemplateList([...templateList, newTemplate]);
+    setSelectedTemplateId(newTemplate.id);
+    setEditorOpen(false);
   };
 
   // Editor save
@@ -209,7 +232,15 @@ export default function Pomodoro() {
           <div className="templates__header">
             <h2>Templates</h2>
             <div className="actions">
-              <button onClick={() => setEditorOpen(true)}>Open Editor</button>
+              <button 
+                onClick={() => setSelectorMode(!selectorMode)}
+                className="mode-toggle"
+              >
+                {selectorMode ? "🎹 Typing Mode" : "🎛️ Selector Mode"}
+              </button>
+              <button onClick={() => setEditorOpen(true)}>
+                {selectorMode ? "Quick Edit" : "Open Editor"}
+              </button>
               <button
                 onClick={() => {
                   if (selectedTemplate) applyTemplate(selectedTemplate);
@@ -263,7 +294,7 @@ export default function Pomodoro() {
         </section>
       </main>
 
-      {/* Editor modal */}
+      {/* Editor/Selector modal */}
       <AnimatePresence>
         {editorOpen && (
           <motion.div
@@ -272,111 +303,187 @@ export default function Pomodoro() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
           >
-            <div style={{ display: "flex", gap: 12 }}>
-              <div
-                style={{
-                  marginTop: 12.5,
-                  width: 60,
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 700,
-                    marginBottom: 20,
-                    fontSize: 12,
-                    color: "var(--color-muted)",
-                    textAlign: "center",
-                    height: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  Line
-                </div>
-                <div
-                  ref={editorScrollRef}
-                  style={{
-                    maxHeight: 380,
-                    overflowY: "auto",
-                    lineHeight: "1.6",
-                    paddingTop: 12,
-                    paddingBottom: 12,
-                    paddingRight: 8,
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                    background: "rgba(255, 255, 255, 0.02)",
-                    borderRadius: 6,
-                    paddingLeft: 8,
-                  }}
-                  className="line-numbers-scrollable"
-                >
-                  {editorLines.map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        padding: 0,
-                        textAlign: "center",
-                        opacity: 0.7,
-                        fontSize: 13,
-                        lineHeight: "1.6",
-                        fontFamily: '"Fira Code", monospace',
-                        height: "auto",
-                        color: "var(--color-muted)",
-                      }}
-                    >
-                      {i + 1}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 8,
-                  }}
-                >
-                  <div style={{ color: "var(--muted)" }}>
-                    Templates Editor (simple format)
-                  </div>
+            {selectorMode ? (
+              /* Selector Mode UI */
+              <div className="selector-mode">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                  <h3>Create Template (Selector Mode)</h3>
                   <div>
                     <button onClick={() => setEditorOpen(false)}>Close</button>
-                    <button style={{ marginLeft: 8 }} onClick={saveEditor}>
+                    <button style={{ marginLeft: 8 }} onClick={saveSelectorTemplate}>
                       Save
                     </button>
                   </div>
                 </div>
-
-                <textarea
-                  value={editorContent}
-                  onChange={(e) => setEditorContent(e.target.value)}
-                  onScroll={(e) => {
-                    if (editorScrollRef.current) {
-                      editorScrollRef.current.scrollTop = e.target.scrollTop;
-                    }
-                  }}
-                  style={{
-                    width: "100%",
-                    height: 380,
-                    background: "var(--color-bg-dark)",
-                    color: "var(--color-secondary)",
-                    border: "1px solid rgba(255,255,255,0.03)",
-                    padding: 12,
-                    borderRadius: 6,
-                    fontFamily: '"Fira Code", monospace',
-                    fontSize: 13,
-                    lineHeight: "1.6",
-                    resize: "vertical",
-                  }}
-                />
+                
+                <div className="selector-inputs">
+                  <div className="input-group">
+                    <label>Template Name</label>
+                    <input
+                      type="text"
+                      value={selectorTemplate.name}
+                      onChange={(e) => setSelectorTemplate({ ...selectorTemplate, name: e.target.value })}
+                      placeholder="My Custom Template"
+                    />
+                  </div>
+                  
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label>Work Duration (min)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="120"
+                        value={selectorTemplate.work}
+                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, work: parseInt(e.target.value) || 25 })}
+                      />
+                    </div>
+                    
+                    <div className="input-group">
+                      <label>Short Break (min)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="60"
+                        value={selectorTemplate.short}
+                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, short: parseInt(e.target.value) || 5 })}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label>Long Break (min)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="120"
+                        value={selectorTemplate.long}
+                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, long: parseInt(e.target.value) || 15 })}
+                      />
+                    </div>
+                    
+                    <div className="input-group">
+                      <label>Cycles</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={selectorTemplate.cycles}
+                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, cycles: parseInt(e.target.value) || 4 })}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Typing Mode UI (Original) */
+              <div style={{ display: "flex", gap: 12 }}>
+                <div
+                  style={{
+                    marginTop: 12.5,
+                    width: 60,
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      marginBottom: 20,
+                      fontSize: 12,
+                      color: "var(--color-muted)",
+                      textAlign: "center",
+                      height: "auto",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    Line
+                  </div>
+                  <div
+                    ref={editorScrollRef}
+                    style={{
+                      maxHeight: 380,
+                      overflowY: "auto",
+                      lineHeight: "1.6",
+                      paddingTop: 12,
+                      paddingBottom: 12,
+                      paddingRight: 8,
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      borderRadius: 6,
+                      paddingLeft: 8,
+                    }}
+                    className="line-numbers-scrollable"
+                  >
+                    {editorLines.map((_, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          padding: 0,
+                          textAlign: "center",
+                          opacity: 0.7,
+                          fontSize: 13,
+                          lineHeight: "1.6",
+                          fontFamily: '"Fira Code", monospace',
+                          height: "auto",
+                          color: "var(--color-muted)",
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div style={{ color: "var(--muted)" }}>
+                      Templates Editor (simple format)
+                    </div>
+                    <div>
+                      <button onClick={() => setEditorOpen(false)}>Close</button>
+                      <button style={{ marginLeft: 8 }} onClick={saveEditor}>
+                        Save
+                      </button>
+                    </div>
+                  </div>
+
+                  <textarea
+                    value={editorContent}
+                    onChange={(e) => setEditorContent(e.target.value)}
+                    onScroll={(e) => {
+                      if (editorScrollRef.current) {
+                        editorScrollRef.current.scrollTop = e.target.scrollTop;
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      height: 380,
+                      background: "var(--color-bg-dark)",
+                      color: "var(--color-secondary)",
+                      border: "1px solid rgba(255,255,255,0.03)",
+                      padding: 12,
+                      borderRadius: 6,
+                      fontFamily: '"Fira Code", monospace',
+                      fontSize: 13,
+                      lineHeight: "1.6",
+                      resize: "vertical",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

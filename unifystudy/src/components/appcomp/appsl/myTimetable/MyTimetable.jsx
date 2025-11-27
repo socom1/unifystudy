@@ -1,5 +1,5 @@
 // src/components/myTimetable/WeeklyCalendar.jsx
-import React, { useState, useEffect, useMemo, memo } from "react";
+import React, { useState, useEffect, useMemo, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "../firebase";
 import { ref, onValue, push, set, remove } from "firebase/database";
@@ -33,9 +33,7 @@ export default function WeeklyCalendar() {
   });
   const [userId, setUserId] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
-  const [notifiedEvents, setNotifiedEvents] = useState({});
-  const [now, setNow] = useState(new Date());
-
+  
   // Track logged-in user
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -43,12 +41,6 @@ export default function WeeklyCalendar() {
       else setUserId(null);
     });
     return unsubscribe;
-  }, []);
-
-  // Global Time Timer (One single interval for the whole app)
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60000);
-    return () => clearInterval(interval);
   }, []);
 
   // Load events from Firebase
@@ -132,8 +124,8 @@ export default function WeeklyCalendar() {
     }
   };
 
-  // Edit event
-  const editEvent = (ev) => {
+  // Edit event - useCallback to keep it stable for memoized DayColumn
+  const editEvent = useCallback((ev) => {
     setForm({
       title: ev.title,
       description: ev.description || "",
@@ -144,59 +136,12 @@ export default function WeeklyCalendar() {
     });
     setEditingEventId(ev.id);
     setIsFormOpen(true);
-  };
-
-  // Notification check (Keep existing logic)
-  useEffect(() => {
-    if (!("Notification" in window)) return;
-    const checkUpcomingEvents = async () => {
-      if (Notification.permission !== "granted") return;
-      if (notificationsEnabled === false) return;
-
-      const currentDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()];
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-
-      events.forEach(evt => {
-        if (evt.day === currentDay) {
-          const evtHour = evt.start;
-          const eventTimeInMinutes = evtHour * 60;
-          const currentTimeInMinutes = currentHour * 60 + currentMinute;
-          const diff = eventTimeInMinutes - currentTimeInMinutes;
-
-          if (diff === 10 && !notifiedEvents[evt.id]) {
-             new Notification(`Upcoming Event: ${evt.title}`, {
-               body: `Starts in 10 minutes at ${evt.start}:00`,
-             });
-             setNotifiedEvents(prev => ({ ...prev, [evt.id]: true }));
-          }
-          if (diff < 10 && notifiedEvents[evt.id]) {
-            setNotifiedEvents(prev => {
-              const newState = { ...prev };
-              delete newState[evt.id];
-              return newState;
-            });
-          }
-        }
-      });
-    };
-    // Check every minute
-    checkUpcomingEvents();
-  }, [now, events, notifiedEvents, userId]); // Added 'now' dependency to run every minute
-
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  useEffect(() => {
-      if (!userId) return;
-      const settingsRef = ref(db, `users/${userId}/settings/notifications`);
-      const unsub = onValue(settingsRef, (snapshot) => {
-          const val = snapshot.val();
-          setNotificationsEnabled(val !== false);
-      });
-      return () => unsub();
-  }, [userId]);
+  }, []);
 
   return (
     <div className="calendar-container">
+      <NotificationManager events={events} userId={userId} />
+      
       <div className="calendar-nav">
         <h2>Weekly Timetable</h2>
         <div style={{display: 'flex', gap: '1rem'}}>
@@ -334,12 +279,11 @@ export default function WeeklyCalendar() {
                 key={day}
                 day={day}
                 events={eventsByDay[day]}
-                now={now}
                 onEditEvent={editEvent}
               />
             ))}
             {/* Global Dashed Line */}
-            <CurrentTimeLine now={now} isGlobal />
+            <GlobalCurrentTimeLine />
           </div>
         </div>
       </div>
@@ -347,8 +291,68 @@ export default function WeeklyCalendar() {
   );
 }
 
+// Separate component for Notifications to avoid re-rendering the whole calendar
+const NotificationManager = ({ events, userId }) => {
+  const [notifiedEvents, setNotifiedEvents] = useState({});
+  const [now, setNow] = useState(new Date());
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+      if (!userId) return;
+      const settingsRef = ref(db, `users/${userId}/settings/notifications`);
+      const unsub = onValue(settingsRef, (snapshot) => {
+          const val = snapshot.val();
+          setNotificationsEnabled(val !== false);
+      });
+      return () => unsub();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!("Notification" in window)) return;
+    const checkUpcomingEvents = async () => {
+      if (Notification.permission !== "granted") return;
+      if (notificationsEnabled === false) return;
+
+      const currentDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()];
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      events.forEach(evt => {
+        if (evt.day === currentDay) {
+          const evtHour = evt.start;
+          const eventTimeInMinutes = evtHour * 60;
+          const currentTimeInMinutes = currentHour * 60 + currentMinute;
+          const diff = eventTimeInMinutes - currentTimeInMinutes;
+
+          if (diff === 10 && !notifiedEvents[evt.id]) {
+             new Notification(`Upcoming Event: ${evt.title}`, {
+               body: `Starts in 10 minutes at ${evt.start}:00`,
+             });
+             setNotifiedEvents(prev => ({ ...prev, [evt.id]: true }));
+          }
+          if (diff < 10 && notifiedEvents[evt.id]) {
+            setNotifiedEvents(prev => {
+              const newState = { ...prev };
+              delete newState[evt.id];
+              return newState;
+            });
+          }
+        }
+      });
+    };
+    checkUpcomingEvents();
+  }, [now, events, notifiedEvents, notificationsEnabled]);
+
+  return null;
+};
+
 // Memoized Day Column to prevent unnecessary re-renders
-const DayColumn = memo(({ day, events, now, onEditEvent }) => {
+const DayColumn = memo(({ day, events, onEditEvent }) => {
   return (
     <div className="day-column">
       <div className="day-header">{day}</div>
@@ -386,14 +390,21 @@ const DayColumn = memo(({ day, events, now, onEditEvent }) => {
         </AnimatePresence>
         
         {/* Current Time Line (Red Solid - Local) */}
-        <CurrentTimeLine now={now} day={day} />
+        <DayCurrentTimeLine day={day} />
       </div>
     </div>
   );
 });
 
-// Helper for Current Time - now passed as prop
-const CurrentTimeLine = ({ now, day, isGlobal }) => {
+// Self-updating Global Time Line
+const GlobalCurrentTimeLine = () => {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
   const startHour = 8;
@@ -404,15 +415,32 @@ const CurrentTimeLine = ({ now, day, isGlobal }) => {
   // Calculate pixel offset
   const topOffset = ((currentHour - startHour) * ROW_HEIGHT) + ((currentMinute / 60) * ROW_HEIGHT);
 
-  if (isGlobal) {
-    // Add 50px to account for the day header height
-    return <div className="global-time-line" style={{ top: `${topOffset + 50}px` }} />;
-  }
+  // Add 50px to account for the day header height
+  return <div className="global-time-line" style={{ top: `${topOffset + 50}px` }} />;
+};
+
+// Self-updating Day Time Line
+const DayCurrentTimeLine = ({ day }) => {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const startHour = 8;
+  const endHour = 21; // 9 PM
+  
+  if (currentHour < startHour || currentHour >= endHour) return null;
 
   const daysArr = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const currentDayName = daysArr[now.getDay()];
   
   if (day !== currentDayName) return null;
+
+  const topOffset = ((currentHour - startHour) * ROW_HEIGHT) + ((currentMinute / 60) * ROW_HEIGHT);
 
   return (
     <div className="current-time-line" style={{ top: `${topOffset}px` }}>

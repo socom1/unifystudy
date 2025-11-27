@@ -1,0 +1,158 @@
+.sticky-wall {
+  width: 100%;
+  height: 100vh;
+  background-color: var(--bg-1); /* Match app background */
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.sticky-wall .wall-header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--glass-bg, rgba(22, 27, 34, 0.8)); /* Match panel */
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  z-index: 10;
+}
+
+.sticky-wall .wall-header h1 {
+  color: var(--color-text, #c9d1d9);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  font-family: "Fira Code", monospace;
+}
+
+.sticky-wall .wall-header button {
+  background: var(--color-primary); /* Match accent */
+  color: var(--bg-1, #0d1117); /* Dark text on bright button */
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  font-family: "Fira Code", monospace;
+}
+
+.sticky-wall .wall-header button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.sticky-wall .wall-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.sticky-wall .wall-area .empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--color-muted); /* Muted */
+  font-size: 1rem;
+  pointer-events: none;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: "Fira Code", monospace;
+}
+
+.sticky-wall .sticky-note {
+  position: absolute;
+  padding: 1.2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  cursor: grab;
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  background: var(--glass-bg, rgba(22, 27, 34, 0.8)); /* Match panel - will be overridden by inline styles */
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  transition: box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.sticky-wall .sticky-note:active {
+  cursor: grabbing;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.sticky-wall .sticky-note .note-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.sticky-wall .sticky-note .note-actions button {
+  background: rgba(0, 0, 0, 0.2);
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text, rgba(255, 255, 255, 0.7));
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.sticky-wall .sticky-note .note-actions button:hover {
+  background: rgba(255, 0, 0, 0.5);
+  color: #fff;
+}
+
+.sticky-wall .sticky-note:hover .note-actions {
+  opacity: 1;
+}
+
+.sticky-wall .sticky-note textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  resize: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--color-text, rgba(255, 255, 255, 0.9));
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.sticky-wall .sticky-note textarea:focus {
+  outline: none;
+}
+
+.sticky-wall .sticky-note textarea::placeholder {
+  color: var(--color-muted, rgba(255, 255, 255, 0.3));
+}
+
+.sticky-wall .sticky-note .resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.2) 50%);
+  border-bottom-right-radius: 12px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.sticky-wall .sticky-note .resize-handle:hover {
+  opacity: 1;
+}

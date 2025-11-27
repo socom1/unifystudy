@@ -336,6 +336,68 @@ header {
   display: none;
 }
 
+/* SELECTOR MODE */
+.selector-mode h3 {
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+}
+.selector-mode .selector-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.selector-mode .selector-inputs .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.selector-mode .selector-inputs .input-group label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.selector-mode .selector-inputs .input-group input[type=text],
+.selector-mode .selector-inputs .input-group input[type=number] {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+  font-family: "Fira Code", monospace;
+  transition: all 0.2s;
+}
+.selector-mode .selector-inputs .input-group input[type=text]:focus,
+.selector-mode .selector-inputs .input-group input[type=number]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+.selector-mode .selector-inputs .input-group input[type=text]::-moz-placeholder, .selector-mode .selector-inputs .input-group input[type=number]::-moz-placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+.selector-mode .selector-inputs .input-group input[type=text]::placeholder,
+.selector-mode .selector-inputs .input-group input[type=number]::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+.selector-mode .selector-inputs .input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.mode-toggle {
+  background: rgba(var(--color-primary-rgb, 79, 70, 229), 0.1) !important;
+  border-color: rgba(var(--color-primary-rgb, 79, 70, 229), 0.3) !important;
+  color: var(--color-primary) !important;
+  font-weight: 600 !important;
+}
+.mode-toggle:hover {
+  background: rgba(var(--color-primary-rgb, 79, 70, 229), 0.2) !important;
+}
+
 /* MOBILE */
 @media (max-width: 800px) {
   .timer__circle {
@@ -344,5 +406,8 @@ header {
   }
   .timer__time {
     font-size: 3.5rem;
+  }
+  .selector-inputs .input-row {
+    grid-template-columns: 1fr;
   }
 }/*# sourceMappingURL=pomodoro.css.map */
