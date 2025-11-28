@@ -65,10 +65,26 @@ export default function ProfilePage() {
   const [avatarColor, setAvatarColor] = useState("#1f6feb");
 
   const presetBanners = [
-    { id: "gradient-1", name: "Ocean", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
-    { id: "gradient-2", name: "Sunset", gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
-    { id: "gradient-3", name: "Forest", gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
-    { id: "gradient-4", name: "Aurora", gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
+    {
+      id: "gradient-1",
+      name: "Ocean",
+      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    },
+    {
+      id: "gradient-2",
+      name: "Sunset",
+      gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+    },
+    {
+      id: "gradient-3",
+      name: "Forest",
+      gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    },
+    {
+      id: "gradient-4",
+      name: "Aurora",
+      gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+    },
   ];
 
   // Fetch settings including anonymous mode
@@ -91,7 +107,9 @@ export default function ProfilePage() {
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue); // Optimistic update
     try {
-      await dbUpdate(dbRef(db, `users/${uid}/settings`), { notifications: newValue });
+      await dbUpdate(dbRef(db, `users/${uid}/settings`), {
+        notifications: newValue,
+      });
       setTempStatus(`Notifications ${newValue ? "enabled" : "disabled"}`);
     } catch (err) {
       console.error(err);
@@ -105,7 +123,9 @@ export default function ProfilePage() {
     const newValue = !anonymousMode;
     setAnonymousMode(newValue);
     try {
-      await dbUpdate(dbRef(db, `users/${uid}/settings`), { anonymousMode: newValue });
+      await dbUpdate(dbRef(db, `users/${uid}/settings`), {
+        anonymousMode: newValue,
+      });
       setTempStatus(`Anonymous mode ${newValue ? "enabled" : "disabled"}`);
     } catch (err) {
       console.error(err);
@@ -117,7 +137,7 @@ export default function ProfilePage() {
   // Fetch owned items and current customization
   useEffect(() => {
     if (!uid) return;
-    
+
     // Fetch owned tags
     const tagsRef = dbRef(db, `users/${uid}/unlockedTags`);
     const unsubTags = onValue(tagsRef, (snap) => {
@@ -356,7 +376,7 @@ export default function ProfilePage() {
         profileTag: selectedTag,
         profileBanner: selectedBanner,
         theme: selectedTheme,
-        avatarColor: avatarColor
+        avatarColor: avatarColor,
       });
       // Apply theme immediately
       document.body.className = `theme-${selectedTheme}`;
@@ -391,55 +411,65 @@ export default function ProfilePage() {
           transition={{ duration: 0.25 }}
         >
           {/* Full Width Banner */}
-          <div 
+          <div
             className="profile-banner"
-            style={{ 
-              background: presetBanners.find(b => b.id === selectedBanner)?.gradient || presetBanners[0].gradient,
-              height: '180px',
-              width: '100%',
-              borderRadius: '16px 16px 0 0',
-              position: 'relative',
-              zIndex: 0
+            style={{
+              background:
+                presetBanners.find((b) => b.id === selectedBanner)?.gradient ||
+                presetBanners[0].gradient,
+              height: "180px",
+              width: "100%",
+              borderRadius: "16px 16px 0 0",
+              position: "relative",
+              zIndex: 0,
             }}
           />
 
-          <div className="profile-main" style={{ marginTop: '-60px', padding: '0 2rem 2rem', position: 'relative', zIndex: 2 }}>
-            <div className="avatar-wrap" style={{ marginBottom: '1rem' }}>
+          <div
+            className="profile-main"
+            style={{
+              marginTop: "-60px",
+              padding: "0 2rem 2rem",
+              position: "relative",
+              zIndex: 2,
+            }}
+          >
+            <div className="avatar-wrap" style={{ marginBottom: "1rem" }}>
               {photoURL ? (
                 <img
                   alt="avatar"
                   src={photoURL}
                   className="profile-photo"
-                  style={{ 
-                    width: '120px', 
-                    height: '120px', 
-                    border: '4px solid var(--bg-secondary)',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    background: 'var(--bg-secondary)'
+                  style={{
+                    width: "120px",
+                    height: "120px",
+                    border: "4px solid var(--bg-secondary)",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    background: "var(--bg-secondary)",
                   }}
                 />
               ) : (
                 <div
                   className="profile-photo"
-                  style={{ 
-                    width: '120px', 
-                    height: '120px', 
-                    border: '4px solid var(--bg-secondary)',
-                    borderRadius: '50%',
+                  style={{
+                    width: "120px",
+                    height: "120px",
+                    border: "4px solid var(--bg-secondary)",
+                    borderRadius: "50%",
                     background: avatarColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '3rem',
-                    color: 'white',
-                    fontWeight: 'bold'
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "3rem",
+                    color: "white",
+                    fontWeight: "bold",
                   }}
                 >
                   {displayName ? displayName[0].toUpperCase() : "U"}
                 </div>
               )}
-              <div className="avatar-actions" style={{ marginTop: '1rem' }}>
+              <div className="avatar-actions" style={{ marginTop: "1rem" }}>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -467,9 +497,16 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="profile-fields" style={{ paddingTop: '70px' }}>
+            <div className="profile-fields">
               <label className="field-label">Display name</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  marginBottom: "1rem",
+                }}
+              >
                 <input
                   className="field-input"
                   value={displayName}
@@ -477,13 +514,16 @@ export default function ProfilePage() {
                   style={{ flex: 1, marginBottom: 0 }}
                 />
                 {selectedTag && (
-                  <span className="profile-tag-badge" style={{ 
-                    padding: '0.4rem 0.8rem', 
-                    background: 'rgba(255,255,255,0.1)', 
-                    borderRadius: '8px',
-                    fontSize: '0.9rem',
-                    border: '1px solid rgba(255,255,255,0.1)'
-                  }}>
+                  <span
+                    className="profile-tag-badge"
+                    style={{
+                      padding: "0.4rem 0.8rem",
+                      background: "rgba(255,255,255,0.1)",
+                      borderRadius: "8px",
+                      fontSize: "0.9rem",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                    }}
+                  >
                     {selectedTag}
                   </span>
                 )}
@@ -505,7 +545,10 @@ export default function ProfilePage() {
                 )) || <div className="provider-chip">email</div>}
               </div>
 
-              <div className="profile-actions" style={{ marginTop: '1rem', marginBottom: '1.5rem' }}>
+              <div
+                className="profile-actions"
+                style={{ marginTop: "1rem", marginBottom: "1.5rem" }}
+              >
                 <button
                   className="btn primary"
                   onClick={saveProfile}
@@ -540,87 +583,103 @@ export default function ProfilePage() {
 
         {/* Customize Panel (Moved to Left Column) */}
         <motion.div
-            className="panel"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.08 }}
-            style={{ marginTop: '1.5rem' }}
-          >
-            <div className="section-title">// customize</div>
-            <div className="panel-body">
+          className="panel"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.08 }}
+          style={{ marginTop: "1.5rem" }}
+        >
+          <div className="section-title">// customize</div>
+          <div className="panel-body">
+            {/* Profile Banner Selection */}
+            <div className="customize-section">
+              <h3>Profile Banner</h3>
+              <div className="banner-grid">
+                {presetBanners.map((banner) => (
+                  <motion.div
+                    layout
+                    key={banner.id}
+                    className={`banner-option ${
+                      selectedBanner === banner.id ? "selected" : ""
+                    }`}
+                    style={{ background: banner.gradient }}
+                    onClick={() => setSelectedBanner(banner.id)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {banner.name}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
 
-              {/* Profile Banner Selection */}
-              <div className="customize-section">
-                <h3>Profile Banner</h3>
-                <div className="banner-grid">
-                  {presetBanners.map(banner => (
+            {/* Profile Tag Selection */}
+            <div className="customize-section">
+              <h3>Profile Tag</h3>
+              {ownedTags.length > 0 ? (
+                <div className="tags-grid">
+                  <div
+                    className={`tag-option ${
+                      selectedTag === "" ? "selected" : ""
+                    }`}
+                    onClick={() => setSelectedTag("")}
+                  >
+                    None
+                  </div>
+                  {ownedTags.map((tag) => (
                     <motion.div
                       layout
-                      key={banner.id}
-                      className={`banner-option ${selectedBanner === banner.id ? "selected" : ""}`}
-                      style={{ background: banner.gradient }}
-                      onClick={() => setSelectedBanner(banner.id)}
+                      key={tag}
+                      className={`tag-option ${
+                        selectedTag === tag ? "selected" : ""
+                      }`}
+                      onClick={() => setSelectedTag(tag)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      {banner.name}
+                      {tag}
                     </motion.div>
                   ))}
                 </div>
-              </div>
+              ) : (
+                <p className="muted-text">
+                  No tags owned. Visit the <a href="/shop">Shop</a> to purchase
+                  tags!
+                </p>
+              )}
+            </div>
 
-              {/* Profile Tag Selection */}
-              <div className="customize-section">
-                <h3>Profile Tag</h3>
-                {ownedTags.length > 0 ? (
-                  <div className="tags-grid">
-                    <div
-                      className={`tag-option ${selectedTag === "" ? "selected" : ""}`}
-                      onClick={() => setSelectedTag("")}
-                    >
-                      None
-                    </div>
-                    {ownedTags.map(tag => (
-                      <motion.div
-                        layout
-                        key={tag}
-                        className={`tag-option ${selectedTag === tag ? "selected" : ""}`}
-                        onClick={() => setSelectedTag(tag)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {tag}
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="muted-text">
-                    No tags owned. Visit the <a href="/shop">Shop</a> to purchase tags!
-                  </p>
-                )}
-              </div>
-
-              {/* Theme Selection */}
-              <div className="customize-section">
-                <h3>App Theme</h3>
-                <div className="banner-grid">
-                  {[
-                    { id: "default", name: "Default", color: "#0c1214" },
-                    // Basic
-                    { id: "midnight", name: "Midnight", color: "#6c5ce7" },
-                    { id: "forest", name: "Forest", color: "#00b894" },
-                    { id: "ocean", name: "Ocean", color: "#0984e3" },
-                    // Premium
-                    { id: "obsidian", name: "Obsidian", color: "#000000" },
-                    { id: "nebula", name: "Nebula", color: "#0b0014" },
-                    { id: "glass", name: "Glass", color: "#1a1a2e" },
-                    { id: "sunset", name: "Sunset", color: "#14100c" },
-                  ].filter(t => ownedThemes.includes(t.id)).map(theme => (
+            {/* Theme Selection */}
+            <div className="customize-section">
+              <h3>App Theme</h3>
+              <div className="banner-grid">
+                {[
+                  { id: "default", name: "Default", color: "#0c1214" },
+                  // Basic
+                  { id: "midnight", name: "Midnight", color: "#6c5ce7" },
+                  { id: "forest", name: "Forest", color: "#00b894" },
+                  { id: "ocean", name: "Ocean", color: "#0984e3" },
+                  // Premium
+                  { id: "obsidian", name: "Obsidian", color: "#000000" },
+                  { id: "nebula", name: "Nebula", color: "#0b0014" },
+                  { id: "glass", name: "Glass", color: "#1a1a2e" },
+                  { id: "sunset", name: "Sunset", color: "#14100c" },
+                ]
+                  .filter((t) => ownedThemes.includes(t.id))
+                  .map((theme) => (
                     <motion.div
                       layout
                       key={theme.id}
-                      className={`banner-option ${selectedTheme === theme.id ? "selected" : ""}`}
-                      style={{ background: theme.color, border: selectedTheme === theme.id ? '2px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)' }}
+                      className={`banner-option ${
+                        selectedTheme === theme.id ? "selected" : ""
+                      }`}
+                      style={{
+                        background: theme.color,
+                        border:
+                          selectedTheme === theme.id
+                            ? "2px solid var(--color-primary)"
+                            : "1px solid rgba(255,255,255,0.1)",
+                      }}
                       onClick={() => setSelectedTheme(theme.id)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -628,44 +687,68 @@ export default function ProfilePage() {
                       {theme.name}
                     </motion.div>
                   ))}
-                </div>
-                {ownedThemes.length === 1 && (
-                  <p className="muted-text" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
-                    Visit the <a href="/shop" style={{ color: 'var(--color-primary)' }}>Shop</a> to unlock premium themes!
-                  </p>
-                )}
               </div>
-
-              {/* Default Avatar Customization */}
-              <div className="customize-section">
-                <h3>Default Avatar Style</h3>
-                <div className="banner-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', gap: '0.5rem' }}>
-                  {[
-                    "#1f6feb", "#238636", "#8957e5", "#da3633", "#d29922", 
-                    "#f0883e", "#db6d28", "#bd561d", "#9e4213", "#7d320f"
-                  ].map(color => (
-                    <motion.div
-                      key={color}
-                      className={`banner-option ${avatarColor === color ? "selected" : ""}`}
-                      style={{ 
-                        background: color, 
-                        height: '40px', 
-                        borderRadius: '50%',
-                        border: avatarColor === color ? '2px solid white' : 'none'
-                      }}
-                      onClick={() => setAvatarColor(color)}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <button className="btn primary" onClick={saveCustomization}>
-                Save Customization
-              </button>
+              {ownedThemes.length === 1 && (
+                <p
+                  className="muted-text"
+                  style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}
+                >
+                  Visit the{" "}
+                  <a href="/shop" style={{ color: "var(--color-primary)" }}>
+                    Shop
+                  </a>{" "}
+                  to unlock premium themes!
+                </p>
+              )}
             </div>
-          </motion.div>
+
+            {/* Default Avatar Customization */}
+            <div className="customize-section">
+              <h3>Default Avatar Style</h3>
+              <div
+                className="banner-grid"
+                style={{
+                  gridTemplateColumns: "repeat(auto-fill, minmax(40px, 1fr))",
+                  gap: "0.5rem",
+                }}
+              >
+                {[
+                  "#1f6feb",
+                  "#238636",
+                  "#8957e5",
+                  "#da3633",
+                  "#d29922",
+                  "#f0883e",
+                  "#db6d28",
+                  "#bd561d",
+                  "#9e4213",
+                  "#7d320f",
+                ].map((color) => (
+                  <motion.div
+                    key={color}
+                    className={`banner-option ${
+                      avatarColor === color ? "selected" : ""
+                    }`}
+                    style={{
+                      background: color,
+                      height: "40px",
+                      borderRadius: "50%",
+                      border:
+                        avatarColor === color ? "2px solid white" : "none",
+                    }}
+                    onClick={() => setAvatarColor(color)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <button className="btn primary" onClick={saveCustomization}>
+              Save Customization
+            </button>
+          </div>
+        </motion.div>
 
         {/* Right column: verification, security, account */}
         <div className="side-column">
@@ -763,61 +846,144 @@ export default function ProfilePage() {
             <div className="section-title">// settings</div>
             <div className="panel-body">
               {/* Notification Toggle */}
-              <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <div
+                className="settings-row"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "1.5rem",
+                }}
+              >
                 <div>
-                  <div className="setting-label" style={{ fontWeight: 600 }}>Notifications</div>
-                  <div className="setting-desc" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                  <div className="setting-label" style={{ fontWeight: 600 }}>
+                    Notifications
+                  </div>
+                  <div
+                    className="setting-desc"
+                    style={{ fontSize: "0.85rem", opacity: 0.7 }}
+                  >
                     Receive alerts for upcoming timetable events.
                   </div>
                 </div>
-                <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '40px', height: '24px' }}>
-                  <input 
-                    type="checkbox" 
+                <label
+                  className="switch"
+                  style={{
+                    position: "relative",
+                    display: "inline-block",
+                    width: "40px",
+                    height: "24px",
+                  }}
+                >
+                  <input
+                    type="checkbox"
                     checked={notificationsEnabled}
                     onChange={toggleNotifications}
                     style={{ opacity: 0, width: 0, height: 0 }}
                   />
-                  <span className="slider round" style={{
-                    position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: notificationsEnabled ? 'var(--color-primary)' : '#ccc',
-                    transition: '.4s', borderRadius: '34px'
-                  }}>
-                    <span style={{
-                      position: 'absolute', content: '""', height: '16px', width: '16px',
-                      left: '4px', bottom: '4px', backgroundColor: 'white',
-                      transition: '.4s', borderRadius: '50%',
-                      transform: notificationsEnabled ? 'translateX(16px)' : 'translateX(0)'
-                    }}/>
+                  <span
+                    className="slider round"
+                    style={{
+                      position: "absolute",
+                      cursor: "pointer",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: notificationsEnabled
+                        ? "var(--color-primary)"
+                        : "#ccc",
+                      transition: ".4s",
+                      borderRadius: "34px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        position: "absolute",
+                        content: '""',
+                        height: "16px",
+                        width: "16px",
+                        left: "4px",
+                        bottom: "4px",
+                        backgroundColor: "white",
+                        transition: ".4s",
+                        borderRadius: "50%",
+                        transform: notificationsEnabled
+                          ? "translateX(16px)"
+                          : "translateX(0)",
+                      }}
+                    />
                   </span>
                 </label>
               </div>
 
               {/* Anonymous Mode Toggle */}
-              <div className="settings-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                className="settings-row"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <div>
-                  <div className="setting-label" style={{ fontWeight: 600 }}>Anonymous Mode</div>
-                  <div className="setting-desc" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+                  <div className="setting-label" style={{ fontWeight: 600 }}>
+                    Anonymous Mode
+                  </div>
+                  <div
+                    className="setting-desc"
+                    style={{ fontSize: "0.85rem", opacity: 0.7 }}
+                  >
                     Hide your name and avatar on the leaderboard.
                   </div>
                 </div>
-                <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '40px', height: '24px' }}>
-                  <input 
-                    type="checkbox" 
+                <label
+                  className="switch"
+                  style={{
+                    position: "relative",
+                    display: "inline-block",
+                    width: "40px",
+                    height: "24px",
+                  }}
+                >
+                  <input
+                    type="checkbox"
                     checked={anonymousMode}
                     onChange={toggleAnonymousMode}
                     style={{ opacity: 0, width: 0, height: 0 }}
                   />
-                  <span className="slider round" style={{
-                    position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: anonymousMode ? 'var(--color-primary)' : '#ccc',
-                    transition: '.4s', borderRadius: '34px'
-                  }}>
-                    <span style={{
-                      position: 'absolute', content: '""', height: '16px', width: '16px',
-                      left: '4px', bottom: '4px', backgroundColor: 'white',
-                      transition: '.4s', borderRadius: '50%',
-                      transform: anonymousMode ? 'translateX(16px)' : 'translateX(0)'
-                    }}/>
+                  <span
+                    className="slider round"
+                    style={{
+                      position: "absolute",
+                      cursor: "pointer",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: anonymousMode
+                        ? "var(--color-primary)"
+                        : "#ccc",
+                      transition: ".4s",
+                      borderRadius: "34px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        position: "absolute",
+                        content: '""',
+                        height: "16px",
+                        width: "16px",
+                        left: "4px",
+                        bottom: "4px",
+                        backgroundColor: "white",
+                        transition: ".4s",
+                        borderRadius: "50%",
+                        transform: anonymousMode
+                          ? "translateX(16px)"
+                          : "translateX(0)",
+                      }}
+                    />
                   </span>
                 </label>
               </div>

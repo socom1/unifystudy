@@ -1,0 +1,183 @@
+.mind-map-container {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-1);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  position: relative;
+  overflow: auto; /* Changed from hidden to allow scrolling */
+  border-radius: 12px;
+}
+
+.mind-map-toolbar {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  z-index: 100;
+
+  button {
+    background: transparent;
+    border: none;
+    color: var(--color-text);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--bg-1);
+      color: var(--color-primary);
+    }
+  }
+
+  .divider {
+    width: 1px;
+    height: 20px;
+    background: var(--glass-border);
+  }
+
+  .scale-label {
+    font-size: 12px;
+    color: var(--color-muted);
+    min-width: 40px;
+    text-align: center;
+  }
+}
+
+.mind-map-canvas {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-origin: center center;
+  transition: transform 0.1s ease-out;
+}
+
+.connections-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mind-map-node {
+  position: absolute;
+  background: var(--bg-2);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  padding: 12px 20px;
+  min-width: 120px;
+  text-align: center;
+  cursor: grab;
+  box-shadow: var(--glow);
+  user-select: none;
+  color: var(--color-text);
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &.root {
+    background: var(--color-primary);
+    border-color: var(--color-secondary);
+    color: white;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 16px 30px;
+  }
+
+  .node-content {
+    input {
+      background: transparent;
+      border: none;
+      color: inherit;
+      text-align: center;
+      width: 100%;
+      outline: none;
+      font-family: inherit;
+      font-size: inherit;
+    }
+  }
+
+  .delete-node-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-danger);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &:hover .delete-node-btn {
+    opacity: 1;
+  }
+
+  &.target-potential {
+    box-shadow: 0 0 0 2px var(--color-primary);
+    
+    .connector-point.left {
+      background: var(--color-primary);
+      transform: scale(1.5);
+      
+      &.highlight {
+        box-shadow: var(--glow);
+      }
+    }
+  }
+
+  .connector-point {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border: 2px solid var(--color-primary);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.6;
+    transition: all 0.2s;
+    cursor: crosshair;
+    z-index: 10;
+
+    &:hover {
+      opacity: 1;
+      transform: translateY(-50%) scale(1.2);
+    }
+
+    &.right { right: -6px; }
+    &.left { left: -6px; }
+  }
+}
+
+.mind-map-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--color-muted);
+  font-size: 12px;
+  pointer-events: none;
+}

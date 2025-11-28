@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "firebase": "^12.6.0",
-    "framer-motion": "^12.23.24"
+    "framer-motion": "^12.23.24",
+    "git": "^0.1.5"
   }
 }

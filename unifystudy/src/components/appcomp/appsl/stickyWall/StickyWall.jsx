@@ -88,7 +88,36 @@ export default function StickyWall() {
 
 function StickyNote({ note, containerRef, onUpdate, onDelete }) {
   const [size, setSize] = useState({ width: 240, height: 240 });
+  const [isEditing, setIsEditing] = useState(false);
   const dragControls = useDragControls();
+
+  // Parse text for [[links]]
+  const renderText = (text) => {
+    if (!text) return "Double click to edit...";
+    
+    // Regex to find [[link]]
+    const parts = text.split(/(\[\[.*?\]\])/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('[[') && part.endsWith(']]')) {
+        const linkContent = part.slice(2, -2);
+        return (
+          <span 
+            key={index} 
+            className="wiki-link"
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log(`Navigating to: ${linkContent}`);
+              // Future: Implement actual navigation/search
+            }}
+          >
+            {linkContent}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
 
   return (
     <motion.div
@@ -116,6 +145,10 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
         });
       }}
       style={{ backgroundColor: "rgba(30, 30, 40, 0.6)" }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        setIsEditing(true);
+      }}
     >
       <div 
         className="note-header" 
@@ -125,13 +158,25 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
       <div className="note-actions">
         <button onClick={() => onDelete(note.id)}>×</button>
       </div>
-      <textarea
-        value={note.text}
-        placeholder="Type here..."
-        onChange={(e) => onUpdate(note.id, { text: e.target.value })}
-        onPointerDown={(e) => e.stopPropagation()}
-        style={{ marginTop: '20px' }} 
-      />
+      
+      <div className="note-content" style={{ marginTop: '20px', height: 'calc(100% - 30px)', overflow: 'auto' }}>
+        {isEditing ? (
+          <textarea
+            autoFocus
+            value={note.text}
+            placeholder="Type here... Use [[Link]] to link notes."
+            onChange={(e) => onUpdate(note.id, { text: e.target.value })}
+            onBlur={() => setIsEditing(false)}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', color: 'inherit', resize: 'none', outline: 'none' }} 
+          />
+        ) : (
+          <div className="note-view">
+            {renderText(note.text)}
+          </div>
+        )}
+      </div>
+
       <div 
         className="resize-handle"
         onPointerDown={(e) => {

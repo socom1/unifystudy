@@ -91,7 +91,6 @@ export default function GlobalPlayer() {
 
   return (
     <div className="global-player" ref={containerRef}>
-    <div className="global-player" ref={containerRef}>
       <motion.div
         key="player-content"
         className="player-content"
@@ -154,7 +153,7 @@ export default function GlobalPlayer() {
                 id="youtube-player-iframe"
                 width="100%"
                 height="200"
-                src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1`}
+                src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&origin=${window.location.origin}`}
                 title="YouTube video player"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -194,7 +193,6 @@ export default function GlobalPlayer() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
     </div>
   );
 }

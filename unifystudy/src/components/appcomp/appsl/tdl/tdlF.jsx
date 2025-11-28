@@ -6,7 +6,14 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "../firebase";
-import { ref as databaseRef, push, set, remove, onValue, update } from "firebase/database";
+import {
+  ref as databaseRef,
+  push,
+  set,
+  remove,
+  onValue,
+  update,
+} from "firebase/database";
 import "./tdlF.scss";
 
 // Add this style block or ensure it's in tdlF.scss
@@ -303,7 +310,7 @@ export default function TdlF() {
       setRootFolders(map["__root"] || []);
       if (currentFolderId && !arr.find((f) => f.id === currentFolderId)) {
         // Don't reset if we are in a global view
-        if (activeView === 'folder') setCurrentFolderId(null);
+        if (activeView === "folder") setCurrentFolderId(null);
       }
     });
     return () => unsub();
@@ -311,8 +318,8 @@ export default function TdlF() {
 
   /* --- tasks load for folder --- */
   useEffect(() => {
-    if (!userId || !currentFolderId || activeView !== 'folder') {
-      if (activeView === 'folder') setTasks([]);
+    if (!userId || !currentFolderId || activeView !== "folder") {
+      if (activeView === "folder") setTasks([]);
       return;
     }
     const tasksRef = databaseRef(
@@ -337,30 +344,29 @@ export default function TdlF() {
   // Requesting permission must be done via user gesture (e.g. button click).
   useEffect(() => {
     if (!("Notification" in window)) return;
-    
+
     const checkDueTasks = () => {
-        if (Notification.permission !== "granted") return;
-        const now = new Date();
-        const todayStr = now.toLocaleDateString('en-CA');
-        
-        // Check all tasks in all folders
-        foldersFlat.forEach(folder => {
-            if (!folder.tasks) return;
-            Object.values(folder.tasks).forEach(task => {
-                if (task.dueDate === todayStr && !task.isActive && !task.notified) {
-                    new Notification(`Task Due Today: ${task.text}`, {
-                        body: `In folder: ${folder.text}`,
-                    });
-                }
+      if (Notification.permission !== "granted") return;
+      const now = new Date();
+      const todayStr = now.toLocaleDateString("en-CA");
+
+      // Check all tasks in all folders
+      foldersFlat.forEach((folder) => {
+        if (!folder.tasks) return;
+        Object.values(folder.tasks).forEach((task) => {
+          if (task.dueDate === todayStr && !task.isActive && !task.notified) {
+            new Notification(`Task Due Today: ${task.text}`, {
+              body: `In folder: ${folder.text}`,
             });
+          }
         });
+      });
     };
 
     const interval = setInterval(checkDueTasks, 60000 * 60); // Check every hour
     checkDueTasks(); // Check on load
     return () => clearInterval(interval);
   }, [foldersFlat]);
-
 
   /* --- helpers for tasks --- */
   const requestNotificationPermission = () => {
@@ -373,7 +379,9 @@ export default function TdlF() {
         new Notification("Notifications enabled!");
         alert("Notifications enabled successfully! ✅");
       } else {
-        alert("Permission denied. Please enable notifications in your browser settings.");
+        alert(
+          "Permission denied. Please enable notifications in your browser settings."
+        );
       }
     });
   };
@@ -381,7 +389,10 @@ export default function TdlF() {
   const safePushTask = useCallback(
     async (folderId, taskObj) => {
       if (!userId || !folderId) return null;
-      const tasksRef = databaseRef(db, `users/${userId}/folders/${folderId}/tasks`);
+      const tasksRef = databaseRef(
+        db,
+        `users/${userId}/folders/${folderId}/tasks`
+      );
       const newRef = push(tasksRef);
       await set(newRef, taskObj);
       return newRef.key;
@@ -487,35 +498,40 @@ export default function TdlF() {
 
   const setFolderColor = async (folderId, color) => {
     if (!userId) return;
-    await update(databaseRef(db, `users/${userId}/folders/${folderId}`), { color });
+    await update(databaseRef(db, `users/${userId}/folders/${folderId}`), {
+      color,
+    });
   };
 
   const setFolderNotes = async (folderId, notes) => {
     if (!userId) return;
-    await update(databaseRef(db, `users/${userId}/folders/${folderId}`), { notes });
+    await update(databaseRef(db, `users/${userId}/folders/${folderId}`), {
+      notes,
+    });
   };
 
   /* --- tasks ops --- */
   const addTask = async (e) => {
     e?.preventDefault();
     if (!userId || !taskInput.trim()) return;
-    
+
     // Determine target folder
     let targetFolderId = currentFolderId;
-    if (activeView !== 'folder') {
-        targetFolderId = foldersFlat[0]?.id;
-        if (!targetFolderId) {
-            alert("Please create a list first.");
-            return;
-        }
-    } else if (!targetFolderId) {
-        alert("Please select a list to add tasks to.");
+    if (activeView !== "folder") {
+      targetFolderId = foldersFlat[0]?.id;
+      if (!targetFolderId) {
+        alert("Please create a list first.");
         return;
+      }
+    } else if (!targetFolderId) {
+      alert("Please select a list to add tasks to.");
+      return;
     }
 
     const folderColor =
-      foldersFlat.find((f) => f.id === targetFolderId)?.color || "var(--color-primary)";
-    
+      foldersFlat.find((f) => f.id === targetFolderId)?.color ||
+      "var(--color-primary)";
+
     const taskObj = {
       text: taskInput.trim(),
       isActive: false,
@@ -523,7 +539,8 @@ export default function TdlF() {
       description: "",
       color: folderColor,
       tags: [],
-      dueDate: activeView === 'today' ? new Date().toLocaleDateString('en-CA') : "",
+      dueDate:
+        activeView === "today" ? new Date().toLocaleDateString("en-CA") : "",
     };
     await safePushTask(targetFolderId, taskObj);
     setTaskInput("");
@@ -533,8 +550,8 @@ export default function TdlF() {
     if (!userId) return;
     let fid = currentFolderId;
     if (!fid) {
-        const found = foldersFlat.find(f => f.tasks && f.tasks[taskId]);
-        if (found) fid = found.id;
+      const found = foldersFlat.find((f) => f.tasks && f.tasks[taskId]);
+      if (found) fid = found.id;
     }
     if (!fid) return;
 
@@ -546,16 +563,18 @@ export default function TdlF() {
 
   const toggleTask = async (taskId, currentState, folderId = null) => {
     if (!userId) return;
-    if (activeView === 'folder') {
-        setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, isActive: !currentState } : t))
-        );
+    if (activeView === "folder") {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskId ? { ...t, isActive: !currentState } : t
+        )
+      );
     }
-    
+
     let fid = folderId || currentFolderId;
     if (!fid) {
-        const found = foldersFlat.find(f => f.tasks && f.tasks[taskId]);
-        if (found) fid = found.id;
+      const found = foldersFlat.find((f) => f.tasks && f.tasks[taskId]);
+      if (found) fid = found.id;
     }
     if (!fid) return;
 
@@ -568,18 +587,18 @@ export default function TdlF() {
   const deleteTask = async (taskId, e) => {
     e?.stopPropagation();
     if (!userId) return;
-    
+
     let fid = currentFolderId;
     let taskData = null;
-    
+
     if (!fid) {
-         const found = foldersFlat.find(f => f.tasks && f.tasks[taskId]);
-         if (found) {
-             fid = found.id;
-             taskData = found.tasks[taskId];
-         }
+      const found = foldersFlat.find((f) => f.tasks && f.tasks[taskId]);
+      if (found) {
+        fid = found.id;
+        taskData = found.tasks[taskId];
+      }
     } else {
-        taskData = tasks.find(t => t.id === taskId);
+      taskData = tasks.find((t) => t.id === taskId);
     }
 
     if (!fid) return;
@@ -591,11 +610,11 @@ export default function TdlF() {
       data: taskData,
       timestamp: Date.now(),
     });
-    
-    if (activeView === 'folder') {
-        setTasks((prev) => prev.filter((t) => t.id !== taskId));
+
+    if (activeView === "folder") {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
     }
-    
+
     await remove(
       databaseRef(db, `users/${userId}/folders/${fid}/tasks/${taskId}`)
     );
@@ -626,33 +645,34 @@ export default function TdlF() {
   const addTagToTask = async (taskId, label) => {
     // ... (implementation depends on finding task, simplified for now)
   };
-  
+
   const quickAddTagFromRow = async (taskId) => {
-     const input = window.prompt("Add tag (label):");
-     if (!input) return;
-     
-     let task = tasks.find(t => t.id === taskId);
-     if (!task) {
-         for (const f of foldersFlat) {
-             if (f.tasks && f.tasks[taskId]) {
-                 task = {id: taskId, ...f.tasks[taskId]};
-                 break;
-             }
-         }
-     }
-     if (!task) return;
-     
-     const newTag = { label: input.trim(), color: randomTagColor() };
-     const newTags = [...(task.tags || []), newTag];
-     await updateTask(taskId, { tags: newTags });
+    const input = window.prompt("Add tag (label):");
+    if (!input) return;
+
+    let task = tasks.find((t) => t.id === taskId);
+    if (!task) {
+      for (const f of foldersFlat) {
+        if (f.tasks && f.tasks[taskId]) {
+          task = { id: taskId, ...f.tasks[taskId] };
+          break;
+        }
+      }
+    }
+    if (!task) return;
+
+    const newTag = { label: input.trim(), color: randomTagColor() };
+    const newTags = [...(task.tags || []), newTag];
+    await updateTask(taskId, { tags: newTags });
   };
 
   /* --- task drag helpers --- (same as before) */
   const onDragStart = (e, idx) => {
-    if (activeView !== 'folder') return;
+    if (activeView !== "folder") return;
     dragState.current.draggingIndex = idx;
     const folderColor =
-      foldersFlat.find((f) => f.id === currentFolderId)?.color || "var(--color-primary)";
+      foldersFlat.find((f) => f.id === currentFolderId)?.color ||
+      "var(--color-primary)";
     const title = (tasks[idx]?.text || "Task").replace(/</g, "&lt;");
     // createGhost(title, folderColor); // Ghost creation omitted for brevity if not used
     try {
@@ -668,36 +688,36 @@ export default function TdlF() {
 
   const onDrop = (e, dropIndex) => {
     e.preventDefault();
-    if (activeView !== 'folder') return;
+    if (activeView !== "folder") return;
     const dragIndex = dragState.current.draggingIndex;
     if (dragIndex === null || dragIndex === dropIndex) return;
 
     const newTasks = [...tasks];
     const [moved] = newTasks.splice(dragIndex, 1);
     newTasks.splice(dropIndex, 0, moved);
-    
+
     setTasks(newTasks);
-    
-    const orderedIds = newTasks.map(t => t.id);
+
+    const orderedIds = newTasks.map((t) => t.id);
     persistTaskOrder(currentFolderId, orderedIds);
-    
+
     dragState.current.draggingIndex = null;
   };
 
   /* --- filters & visible tasks --- */
   const visibleTasks = React.useMemo(() => {
     let sourceTasks = [];
-    
-    if (activeView === 'folder') {
-        sourceTasks = tasks;
+
+    if (activeView === "folder") {
+      sourceTasks = tasks;
     } else {
-        foldersFlat.forEach(f => {
-            if (f.tasks) {
-                Object.entries(f.tasks).forEach(([tid, t]) => {
-                    sourceTasks.push({id: tid, ...t, folderId: f.id});
-                });
-            }
-        });
+      foldersFlat.forEach((f) => {
+        if (f.tasks) {
+          Object.entries(f.tasks).forEach(([tid, t]) => {
+            sourceTasks.push({ id: tid, ...t, folderId: f.id });
+          });
+        }
+      });
     }
 
     let filtered = sourceTasks.filter((t) =>
@@ -705,32 +725,34 @@ export default function TdlF() {
     );
 
     if (tagFilter) {
-        filtered = filtered.filter((t) => (t.tags || []).some((tg) => tg.label === tagFilter));
+      filtered = filtered.filter((t) =>
+        (t.tags || []).some((tg) => tg.label === tagFilter)
+      );
     }
 
     const now = new Date();
     // Get local date string YYYY-MM-DD
-    const todayStr = now.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD format
-    
-    if (activeView === 'today') {
-        filtered = filtered.filter(t => t.dueDate === todayStr);
-    } else if (activeView === 'upcoming') {
-        filtered = filtered.filter(t => t.dueDate && t.dueDate > todayStr);
+    const todayStr = now.toLocaleDateString("en-CA"); // en-CA gives YYYY-MM-DD format
+
+    if (activeView === "today") {
+      filtered = filtered.filter((t) => t.dueDate === todayStr);
+    } else if (activeView === "upcoming") {
+      filtered = filtered.filter((t) => t.dueDate && t.dueDate > todayStr);
     }
 
     return filtered;
   }, [tasks, foldersFlat, activeView, searchQuery, tagFilter]);
 
   const availableTags = React.useMemo(() => {
-      const all = new Set();
-      foldersFlat.forEach(f => {
-          if (f.tasks) {
-              Object.values(f.tasks).forEach(t => {
-                  if (t.tags) t.tags.forEach(tg => all.add(tg.label));
-              });
-          }
-      });
-      return Array.from(all);
+    const all = new Set();
+    foldersFlat.forEach((f) => {
+      if (f.tasks) {
+        Object.values(f.tasks).forEach((t) => {
+          if (t.tags) t.tags.forEach((tg) => all.add(tg.label));
+        });
+      }
+    });
+    return Array.from(all);
   }, [foldersFlat]);
 
   const total = tasks.length;
@@ -741,12 +763,12 @@ export default function TdlF() {
   function TaskDetail({ taskId, onClose }) {
     let task = tasks.find((t) => t.id === taskId);
     if (!task) {
-         for (const f of foldersFlat) {
-             if (f.tasks && f.tasks[taskId]) {
-                 task = {id: taskId, ...f.tasks[taskId]};
-                 break;
-             }
-         }
+      for (const f of foldersFlat) {
+        if (f.tasks && f.tasks[taskId]) {
+          task = { id: taskId, ...f.tasks[taskId] };
+          break;
+        }
+      }
     }
 
     const [title, setTitle] = useState(task?.text || "");
@@ -806,7 +828,9 @@ export default function TdlF() {
       >
         <div className="detail-header">
           <h3>Task</h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div className="detail-body">
@@ -814,13 +838,17 @@ export default function TdlF() {
           <input value={title} onChange={(e) => setTitle(e.target.value)} />
 
           <label>Description</label>
-          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Add details..." />
-          
+          <textarea
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            placeholder="Add details..."
+          />
+
           <label>Due Date</label>
-          <input 
-            type="date" 
-            value={dueDate} 
-            onChange={(e) => setDueDate(e.target.value)} 
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
           />
 
           <label>Color</label>
@@ -828,11 +856,24 @@ export default function TdlF() {
             type="color"
             value={color}
             onChange={(e) => setColor(e.target.value)}
-            style={{height: '40px', padding: '0 4px'}}
+            style={{ height: "40px", padding: "0 4px" }}
           />
 
-          <label className="checkboxRow" style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
-            <input type="checkbox" checked={isActiveState} onChange={toggle} style={{width: 'auto'}} />{" "}
+          <label
+            className="checkboxRow"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={isActiveState}
+              onChange={toggle}
+              style={{ width: "auto" }}
+            />{" "}
             Completed
           </label>
 
@@ -871,16 +912,18 @@ export default function TdlF() {
         </div>
 
         <div className="detail-footer">
-            <button className="primary" onClick={save}>Save Changes</button>
-            <button 
-                className="danger" 
-                onClick={(e) => {
-                    deleteTask(taskId, e);
-                    onClose();
-                }}
-            >
-                Delete Task
-            </button>
+          <button className="primary" onClick={save}>
+            Save Changes
+          </button>
+          <button
+            className="danger"
+            onClick={(e) => {
+              deleteTask(taskId, e);
+              onClose();
+            }}
+          >
+            Delete Task
+          </button>
         </div>
       </motion.div>
     );
@@ -913,10 +956,15 @@ export default function TdlF() {
       >
         <div className="detail-header">
           <h3>Folder</h3>
-          <button className="close-btn" onClick={() => {
-                if (onClose) onClose();
-                if (isMobile) setShowFolderDetailMobile(false);
-              }}>×</button>
+          <button
+            className="close-btn"
+            onClick={() => {
+              if (onClose) onClose();
+              if (isMobile) setShowFolderDetailMobile(false);
+            }}
+          >
+            ×
+          </button>
         </div>
 
         <div className="detail-body">
@@ -937,7 +985,7 @@ export default function TdlF() {
             value={color}
             onChange={(e) => setColor(e.target.value)}
             onBlur={() => saveColor(color)}
-            style={{height: '40px', padding: '0 4px'}}
+            style={{ height: "40px", padding: "0 4px" }}
           />
 
           <label>Notes</label>
@@ -950,16 +998,18 @@ export default function TdlF() {
         </div>
 
         <div className="detail-footer">
-            <button className="primary" onClick={saveNotes}>Save Changes</button>
-            <button
-              className="danger"
-              onClick={(e) => {
-                deleteFolder(folder.id, e);
-                if (onClose) onClose();
-              }}
-            >
-              Delete Folder
-            </button>
+          <button className="primary" onClick={saveNotes}>
+            Save Changes
+          </button>
+          <button
+            className="danger"
+            onClick={(e) => {
+              deleteFolder(folder.id, e);
+              if (onClose) onClose();
+            }}
+          >
+            Delete Folder
+          </button>
         </div>
       </motion.div>
     );
@@ -1051,7 +1101,9 @@ export default function TdlF() {
             <div className="section-title">TASKS</div>
             <ul>
               <li
-                className={`nav-item ${activeView === "upcoming" ? "active" : ""}`}
+                className={`nav-item ${
+                  activeView === "upcoming" ? "active" : ""
+                }`}
                 onClick={() => {
                   setActiveView("upcoming");
                   setCurrentFolderId(null);
@@ -1069,7 +1121,9 @@ export default function TdlF() {
                 <span className="icon">📅</span> Today
               </li>
               <li
-                className={`nav-item ${activeView === "calendar" ? "active" : ""}`}
+                className={`nav-item ${
+                  activeView === "calendar" ? "active" : ""
+                }`}
                 onClick={() => {
                   setActiveView("calendar");
                   setCurrentFolderId(null);
@@ -1120,31 +1174,31 @@ export default function TdlF() {
             >
               + Add New List
             </button>
-            
+
             {!creatingUnder && newFolderInput !== "" && (
-               <div className="subfolderInline" style={{marginTop: 8}}>
-               <input
-                 value={newFolderInput}
-                 onChange={(e) => setNewFolderInput(e.target.value)}
-                 placeholder="New List Name..."
-                 onKeyDown={(e) => {
+              <div className="subfolderInline" style={{ marginTop: 8 }}>
+                <input
+                  value={newFolderInput}
+                  onChange={(e) => setNewFolderInput(e.target.value)}
+                  placeholder="New List Name..."
+                  onKeyDown={(e) => {
                     if (e.key === "Enter") createFolderUnder(null);
-                 }}
-                 autoFocus
-               />
-               <button onClick={() => createFolderUnder(null)}>Add</button>
-             </div>
+                  }}
+                  autoFocus
+                />
+                <button onClick={() => createFolderUnder(null)}>Add</button>
+              </div>
             )}
           </div>
 
           <div className="sidebar-section">
             <div className="section-title">TAGS</div>
-            <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {availableTags.map((tg) => (
                 <button
                   key={tg}
                   className={`nav-item ${tagFilter === tg ? "active" : ""}`}
-                  style={{padding: '4px 8px', fontSize: '0.8rem'}}
+                  style={{ padding: "4px 8px", fontSize: "0.8rem" }}
                   onClick={() => setTagFilter((p) => (p === tg ? null : tg))}
                 >
                   {tg}
@@ -1155,25 +1209,38 @@ export default function TdlF() {
         </div>
 
         <div className="sidebar-footer">
-          <button onClick={requestNotificationPermission}>🔔 Enable Notifications</button>
-          <button onClick={() => auth.signOut()}>↪ Sign out</button>
+          {/* <button onClick={requestNotificationPermission}>🔔 Enable Notifications</button> */}
+          {/* <button onClick={() => auth.signOut()}>↪ Sign out</button> */}
         </div>
       </aside>
 
       {/* CENTER: Main Content */}
       <main className="main-content">
         <header>
-          <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {isMobile && !sidebarOpen && (
-                <button onClick={() => setSidebarOpen(true)} style={{background:'none', border:'none', color:'#fff', fontSize: 20}}>☰</button>
+              <button
+                onClick={() => setSidebarOpen(true)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#fff",
+                  fontSize: 20,
+                }}
+              >
+                ☰
+              </button>
             )}
             <h1>
               {activeView === "folder"
-                ? foldersFlat.find((f) => f.id === currentFolderId)?.text || "Select a List"
+                ? foldersFlat.find((f) => f.id === currentFolderId)?.text ||
+                  "Select a List"
                 : activeView.charAt(0).toUpperCase() + activeView.slice(1)}
             </h1>
           </div>
-          <div style={{color: 'var(--color-muted)'}}>{visibleTasks.length} tasks</div>
+          <div style={{ color: "var(--color-muted)" }}>
+            {visibleTasks.length} tasks
+          </div>
         </header>
 
         <div className="tasks-area">
@@ -1210,21 +1277,29 @@ export default function TdlF() {
                   >
                     {t.isActive && "✓"}
                   </div>
-                  
+
                   <div className="task-content">
-                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
-                        <span className="task-text">{t.text}</span>
-                        {t.tags && t.tags.map(tg => (
-                            <span 
-                                key={tg.label} 
-                                className="meta-tag glowing-tag" 
-                                style={{
-                                    backgroundColor: tg.color,
-                                    boxShadow: `0 0 8px ${tg.color}, 0 0 4px ${tg.color}`
-                                }}
-                            >
-                                {tg.label}
-                            </span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <span className="task-text">{t.text}</span>
+                      {t.tags &&
+                        t.tags.map((tg) => (
+                          <span
+                            key={tg.label}
+                            className="meta-tag glowing-tag"
+                            style={{
+                              backgroundColor: tg.color,
+                              boxShadow: `0 0 8px ${tg.color}, 0 0 4px ${tg.color}`,
+                            }}
+                          >
+                            {tg.label}
+                          </span>
                         ))}
                     </div>
                     <div className="task-meta">
@@ -1261,7 +1336,10 @@ export default function TdlF() {
                 onClose={() => setSelectedFolderId(null)}
               />
             ) : (
-              <div className="muted" style={{textAlign: 'center', marginTop: '50%'}}>
+              <div
+                className="muted"
+                style={{ textAlign: "center", marginTop: "50%" }}
+              >
                 Select a task to view details
               </div>
             )}

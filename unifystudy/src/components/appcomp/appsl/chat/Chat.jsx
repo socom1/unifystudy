@@ -179,17 +179,7 @@ const Chat = () => { // Changed to functional component declaration
           loadedMessages.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
           
           // Check for new messages and increment unread for other participants
-          if (user && loadedMessages.length > 0) {
-            const lastMsg = loadedMessages[loadedMessages.length - 1];
-            // Only increment if message is from someone else and user is not currently viewing
-            if (lastMsg.uid !== user.uid && location.pathname !== '/chat') {
-              const unreadRef = ref(db, `users/${user.uid}/unreadMessages`);
-              get(unreadRef).then((snap) => {
-                const current = snap.val() || 0;
-                set(unreadRef, current + 1).catch(err => console.error("Failed to increment unread:", err));
-              });
-            }
-          }
+          // REMOVED: Logic moved to Sidebar.jsx for background notifications
           
           setMessages(loadedMessages);
         } else {

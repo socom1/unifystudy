@@ -4,9 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "../firebase";
 import { ref, onValue, push, set, remove } from "firebase/database";
 import { Plus, Bell, BellOff, X, Trash2, Save } from "lucide-react";
+import CalendarSync from '../calendar/CalendarSync';
 import "./mt.css";
 
-const colors = ["var(--color-primary)", "var(--color-secondary)", "#e79950", "#e94f4f"];
+const colors = [
+  "var(--color-primary)",
+  "var(--color-secondary)",
+  "#e79950",
+  "#e94f4f",
+];
 const days = [
   "Monday",
   "Tuesday",
@@ -33,7 +39,7 @@ export default function WeeklyCalendar() {
   });
   const [userId, setUserId] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
-  
+
   // Track logged-in user
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -67,8 +73,8 @@ export default function WeeklyCalendar() {
   // Memoize events grouped by day to avoid re-filtering on every render
   const eventsByDay = useMemo(() => {
     const grouped = {};
-    days.forEach(day => grouped[day] = []);
-    events.forEach(ev => {
+    days.forEach((day) => (grouped[day] = []));
+    events.forEach((ev) => {
       if (grouped[ev.day]) {
         grouped[ev.day].push(ev);
       }
@@ -141,29 +147,37 @@ export default function WeeklyCalendar() {
   return (
     <div className="calendar-container">
       <NotificationManager events={events} userId={userId} />
-      
+
       <div className="calendar-nav">
         <h2>Weekly Timetable</h2>
-        <div style={{display: 'flex', gap: '1rem'}}>
-            {("Notification" in window && Notification.permission !== "granted") && (
-                <button onClick={() => {
-                    Notification.requestPermission().then(() => {
-                        window.location.reload();
-                    });
-                }} title="Enable Notifications">
-                    <BellOff size={20} />
-                </button>
+        <div style={{ display: "flex", gap: "1rem" }}>
+          {"Notification" in window &&
+            Notification.permission !== "granted" && (
+              <button
+                onClick={() => {
+                  Notification.requestPermission().then(() => {
+                    window.location.reload();
+                  });
+                }}
+                title="Enable Notifications"
+              >
+                <BellOff size={20} />
+              </button>
             )}
-            <button onClick={() => setIsFormOpen(true)} title="Add Event">
-                <Plus size={20} /> Add Event
-            </button>
+          <div className="header-actions">
+          <CalendarSync onSync={(provider) => console.log(`Synced with ${provider}`)} />
+          <button className="add-btn" onClick={() => setIsFormOpen(true)}>
+            <Plus size={20} />
+            Add Event
+          </button>
+        </div>
         </div>
       </div>
 
       <AnimatePresence>
         {isFormOpen && (
           <>
-            <motion.div 
+            <motion.div
               className="modal-backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -187,16 +201,30 @@ export default function WeeklyCalendar() {
                   <input
                     type="text"
                     value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
                     required
                     placeholder="e.g. Math Class"
                   />
                 </div>
                 <div className="desc">
-                  <label>Description <span style={{ color: "var(--color-secondary)", fontSize: "0.8em" }}>(optional)</span></label>
+                  <label>
+                    Description{" "}
+                    <span
+                      style={{
+                        color: "var(--color-secondary)",
+                        fontSize: "0.8em",
+                      }}
+                    >
+                      (optional)
+                    </span>
+                  </label>
                   <textarea
                     value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
                     placeholder="Add details..."
                   />
                 </div>
@@ -205,24 +233,51 @@ export default function WeeklyCalendar() {
                 <div className="form-group sel">
                   <div className="day">
                     <label>Day</label>
-                    <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })}>
-                      {days.map((d) => <option key={d} value={d}>{d}</option>)}
+                    <select
+                      value={form.day}
+                      onChange={(e) =>
+                        setForm({ ...form, day: e.target.value })
+                      }
+                    >
+                      {days.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="st">
                     <label>Start</label>
-                    <select value={form.start} onChange={(e) => setForm({ ...form, start: parseInt(e.target.value) })}>
-                      {hours.map((h) => <option key={h} value={h}>{h}:00</option>)}
+                    <select
+                      value={form.start}
+                      onChange={(e) =>
+                        setForm({ ...form, start: parseInt(e.target.value) })
+                      }
+                    >
+                      {hours.map((h) => (
+                        <option key={h} value={h}>
+                          {h}:00
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="end">
                     <label>End</label>
-                    <select value={form.end} onChange={(e) => setForm({ ...form, end: parseInt(e.target.value) })}>
-                      {hours.map((h) => <option key={h} value={h}>{h}:00</option>)}
+                    <select
+                      value={form.end}
+                      onChange={(e) =>
+                        setForm({ ...form, end: parseInt(e.target.value) })
+                      }
+                    >
+                      {hours.map((h) => (
+                        <option key={h} value={h}>
+                          {h}:00
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -232,9 +287,11 @@ export default function WeeklyCalendar() {
                   <label>Color</label>
                   <div className="color-picker">
                     {colors.map((c) => (
-                      <div 
-                        key={c} 
-                        className={`color-option ${form.color === c ? 'selected' : ''}`}
+                      <div
+                        key={c}
+                        className={`color-option ${
+                          form.color === c ? "selected" : ""
+                        }`}
                         style={{ backgroundColor: c }}
                         onClick={() => setForm({ ...form, color: c })}
                       />
@@ -243,14 +300,27 @@ export default function WeeklyCalendar() {
                 </div>
               </div>
               <div className="form-buttons">
-                <button type="button" className="cancel-btn" onClick={() => setIsFormOpen(false)}>
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setIsFormOpen(false)}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="save-btn">
-                  <Save size={18} /> {editingEventId ? "Save Changes" : "Add Event"}
+                  <Save size={18} />{" "}
+                  {editingEventId ? "Save Changes" : "Add Event"}
                 </button>
                 {editingEventId && (
-                  <button type="button" className="delete-btn" onClick={(e) => { e.stopPropagation(); deleteEvent(editingEventId); }} title="Delete Event">
+                  <button
+                    type="button"
+                    className="delete-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteEvent(editingEventId);
+                    }}
+                    title="Delete Event"
+                  >
                     <Trash2 size={18} />
                   </button>
                 )}
@@ -265,8 +335,12 @@ export default function WeeklyCalendar() {
           {/* Time Sidebar */}
           <div className="time-sidebar">
             <div className="time-header-spacer"></div>
-            {hours.map(hour => (
-              <div key={hour} className="time-label" style={{ height: ROW_HEIGHT }}>
+            {hours.map((hour) => (
+              <div
+                key={hour}
+                className="time-label"
+                style={{ height: ROW_HEIGHT }}
+              >
                 <span>{hour}:00</span>
               </div>
             ))}
@@ -274,8 +348,8 @@ export default function WeeklyCalendar() {
 
           {/* Days Columns */}
           <div className="days-grid">
-            {days.map(day => (
-              <DayColumn 
+            {days.map((day) => (
+              <DayColumn
                 key={day}
                 day={day}
                 events={eventsByDay[day]}
@@ -303,13 +377,13 @@ const NotificationManager = ({ events, userId }) => {
   }, []);
 
   useEffect(() => {
-      if (!userId) return;
-      const settingsRef = ref(db, `users/${userId}/settings/notifications`);
-      const unsub = onValue(settingsRef, (snapshot) => {
-          const val = snapshot.val();
-          setNotificationsEnabled(val !== false);
-      });
-      return () => unsub();
+    if (!userId) return;
+    const settingsRef = ref(db, `users/${userId}/settings/notifications`);
+    const unsub = onValue(settingsRef, (snapshot) => {
+      const val = snapshot.val();
+      setNotificationsEnabled(val !== false);
+    });
+    return () => unsub();
   }, [userId]);
 
   useEffect(() => {
@@ -318,11 +392,19 @@ const NotificationManager = ({ events, userId }) => {
       if (Notification.permission !== "granted") return;
       if (notificationsEnabled === false) return;
 
-      const currentDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][now.getDay()];
+      const currentDay = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ][now.getDay()];
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
 
-      events.forEach(evt => {
+      events.forEach((evt) => {
         if (evt.day === currentDay) {
           const evtHour = evt.start;
           const eventTimeInMinutes = evtHour * 60;
@@ -330,13 +412,13 @@ const NotificationManager = ({ events, userId }) => {
           const diff = eventTimeInMinutes - currentTimeInMinutes;
 
           if (diff === 10 && !notifiedEvents[evt.id]) {
-             new Notification(`Upcoming Event: ${evt.title}`, {
-               body: `Starts in 10 minutes at ${evt.start}:00`,
-             });
-             setNotifiedEvents(prev => ({ ...prev, [evt.id]: true }));
+            new Notification(`Upcoming Event: ${evt.title}`, {
+              body: `Starts in 10 minutes at ${evt.start}:00`,
+            });
+            setNotifiedEvents((prev) => ({ ...prev, [evt.id]: true }));
           }
           if (diff < 10 && notifiedEvents[evt.id]) {
-            setNotifiedEvents(prev => {
+            setNotifiedEvents((prev) => {
               const newState = { ...prev };
               delete newState[evt.id];
               return newState;
@@ -358,37 +440,44 @@ const DayColumn = memo(({ day, events, onEditEvent }) => {
       <div className="day-header">{day}</div>
       <div className="day-content">
         {/* Background Grid Lines */}
-        {hours.map(hour => (
-          <div key={hour} className="grid-line" style={{ height: ROW_HEIGHT }}></div>
+        {hours.map((hour) => (
+          <div
+            key={hour}
+            className="grid-line"
+            style={{ height: ROW_HEIGHT }}
+          ></div>
         ))}
 
         {/* Events for this day */}
         <AnimatePresence>
-          {events && events.map(ev => {
-            const top = (ev.start - START_HOUR) * ROW_HEIGHT;
-            const height = (ev.end - ev.start) * ROW_HEIGHT;
-            return (
-              <motion.div
-                key={ev.id}
-                className="event-box"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2 }}
-                style={{
-                  top: `${top}px`,
-                  height: `${height}px`,
-                  "--event-color": ev.color,
-                }}
-                onClick={() => onEditEvent(ev)}
-              >
-                <div className="event-title">{ev.title}</div>
-                <div className="event-time">{ev.start}:00 - {ev.end}:00</div>
-              </motion.div>
-            );
-          })}
+          {events &&
+            events.map((ev) => {
+              const top = (ev.start - START_HOUR) * ROW_HEIGHT;
+              const height = (ev.end - ev.start) * ROW_HEIGHT;
+              return (
+                <motion.div
+                  key={ev.id}
+                  className="event-box"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    top: `${top}px`,
+                    height: `${height}px`,
+                    "--event-color": ev.color,
+                  }}
+                  onClick={() => onEditEvent(ev)}
+                >
+                  <div className="event-title">{ev.title}</div>
+                  <div className="event-time">
+                    {ev.start}:00 - {ev.end}:00
+                  </div>
+                </motion.div>
+              );
+            })}
         </AnimatePresence>
-        
+
         {/* Current Time Line (Red Solid - Local) */}
         <DayCurrentTimeLine day={day} />
       </div>
@@ -409,14 +498,17 @@ const GlobalCurrentTimeLine = () => {
   const currentMinute = now.getMinutes();
   const startHour = 8;
   const endHour = 21; // 9 PM
-  
+
   if (currentHour < startHour || currentHour >= endHour) return null;
 
   // Calculate pixel offset
-  const topOffset = ((currentHour - startHour) * ROW_HEIGHT) + ((currentMinute / 60) * ROW_HEIGHT);
+  const topOffset =
+    (currentHour - startHour) * ROW_HEIGHT + (currentMinute / 60) * ROW_HEIGHT;
 
   // Add 50px to account for the day header height
-  return <div className="global-time-line" style={{ top: `${topOffset + 50}px` }} />;
+  return (
+    <div className="global-time-line" style={{ top: `${topOffset + 50}px` }} />
+  );
 };
 
 // Self-updating Day Time Line
@@ -432,15 +524,24 @@ const DayCurrentTimeLine = ({ day }) => {
   const currentMinute = now.getMinutes();
   const startHour = 8;
   const endHour = 21; // 9 PM
-  
+
   if (currentHour < startHour || currentHour >= endHour) return null;
 
-  const daysArr = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const daysArr = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
   const currentDayName = daysArr[now.getDay()];
-  
+
   if (day !== currentDayName) return null;
 
-  const topOffset = ((currentHour - startHour) * ROW_HEIGHT) + ((currentMinute / 60) * ROW_HEIGHT);
+  const topOffset =
+    (currentHour - startHour) * ROW_HEIGHT + (currentMinute / 60) * ROW_HEIGHT;
 
   return (
     <div className="current-time-line" style={{ top: `${topOffset}px` }}>

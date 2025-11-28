@@ -1,0 +1,133 @@
+.daily-standup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .standup-card {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 24px;
+    padding: 40px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+    .standup-header {
+      margin-bottom: 30px;
+
+      .icon-wrapper {
+        width: 64px;
+        height: 64px;
+        background: rgba(251, 191, 36, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+      }
+
+      h2 {
+        color: white;
+        margin: 0 0 8px 0;
+        font-size: 24px;
+      }
+
+      p {
+        color: #888;
+        margin: 0;
+      }
+    }
+
+    .goals-input-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 30px;
+
+      .goal-input-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #252526;
+        padding: 4px 16px 4px 4px;
+        border-radius: 12px;
+        border: 1px solid #333;
+        transition: border-color 0.2s;
+
+        &:focus-within {
+          border-color: #6366f1;
+        }
+
+        .goal-number {
+          width: 32px;
+          height: 32px;
+          background: #333;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #888;
+          font-weight: bold;
+          font-size: 14px;
+        }
+
+        input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          color: white;
+          padding: 12px 0;
+          font-size: 16px;
+          outline: none;
+
+          &::placeholder {
+            color: #555;
+          }
+        }
+      }
+    }
+
+    .start-day-btn {
+      background: #6366f1;
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+    }
+
+    .standup-success {
+      padding: 40px 0;
+
+      h3 {
+        color: white;
+        margin: 20px 0 8px 0;
+        font-size: 24px;
+      }
+
+      p {
+        color: #888;
+        margin: 0;
+      }
+    }
+  }
+}

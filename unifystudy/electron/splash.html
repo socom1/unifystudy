@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="splash.css">
+</head>
+<body>
+  <div class="container">
+    <div class="terminal">
+      <div class="header">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+        <span class="title">UNIFY_BOOT_SEQUENCE</span>
+      </div>
+      <div class="content">
+        <div id="output"></div>
+        <div class="input-line">
+          <span class="prompt">></span><span class="cursor">_</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const output = document.getElementById('output');
+    const lines = [
+      "Initializing UnifyStudy Core v1.0.0...",
+      "Loading kernel modules...",
+      "[OK] Neural network interface connected",
+      "[OK] Quantum study algorithms optimized",
+      "Decrypting user data...",
+      "Establishing secure connection to server...",
+      "Syncing with cloud database...",
+      "Compiling UI components...",
+      "System ready."
+    ];
+    
+    let i = 0;
+    function typeLine() {
+      if (i < lines.length) {
+        const line = document.createElement('div');
+        line.className = 'line';
+        
+        // Add color to specific parts
+        let text = lines[i];
+        if (text.includes("[OK]")) {
+          line.innerHTML = text.replace("[OK]", "<span class='success'>[OK]</span>");
+        } else {
+          line.textContent = `> ${text}`;
+        }
+        
+        output.appendChild(line);
+        
+        // Auto scroll
+        window.scrollTo(0, document.body.scrollHeight);
+        
+        i++;
+        // Random typing speed
+        setTimeout(typeLine, Math.random() * 200 + 100);
+      }
+    }
+    
+    setTimeout(typeLine, 500);
+  </script>
+</body>
+</html>

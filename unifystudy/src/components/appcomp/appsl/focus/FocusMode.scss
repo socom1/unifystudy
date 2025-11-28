@@ -1,0 +1,91 @@
+.focus-mode-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .focus-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .focus-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+
+      .focus-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #6366f1;
+        
+        h2 {
+          margin: 0;
+          font-size: 24px;
+        }
+      }
+
+      .close-focus {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: #ef4444;
+          color: #ef4444;
+        }
+      }
+    }
+
+    .focus-content-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+
+      // Override Pomodoro styles for focus mode if needed
+      .pom-root {
+        height: auto;
+        width: 100%;
+        max-width: 800px;
+        background: transparent;
+        
+        .main {
+          height: auto;
+        }
+      }
+
+      .focus-quote {
+        font-style: italic;
+        color: #888;
+        text-align: center;
+        max-width: 600px;
+        margin-top: 2rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
+      }
+    }
+  }
+}

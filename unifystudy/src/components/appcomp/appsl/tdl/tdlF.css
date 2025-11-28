@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-
 .tdl-root {
   display: flex;
   height: 100%;
@@ -8,9 +7,10 @@
   color: var(--color-text, #c9d1d9); /* Match app text color */
   font-family: "Fira Code", monospace; /* Match app font */
   overflow: hidden;
+  /* 1. Sidebar (Left) */
+  /* 2. Main Content (Center) */
+  /* 3. Right Panel (Details) */
 }
-
-/* 1. Sidebar (Left) */
 .tdl-root .sidebar {
   width: 260px;
   background: var(--glass-bg, #161b22); /* Match sidebar panel */
@@ -21,20 +21,17 @@
   z-index: 10;
   flex-shrink: 0;
 }
-
 .tdl-root .sidebar.closed {
   transform: translateX(-100%);
   position: absolute;
   height: 100%;
 }
-
 .tdl-root .sidebar .sidebarToggle {
   background-color: transparent;
   color: var(--color-text, #c9d1d9);
   border: none;
   font-size: 19px;
 }
-
 .tdl-root .sidebar .sidebar-header {
   padding: 1.5rem;
   border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
@@ -42,7 +39,6 @@
   justify-content: space-between;
   align-items: center;
 }
-
 .tdl-root .sidebar .sidebar-header h2 {
   font-size: 1rem;
   font-weight: 600;
@@ -51,7 +47,6 @@
   letter-spacing: 1px;
   margin: 0;
 }
-
 .tdl-root .sidebar .sidebar-content {
   flex: 1;
   overflow-y: auto;
@@ -60,7 +55,6 @@
   flex-direction: column;
   gap: 2rem;
 }
-
 .tdl-root .sidebar .sidebar-section .section-title {
   font-size: 0.75rem;
   font-weight: 700;
@@ -68,13 +62,11 @@
   margin-bottom: 0.75rem;
   padding-left: 0.5rem;
 }
-
 .tdl-root .sidebar .sidebar-section ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-
 .tdl-root .sidebar .sidebar-section button {
   background-color: transparent;
   border: none;
@@ -85,7 +77,6 @@
   font-size: 0.85rem;
   font-weight: 500;
 }
-
 .tdl-root .sidebar .sidebar-section .nav-item {
   padding: 0.6rem 0.75rem;
   border-radius: 6px;
@@ -97,20 +88,16 @@
   transition: all 0.2s;
   font-size: 0.9rem;
 }
-
 .tdl-root .sidebar .sidebar-section .nav-item:hover {
   background: rgba(255, 255, 255, 0.05);
 }
-
 .tdl-root .sidebar .sidebar-section .nav-item.active {
   background: rgba(var(--color-primary-rgb, 88, 166, 255), 0.15);
   color: var(--color-primary);
 }
-
 .tdl-root .sidebar .sidebar-section .nav-item .icon {
   opacity: 0.7;
 }
-
 .tdl-root .sidebar .sidebar-section .nav-item .badge {
   margin-left: auto;
   background: rgba(255, 255, 255, 0.1);
@@ -118,7 +105,6 @@
   border-radius: 4px;
   font-size: 0.75rem;
 }
-
 .tdl-root .sidebar .sidebar-footer {
   padding: 1rem;
   border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
@@ -126,7 +112,6 @@
   flex-direction: column;
   gap: 0.5rem;
 }
-
 .tdl-root .sidebar .sidebar-footer button {
   background: none;
   border: none;
@@ -136,22 +121,18 @@
   cursor: pointer;
   font-size: 0.85rem;
 }
-
 .tdl-root .sidebar .sidebar-footer button:hover {
   color: var(--color-text, #fff);
 }
-
-/* 2. Main Content (Center) */
 .tdl-root .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--bg-1);
+  background: var(--bg-1); /* Simplified background to follow theme */
   position: relative;
   overflow: hidden;
   min-width: 0; /* Prevent flex overflow */
 }
-
 .tdl-root .main-content header {
   padding: 1.5rem 2rem;
   display: flex;
@@ -159,27 +140,24 @@
   align-items: center;
   border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
   background: var(--glass-bg, rgba(12, 18, 20, 0.8));
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
 }
-
 .tdl-root .main-content header h1 {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
   color: var(--color-text, #fff);
 }
-
 .tdl-root .main-content .tasks-area {
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
 }
-
 .tdl-root .main-content .tasks-area .task-input-wrapper {
   margin-bottom: 2rem;
   position: relative;
 }
-
 .tdl-root .main-content .tasks-area .task-input-wrapper input {
   width: 100%;
   padding: 1rem 0;
@@ -191,24 +169,22 @@
   font-size: 1.2rem;
   transition: all 0.3s;
 }
-
 .tdl-root .main-content .tasks-area .task-input-wrapper input:focus {
   outline: none;
   border-color: var(--color-primary);
   padding-left: 1rem;
 }
-
+.tdl-root .main-content .tasks-area .task-input-wrapper input::-moz-placeholder {
+  color: var(--color-muted);
+}
 .tdl-root .main-content .tasks-area .task-input-wrapper input::placeholder {
   color: var(--color-muted);
 }
-
 .tdl-root .main-content .tasks-area .tasks-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
-
-/* 3. Right Panel (Details) */
 .tdl-root .right-panel {
   width: 320px;
   background: var(--glass-bg, rgba(12, 18, 20, 0.95));
@@ -216,15 +192,14 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
 }
-
 .tdl-root .right-panel .panel-inner {
   padding: 2rem;
   height: 100%;
   overflow-y: auto;
 }
-
 .tdl-root .right-panel .detail-header {
   display: flex;
   justify-content: space-between;
@@ -233,19 +208,16 @@
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
 }
-
 .tdl-root .right-panel .detail-header h3 {
   margin: 0;
   font-size: 1.1rem;
   color: var(--color-primary);
   font-weight: 600;
 }
-
 .tdl-root .right-panel .detail-header .actions {
   display: flex;
   gap: 0.5rem;
 }
-
 .tdl-root .right-panel .detail-header .actions button {
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
@@ -256,42 +228,34 @@
   font-size: 0.8rem;
   transition: all 0.2s;
 }
-
 .tdl-root .right-panel .detail-header .actions button:hover {
   background: rgba(255, 255, 255, 0.05);
 }
-
 .tdl-root .right-panel .detail-header .actions button.primary {
   background: rgba(var(--color-primary-rgb), 0.1);
   color: var(--color-primary);
   border-color: var(--color-primary);
 }
-
 .tdl-root .right-panel .detail-header .actions button.primary:hover {
   background: rgba(var(--color-primary-rgb), 0.2);
 }
-
 .tdl-root .right-panel .detail-header .actions button.danger {
   color: #ff4d4d;
   border-color: rgba(255, 77, 77, 0.2);
 }
-
 .tdl-root .right-panel .detail-header .actions button.danger:hover {
   background: rgba(255, 77, 77, 0.1);
 }
-
 .tdl-root .right-panel .detail-body {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
-
 .tdl-root .right-panel .detail-body .field-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
-
 .tdl-root .right-panel .detail-body label {
   font-size: 0.75rem;
   color: var(--color-muted);
@@ -299,7 +263,6 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
 .tdl-root .right-panel .detail-body input,
 .tdl-root .right-panel .detail-body textarea {
   width: 100%;
@@ -312,26 +275,22 @@
   font-size: 0.9rem;
   transition: all 0.2s;
 }
-
 .tdl-root .right-panel .detail-body input:focus,
 .tdl-root .right-panel .detail-body textarea:focus {
   outline: none;
   border-color: var(--color-primary);
   background: rgba(0, 0, 0, 0.4);
 }
-
 .tdl-root .right-panel .detail-body textarea {
   min-height: 120px;
   resize: vertical;
   line-height: 1.5;
 }
-
 .tdl-root .right-panel .detail-body .tag-editor .tag-input-row {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 0.8rem;
 }
-
 .tdl-root .right-panel .detail-body .tag-editor .tag-input-row button {
   padding: 0 1rem;
   background: var(--color-primary);
@@ -342,17 +301,14 @@
   font-weight: 600;
   font-size: 0.8rem;
 }
-
 .tdl-root .right-panel .detail-body .tag-editor .tag-input-row button:hover {
   filter: brightness(1.1);
 }
-
 .tdl-root .right-panel .detail-body .tag-editor .tags-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-
 .tdl-root .right-panel .detail-body .tag-editor .tags-list .tag-pill {
   padding: 4px 10px;
   border-radius: 4px;
@@ -363,7 +319,6 @@
   gap: 6px;
   font-weight: 500;
 }
-
 .tdl-root .right-panel .detail-body .tag-editor .tags-list .tag-pill button {
   background: none;
   border: none;
@@ -374,7 +329,6 @@
   opacity: 0.5;
   color: #000;
 }
-
 .tdl-root .right-panel .detail-body .tag-editor .tags-list .tag-pill button:hover {
   opacity: 1;
 }
@@ -391,22 +345,18 @@
   transition: all 0.2s;
   cursor: pointer;
 }
-
 .task-item:hover {
   background: rgba(255, 255, 255, 0.04);
   transform: translateY(-1px);
   border-color: rgba(255, 255, 255, 0.1);
 }
-
 .task-item.completed {
   opacity: 0.6;
 }
-
 .task-item.completed .task-text {
   text-decoration: line-through;
   color: var(--color-muted);
 }
-
 .task-item .checkbox {
   width: 20px;
   height: 20px;
@@ -417,30 +367,25 @@
   justify-content: center;
   cursor: pointer;
 }
-
 .task-item .checkbox.checked {
   background: var(--color-primary);
   border-color: var(--color-primary);
 }
-
 .task-item .task-content {
   flex: 1;
 }
-
 .task-item .task-content .task-text {
   font-size: 0.95rem;
   display: block;
   margin-bottom: 4px;
   color: var(--color-text, #fff);
 }
-
 .task-item .task-content .task-meta {
   display: flex;
   gap: 8px;
   font-size: 0.75rem;
   color: var(--color-muted);
 }
-
 .task-item .task-content .task-meta .meta-tag {
   padding: 1px 6px;
   border-radius: 3px;
@@ -450,9 +395,9 @@
 }
 
 .folderNode {
+  /* ... (Keep existing folder node styles but ensure they work with new layout) ... */
   margin-bottom: 2px;
 }
-
 .folderNode .folderRow {
   padding: 6px 10px;
   border-radius: 6px;
@@ -462,17 +407,14 @@
   color: var(--color-muted);
   transition: all 0.2s;
 }
-
 .folderNode .folderRow:hover {
   background: rgba(255, 255, 255, 0.05);
   color: var(--color-text, #c9d1d9);
 }
-
 .folderNode .folderRow.open {
   background: rgba(255, 255, 255, 0.03);
   color: var(--color-text, #c9d1d9);
 }
-
 .folderNode .folderRow .folderIcon {
   width: 20px;
   height: 20px;
@@ -485,21 +427,17 @@
   background: rgba(var(--color-primary-rgb, 88, 166, 255), 0.15);
   color: var(--color-primary);
 }
-
 .folderNode .folderRow .folderName {
   flex: 1;
   font-size: 0.9rem;
 }
-
 .folderNode .folderRow .folderActions {
   opacity: 0;
   transition: opacity 0.2s;
 }
-
 .folderNode .folderRow:hover .folderActions {
   opacity: 1;
 }
-
 .folderNode .folderRow .folderActions button {
   background: none;
   border: none;
@@ -507,11 +445,9 @@
   padding: 2px 4px;
   cursor: pointer;
 }
-
 .folderNode .folderRow .folderActions button:hover {
   color: #fff;
 }
-
 .folderNode .folderChildren {
   padding-left: 16px;
   margin-left: 9px;
@@ -528,7 +464,6 @@
   margin-top: 0.5rem;
   animation: fadeIn 0.2s ease;
 }
-
 .subfolderInline input {
   flex: 1;
   background: transparent;
@@ -538,16 +473,16 @@
   font-size: 0.9rem;
   padding: 0.2rem 0;
 }
-
 .subfolderInline input:focus {
   outline: none;
   border-color: var(--color-primary);
 }
-
+.subfolderInline input::-moz-placeholder {
+  color: var(--color-muted);
+}
 .subfolderInline input::placeholder {
   color: var(--color-muted);
 }
-
 .subfolderInline button {
   background: rgba(255, 255, 255, 0.1);
   border: none;
@@ -558,7 +493,6 @@
   padding: 0.2rem 0.6rem;
   transition: all 0.2s;
 }
-
 .subfolderInline button:hover {
   background: var(--color-primary);
   color: var(--bg-1, #000);
@@ -574,8 +508,10 @@
     transform: translateY(0);
   }
 }
-
 /* Ensure detailWrap handles folder content correctly */
+.detailWrap {
+  /* Inherits styles from right-panel context, but let's ensure specific overrides if needed */
+}
 .detailWrap .folderNameInline {
   display: flex;
   align-items: center;
@@ -585,7 +521,6 @@
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
 }
-
 .detailWrap .folderNameInline .folderIconPreview {
   width: 40px;
   height: 40px;
@@ -596,7 +531,6 @@
   font-size: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
-
 .detailWrap .folderNameInline .folderNameText {
   font-size: 1.2rem;
   font-weight: 600;
@@ -611,7 +545,6 @@
   display: flex;
   gap: 1rem;
 }
-
 .detail-footer button {
   flex: 1;
   padding: 0.8rem;
@@ -621,21 +554,17 @@
   font-weight: 600;
   transition: all 0.2s;
 }
-
 .detail-footer button.primary {
   background: var(--color-primary);
   color: var(--bg-1, #000);
 }
-
 .detail-footer button.primary:hover {
   filter: brightness(1.1);
 }
-
 .detail-footer button.danger {
   background: rgba(255, 77, 77, 0.1);
   color: #ff4d4d;
 }
-
 .detail-footer button.danger:hover {
   background: rgba(255, 77, 77, 0.2);
 }
@@ -651,25 +580,24 @@
   border-radius: 4px;
   line-height: 1;
 }
-
 .close-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
 
 /* Fix Subfolder Overflow */
+.folderNode {
+  /* Ensure nested lists don't cause horizontal scroll on parent */
+}
 .folderNode .folderRow {
   overflow: hidden;
 }
-
 .folderNode .folderRow .folderName {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0; /* Flexbox overflow fix */
 }
-
-/* Ensure nested lists don't cause horizontal scroll on parent */
 .folderNode .folderChildren {
   overflow: hidden;
-}
+}/*# sourceMappingURL=tdlF.css.map */

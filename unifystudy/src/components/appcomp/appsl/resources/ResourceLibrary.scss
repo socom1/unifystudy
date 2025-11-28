@@ -1,0 +1,198 @@
+.resource-library {
+  padding: 2rem;
+  height: 100%;
+  overflow-y: auto;
+  color: #e0e0e0;
+
+  .library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+
+    .header-left {
+      h1 {
+        font-size: 2rem;
+        margin: 0 0 0.5rem 0;
+        background: linear-gradient(to right, #fff, #aaa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .breadcrumbs {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #888;
+        font-size: 14px;
+
+        span {
+          cursor: pointer;
+          &:hover { color: #fff; }
+          &.active { color: #6366f1; font-weight: 500; cursor: default; }
+        }
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+
+      .add-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &.primary {
+          background: #6366f1;
+          color: white;
+          &:hover { background: #4f46e5; transform: translateY(-1px); }
+        }
+
+        &.secondary {
+          background: transparent;
+          border: 1px solid #333;
+          color: #ccc;
+          &:hover { border-color: #666; color: white; }
+        }
+      }
+    }
+  }
+
+  // ... (keep library-controls as is)
+
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    min-height: 200px;
+    position: relative;
+
+    .empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      padding: 4rem;
+      
+      p { margin-top: 1rem; color: #666; }
+    }
+  }
+
+  // ... (keep resource-card as is)
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+
+    .modal-content {
+      background: #1e1e1e;
+      padding: 2rem;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #333;
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+
+        h2 { margin: 0; font-size: 20px; }
+        button { background: transparent; border: none; color: #666; cursor: pointer; &:hover { color: white; } }
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+
+        label {
+          display: block;
+          margin-bottom: 8px;
+          color: #888;
+          font-size: 14px;
+        }
+
+        .type-selector {
+          display: flex;
+          gap: 12px;
+
+          button {
+            flex: 1;
+            background: #252526;
+            border: 1px solid #333;
+            color: #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+
+            &.active {
+              background: rgba(99, 102, 241, 0.1);
+              border-color: #6366f1;
+              color: #6366f1;
+            }
+          }
+        }
+
+        input {
+          width: 100%;
+          background: #252526;
+          border: 1px solid #333;
+          padding: 12px;
+          border-radius: 8px;
+          color: white;
+          font-size: 16px;
+
+          &:focus { outline: none; border-color: #6366f1; }
+        }
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+
+        button {
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: none;
+          cursor: pointer;
+          font-size: 14px;
+          background: transparent;
+          color: #ccc;
+          border: 1px solid #333;
+
+          &:hover { background: #252526; color: white; }
+
+          &.primary {
+            background: #6366f1;
+            color: white;
+            border: none;
+
+            &:hover { background: #4f46e5; }
+          }
+        }
+      }
+    }
+  }
+}
