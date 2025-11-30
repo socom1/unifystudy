@@ -45,15 +45,17 @@
     "framer-motion": "^12.23.24",
     "git": "^0.1.5",
     "lucide-react": "^0.554.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-router-dom": "^7.9.6"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.9.6",
+    "reactflow": "^11.11.4",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
-    "@types/react": "^19.1.16",
-    "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react": "^5.0.4",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1",
     "eslint": "^9.36.0",
@@ -61,6 +63,6 @@
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
     "sass": "^1.94.2",
-    "vite": "^7.1.12"
+    "vite": "^5.4.1"
   }
 }

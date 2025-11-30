@@ -5,6 +5,8 @@
   "dependencies": {
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.24",
-    "git": "^0.1.5"
+    "git": "^0.1.5",
+    "reactflow": "^11.11.4",
+    "uuid": "^13.0.0"
   }
 }

@@ -1,17 +1,26 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Search, MapPin, BookOpen, MessageCircle, UserPlus } from 'lucide-react';
-import './StudyBuddy.scss';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Search,
+  MapPin,
+  BookOpen,
+  MessageCircle,
+  UserPlus,
+} from "lucide-react";
+import "./StudyBuddy.scss";
 
 const StudyBuddy = () => {
   return (
     <div className="study-buddy-container coming-soon">
       <div className="coming-soon-content">
         <div className="icon-wrapper">
-          <UserPlus size={64} color="#6366f1" />
+          <UserPlus size={64} color="#8fd2ff" />
         </div>
         <h1>Study Buddy Matching</h1>
-        <p>We're building the ultimate platform for you to find your perfect study partner.</p>
+        <p>
+          We're building the ultimate platform for you to find your perfect
+          study partner.
+        </p>
         <div className="features-preview">
           <div className="feature">
             <MapPin size={20} />

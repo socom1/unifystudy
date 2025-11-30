@@ -25,11 +25,10 @@ const DailyStandup = ({ user, onClose }) => {
     const lastStandup = localStorage.getItem(`standup_${user.uid}`);
     
     if (lastStandup === today) {
-      // If already done, don't show (or show summary mode, but for now just close)
-      // For testing, we might want to allow reopening
-      // onClose(); 
+      // If already done, don't show
+      onClose(); 
     }
-  }, [user]);
+  }, [user, onClose]);
 
   const handleGoalChange = (index, value) => {
     const newGoals = [...goals];
@@ -48,7 +47,7 @@ const DailyStandup = ({ user, onClose }) => {
     setCompleted(true);
     setTimeout(() => {
       onClose();
-    }, 3000);
+    }, 1500);
   };
 
   const Icon = greeting.icon;

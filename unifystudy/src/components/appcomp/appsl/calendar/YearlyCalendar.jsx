@@ -5,8 +5,8 @@ import './YearlyCalendar.scss';
 
 const YearlyCalendar = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [viewMode, setViewMode] = useState('month');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
   const [showEventModal, setShowEventModal] = useState(false);
   const [eventType, setEventType] = useState('holiday');
   const [selectedDate, setSelectedDate] = useState({ month: 0, day: 1 });
@@ -20,13 +20,12 @@ const YearlyCalendar = () => {
   const [selectedDayForDetails, setSelectedDayForDetails] = useState(null);
   const [showDayDetails, setShowDayDetails] = useState(false);
 
-  // Load events from localStorage - now storing as array with IDs
+  // Load events from localStorage
   const [events, setEvents] = useState(() => {
     const stored = localStorage.getItem('calendar-events');
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        // If it's an old object format, convert to array
         if (parsed && !Array.isArray(parsed)) {
           const eventsArray = Object.entries(parsed).map(([key, event]) => ({
             id: Date.now().toString() + Math.random(),
@@ -34,11 +33,9 @@ const YearlyCalendar = () => {
             month: parseInt(key.split('-')[0]),
             day: parseInt(key.split('-')[1])
           }));
-          // Save the migrated format
           localStorage.setItem('calendar-events', JSON.stringify(eventsArray));
           return eventsArray;
         }
-        // Return if already array
         return Array.isArray(parsed) ? parsed : [];
       } catch (e) {
         console.error('Error parsing calendar events:', e);
@@ -51,7 +48,6 @@ const YearlyCalendar = () => {
     ];
   });
 
-  // Save events to localStorage
   useEffect(() => {
     localStorage.setItem('calendar-events', JSON.stringify(events));
   }, [events]);
@@ -65,34 +61,28 @@ const YearlyCalendar = () => {
   const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
   const handlePrev = () => {
-    if (viewMode === 'year') {
+    setDirection(-1);
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
       setCurrentYear(prev => prev - 1);
     } else {
-      if (currentMonth === 0) {
-        setCurrentMonth(11);
-        setCurrentYear(prev => prev - 1);
-      } else {
-        setCurrentMonth(prev => prev - 1);
-      }
+      setCurrentMonth(prev => prev - 1);
     }
   };
 
   const handleNext = () => {
-    if (viewMode === 'year') {
+    setDirection(1);
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
       setCurrentYear(prev => prev + 1);
     } else {
-      if (currentMonth === 11) {
-        setCurrentMonth(0);
-        setCurrentYear(prev => prev + 1);
-      } else {
-        setCurrentMonth(prev => prev + 1);
-      }
+      setCurrentMonth(prev => prev + 1);
     }
   };
 
   const openEventModal = (type, month = null, day = null, eventId = null) => {
     setEventType(type);
-    setIsDateRange(type === 'holiday'); // Default to range for holidays
+    setIsDateRange(type === 'holiday');
     
     if (month !== null && day !== null) {
       setSelectedDate({ month, day });
@@ -140,7 +130,6 @@ const YearlyCalendar = () => {
       time: eventTime,
     };
 
-    // Add end date if it's a range
     if (isDateRange && (eventEndDate.month !== selectedDate.month || eventEndDate.day !== selectedDate.day)) {
       newEvent.endMonth = eventEndDate.month;
       newEvent.endDay = eventEndDate.day;
@@ -164,65 +153,85 @@ const YearlyCalendar = () => {
     setShowDayDetails(true);
   };
 
-  // Get events for a specific day
   const getEventsForDay = (month, day) => {
     return events.filter(event => {
-      // Check if day is the start date
       if (event.month === month && event.day === day) return true;
-      
-      // Check if day is within a date range
       if (event.endMonth !== undefined) {
         const startDate = new Date(currentYear, event.month, event.day);
         const endDate = new Date(currentYear, event.endMonth, event.endDay);
         const checkDate = new Date(currentYear, month, day);
         return checkDate >= startDate && checkDate <= endDate;
       }
-      
       return false;
     });
   };
 
-  const renderMonth = (monthIndex, isFullView = false) => {
-    const daysInMonth = getDaysInMonth(currentYear, monthIndex);
-    const firstDay = getFirstDayOfMonth(currentYear, monthIndex);
+  const variants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 500 : -500,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 500 : -500,
+      opacity: 0
+    })
+  };
+
+  const renderMonth = () => {
+    const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+    const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
     const days = [];
 
-    // Empty slots
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="day empty"></div>);
     }
 
-    // Days
     for (let d = 1; d <= daysInMonth; d++) {
-      const dayEvents = getEventsForDay(monthIndex, d);
+      const dayEvents = getEventsForDay(currentMonth, d);
       const hasHoliday = dayEvents.some(e => e.type === 'holiday');
       const hasExam = dayEvents.some(e => e.type === 'exam');
       
       days.push(
-        <motion.div 
+        <div 
           key={d} 
           className={`day ${hasHoliday ? 'holiday' : ''} ${hasExam ? 'exam' : ''} ${dayEvents.length > 1 ? 'multi-event' : ''}`}
-          onClick={() => handleDayClick(monthIndex, d)}
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.2 }}
+          onClick={() => handleDayClick(currentMonth, d)}
         >
-          {d}
-          {dayEvents.length > 1 && <span className="event-count">{dayEvents.length}</span>}
-        </motion.div>
+          <span className="day-number">{d}</span>
+          <div className="day-events-preview">
+            {dayEvents.slice(0, 3).map((ev, idx) => (
+              <div key={idx} className={`event-row ${ev.type}`} title={ev.name}>
+                {ev.name}
+              </div>
+            ))}
+            {dayEvents.length > 3 && <span className="more-events">+{dayEvents.length - 3}</span>}
+          </div>
+        </div>
       );
     }
 
     return (
       <motion.div 
-        className={`month-card ${isFullView ? 'full-view' : ''}`} 
-        key={monthIndex}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: monthIndex * 0.05 }}
+        className="month-card full-view"
+        key={`${currentYear}-${currentMonth}`}
+        custom={direction}
+        variants={variants}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        transition={{
+          x: { type: "spring", stiffness: 300, damping: 30 },
+          opacity: { duration: 0.2 }
+        }}
       >
-        <h3>{months[monthIndex]}</h3>
         <div className="days-grid">
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d, i) => (
             <div key={i} className="day-label">{d}</div>
           ))}
           {days}
@@ -238,40 +247,21 @@ const YearlyCalendar = () => {
       <header className="calendar-header">
         <div className="controls">
           <button onClick={handlePrev}><ChevronLeft /></button>
-          <h1>
-            {viewMode === 'year' ? currentYear : `${months[currentMonth]} ${currentYear}`}
-          </h1>
+          <h1>{months[currentMonth]} {currentYear}</h1>
           <button onClick={handleNext}><ChevronRight /></button>
         </div>
         
         <div className="header-actions">
-          <div className="view-toggle">
-            <button 
-              className={viewMode === 'month' ? 'active' : ''} 
-              onClick={() => setViewMode('month')}
-            >
-              Month
-            </button>
-            <button 
-              className={viewMode === 'year' ? 'active' : ''} 
-              onClick={() => setViewMode('year')}
-            >
-              Year
-            </button>
-          </div>
-
           <div className="event-buttons">
             <button 
               className="add-event-btn holiday" 
               onClick={() => openEventModal('holiday')}
-              title="Add Holiday"
             >
               <Plus size={16} /> Holiday
             </button>
             <button 
               className="add-event-btn exam" 
               onClick={() => openEventModal('exam')}
-              title="Add Exam"
             >
               <Plus size={16} /> Exam
             </button>
@@ -279,31 +269,11 @@ const YearlyCalendar = () => {
         </div>
       </header>
       
-      <div className="legend">
-        <div className="legend-item"><span className="dot holiday"></span> Holiday</div>
-        <div className="legend-item"><span className="dot exam"></span> Exam Period</div>
+      <div className="calendar-content">
+        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+          {renderMonth()}
+        </AnimatePresence>
       </div>
-
-      <AnimatePresence mode="wait">
-        <motion.div 
-          key={viewMode}
-          className={`calendar-content ${viewMode}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {viewMode === 'year' ? (
-            <div className="months-grid">
-              {months.map((_, index) => renderMonth(index))}
-            </div>
-          ) : (
-            <div className="single-month-view">
-              {renderMonth(currentMonth, true)}
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
 
       {/* Event Modal */}
       <AnimatePresence>

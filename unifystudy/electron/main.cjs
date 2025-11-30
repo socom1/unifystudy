@@ -34,6 +34,7 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
+    icon: path.join(__dirname, '../public/sidebar-icon.png'), // App icon
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,

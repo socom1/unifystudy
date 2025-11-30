@@ -99,6 +99,10 @@ const Workspace = ({ user }) => {
   const [editorContent, setEditorContent] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
   
+  // Pagination
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+  
   // UI Toggles
   const [showFileSidebar, setShowFileSidebar] = useState(true);
   const [showChatSidebar, setShowChatSidebar] = useState(true);
@@ -315,7 +319,9 @@ const Workspace = ({ user }) => {
         </motion.header>
 
         <div className="projects-grid">
-          {projects.map((project, index) => (
+          {projects
+            .slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+            .map((project, index) => (
             <motion.div 
               key={project.id} 
               className="project-card"
@@ -344,6 +350,28 @@ const Workspace = ({ user }) => {
             </div>
           )}
         </div>
+
+        {projects.length > ITEMS_PER_PAGE && (
+          <div className="pagination-controls" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+            <button 
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--bg-2)', border: '1px solid var(--glass-border)', color: 'var(--color-text)', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}
+            >
+              Previous
+            </button>
+            <span style={{ display: 'flex', alignItems: 'center', color: 'var(--color-muted)' }}>
+              Page {page} of {Math.ceil(projects.length / ITEMS_PER_PAGE)}
+            </span>
+            <button 
+              onClick={() => setPage(p => Math.min(Math.ceil(projects.length / ITEMS_PER_PAGE), p + 1))}
+              disabled={page === Math.ceil(projects.length / ITEMS_PER_PAGE)}
+              style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--bg-2)', border: '1px solid var(--glass-border)', color: 'var(--color-text)', cursor: page === Math.ceil(projects.length / ITEMS_PER_PAGE) ? 'not-allowed' : 'pointer', opacity: page === Math.ceil(projects.length / ITEMS_PER_PAGE) ? 0.5 : 1 }}
+            >
+              Next
+            </button>
+          </div>
+        )}
 
         <AnimatePresence>
           {showCreateModal && (

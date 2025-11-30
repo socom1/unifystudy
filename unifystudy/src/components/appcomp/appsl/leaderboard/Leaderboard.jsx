@@ -149,43 +149,46 @@ export default function Leaderboard() {
         </div>
       ) : (
         <div className="lb-list">
-          {leaders.map((user, index) => (
-            <motion.div 
-              layout
-              key={user.uid}
-              className={`lb-item ${index < 3 ? 'top-3' : ''}`}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.03, type: "spring", stiffness: 300, damping: 30 }}
-              onClick={() => setSelectedUser(user)}
-            >
-              <div className="rank">
-                {index + 1}
-              </div>
-              
-              <div className="lb-avatar">
-                <img 
-                  src={user.photoURL || "/avatar-placeholder.png"} 
-                  alt={user.name} 
-                />
-              </div>
+          <AnimatePresence mode="wait">
+            {leaders.map((user, index) => (
+              <motion.div 
+                layout
+                key={user.uid}
+                className={`lb-item ${index < 3 ? 'top-3' : ''}`}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ delay: index * 0.03, type: "spring", stiffness: 300, damping: 30 }}
+                onClick={() => setSelectedUser(user)}
+              >
+                <div className="rank">
+                  {index + 1}
+                </div>
+                
+                <div className="lb-avatar">
+                  <img 
+                    src={user.photoURL || "/avatar-placeholder.png"} 
+                    alt={user.name} 
+                  />
+                </div>
 
-              <div className="user-info">
-                <div className="name-row">
-                  <span className="name">{user.name}</span>
-                  {user.tag && <span className="user-tag">{user.tag}</span>}
+                <div className="user-info">
+                  <div className="name-row">
+                    <span className="name">{user.name}</span>
+                    {user.tag && <span className="user-tag">{user.tag}</span>}
+                  </div>
+                  <div className="tags">
+                    {index === 0 && <span className="tag gold">👑 King</span>}
+                    {index === 1 && <span className="tag silver">🥈 Elite</span>}
+                    {index === 2 && <span className="tag bronze">🥉 Pro</span>}
+                  </div>
                 </div>
-                <div className="tags">
-                  {index === 0 && <span className="tag gold">👑 King</span>}
-                  {index === 1 && <span className="tag silver">🥈 Elite</span>}
-                  {index === 2 && <span className="tag bronze">🥉 Pro</span>}
+                <div className="score">
+                  {formatScore(user.score)}
                 </div>
-              </div>
-              <div className="score">
-                {formatScore(user.score)}
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
 

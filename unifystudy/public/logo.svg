@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0c1214" rx="64"/>
+  
+  <!-- Border -->
+  <rect x="16" y="16" width="480" height="480" fill="rgba(255, 255, 255, 0.05)" stroke="#3b82f6" stroke-width="4" rx="52"/>
+  
+  <!-- >_ Text -->
+  <text x="256" y="330" font-family="'Fira Code', monospace" font-size="180" font-weight="bold" fill="#3b82f6" text-anchor="middle">&gt;_</text>
+</svg>

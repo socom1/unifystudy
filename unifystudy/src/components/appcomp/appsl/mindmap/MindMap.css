@@ -1,0 +1,68 @@
+:root {
+  --bg-1: #0c1214;
+  --bg-2: #0f1516;
+  --color-primary: #4b6c82;
+  --color-muted: #9fb1bb;
+}
+
+.mm-app {
+  display: flex;
+  gap: 12px;
+  height: 100%;
+  color: var(--color-muted);
+  font-family: Inter, system-ui;
+}
+
+.mm-sidebar {
+  width: 260px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.mm-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+}
+
+.mm-canvas-area {
+  flex: 1;
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  border-radius: 10px;
+  padding: 12px;
+  min-height: 520px;
+}
+
+.mm-editor {
+  width: 100%;
+  height: 100%;
+}
+
+.mm-sidebar .mm-folder {
+  margin-bottom: 8px;
+}
+
+.mm-folder-name {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mm-map-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}/*# sourceMappingURL=MindMap.css.map */
