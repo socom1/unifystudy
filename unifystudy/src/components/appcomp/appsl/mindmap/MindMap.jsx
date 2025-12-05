@@ -35,6 +35,7 @@ const GlassNode = ({ data, selected }) => {
         className={`glass-node ${selected ? 'selected' : ''} ${fontSizeClass}`} 
         style={{ 
           backgroundColor: data.color || 'var(--bg-2)',
+          color: data.textColor || '#ffffff',
           width: '100%',
           height: '100%'
         }}
@@ -55,7 +56,7 @@ const GlassNode = ({ data, selected }) => {
           
           {/* Paragraph Description Box */}
           {data.nodeType === 'paragraph' && data.description && (
-            <div className="glass-node-description">
+            <div className="glass-node-description" style={{ color: data.textColor ? `${data.textColor}cc` : 'rgba(255,255,255,0.7)' }}>
                 {data.description}
             </div>
           )}
@@ -86,13 +87,13 @@ const defaultData = {
             {
               id: "root",
               position: { x: 400, y: 300 },
-              data: { label: "Central Idea", type: "root", nodeType: "header", color: "#ffffff", fontSize: "lg" },
+              data: { label: "Central Idea", type: "root", nodeType: "header", color: "#000000", textColor: "#ffffff", fontSize: "lg" },
               type: "glass",
             },
             {
               id: "child-1",
               position: { x: 700, y: 200 },
-              data: { label: "Branch 1", type: "child", nodeType: "default", color: "#ffffff", fontSize: "md" },
+              data: { label: "Branch 1", type: "child", nodeType: "default", color: "#000000", textColor: "#ffffff", fontSize: "md" },
               type: "glass",
             },
           ],
@@ -308,9 +309,10 @@ const MindMapApp = () => {
   const [modalType, setModalType] = useState(null); 
   const [modalInput, setModalInput] = useState("");
   const [modalDescription, setModalDescription] = useState(""); 
-  const [modalColor, setModalColor] = useState("#ffffff"); 
+  const [modalColor, setModalColor] = useState("#000000"); 
+  const [modalTextColor, setModalTextColor] = useState("#ffffff");
   const [modalNodeType, setModalNodeType] = useState("default"); 
-  const [modalFontSize, setModalFontSize] = useState("md"); // New state
+  const [modalFontSize, setModalFontSize] = useState("md"); 
   const [targetId, setTargetId] = useState(null); 
 
   useEffect(() => {
@@ -322,11 +324,12 @@ const MindMapApp = () => {
 
   useEffect(() => saveStorage(store), [store]);
 
-  const openModal = (type, initialValue = "", id = null, initialColor = "", initialType = "default", initialDesc = "", initialSize = "md") => {
+  const openModal = (type, initialValue = "", id = null, initialColor = "", initialType = "default", initialDesc = "", initialSize = "md", initialTextColor = "") => {
     setModalType(type);
     setModalInput(initialValue);
     setModalDescription(initialDesc || "");
-    setModalColor(initialColor || "#ffffff");
+    setModalColor(initialColor || "#000000");
+    setModalTextColor(initialTextColor || "#ffffff");
     setModalNodeType(initialType || "default");
     setModalFontSize(initialSize || "md");
     setTargetId(id);
@@ -349,7 +352,7 @@ const MindMapApp = () => {
           {
             id: uuidv4(),
             position: { x: 400, y: 300 },
-            data: { label: "Central Idea", type: "root", nodeType: "header", color: "#ffffff", fontSize: "lg" },
+            data: { label: "Central Idea", type: "root", nodeType: "header", color: "#000000", textColor: "#ffffff", fontSize: "lg" },
             type: "glass",
           },
         ],
@@ -386,6 +389,7 @@ const MindMapApp = () => {
                 type: "child", 
                 nodeType: modalNodeType, 
                 color: modalColor,
+                textColor: modalTextColor,
                 fontSize: modalFontSize
             },
             type: "glass",
@@ -417,7 +421,7 @@ const MindMapApp = () => {
                     ...m,
                     nodes: m.nodes.map(n => 
                         n.id === targetId 
-                        ? { ...n, data: { ...n.data, label: modalInput, description: modalDescription, color: modalColor, nodeType: modalNodeType, fontSize: modalFontSize } }
+                        ? { ...n, data: { ...n.data, label: modalInput, description: modalDescription, color: modalColor, textColor: modalTextColor, nodeType: modalNodeType, fontSize: modalFontSize } }
                         : n
                     )
                 };
@@ -431,7 +435,8 @@ const MindMapApp = () => {
     setModalOpen(false);
     setModalInput("");
     setModalDescription("");
-    setModalColor("#ffffff");
+    setModalColor("#000000");
+    setModalTextColor("#ffffff");
     setModalNodeType("default");
     setModalFontSize("md");
     setTargetId(null);
@@ -584,7 +589,7 @@ const MindMapApp = () => {
             <MapEditor
               map={activeMap}
               onChange={updateActiveMapData}
-              onEditNode={(node) => openModal("editNode", node.data.label, node.id, node.data.color, node.data.nodeType, node.data.description, node.data.fontSize)}
+              onEditNode={(node) => openModal("editNode", node.data.label, node.id, node.data.color, node.data.nodeType, node.data.description, node.data.fontSize, node.data.textColor)}
             />
           ) : (
             <div className="mm-no-map">
@@ -677,6 +682,20 @@ const MindMapApp = () => {
                         className={`color-option ${modalColor === c ? 'selected' : ''}`}
                         style={{ backgroundColor: c, border: c === '#000000' ? '1px solid #333' : 'none' }}
                         onClick={() => setModalColor(c)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mm-modal-color-picker">
+                  <label>Text Color:</label>
+                  <div className="color-options">
+                    {["#ffffff", "#000000", "#ef4444", "#3b82f6", "#22c55e"].map(c => (
+                      <div 
+                        key={c}
+                        className={`color-option ${modalTextColor === c ? 'selected' : ''}`}
+                        style={{ backgroundColor: c, border: c === '#000000' ? '1px solid #333' : '1px solid #ddd' }}
+                        onClick={() => setModalTextColor(c)}
                       />
                     ))}
                   </div>

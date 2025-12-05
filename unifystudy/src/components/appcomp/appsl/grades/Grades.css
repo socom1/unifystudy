@@ -11,10 +11,10 @@
 .grades-header {
   padding: 1.5rem 2rem;
   background: var(--glass-bg, rgba(12, 18, 20, 0.8));
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
 }
-
 .grades-header .header-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -22,14 +22,12 @@
   justify-content: space-between;
   align-items: center;
 }
-
 .grades-header .header-content h1 {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -1px;
   color: var(--color-text, #fff);
 }
-
 .grades-header .header-content .gpa-badge {
   background: rgba(var(--color-primary-rgb), 0.1);
   border: 1px solid var(--color-primary);
@@ -39,14 +37,12 @@
   flex-direction: column;
   align-items: flex-end;
 }
-
 .grades-header .header-content .gpa-badge .label {
   font-size: 0.7rem;
   color: var(--color-primary);
   text-transform: uppercase;
   font-weight: 700;
 }
-
 .grades-header .header-content .gpa-badge .value {
   font-size: 1.2rem;
   font-weight: 700;
@@ -56,15 +52,13 @@
 .grades-container {
   flex: 1;
   display: flex;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
   overflow: hidden;
 }
 
 /* SIDEBAR */
 .subjects-sidebar {
-  width: 300px;
+  width: 325px;
   background: var(--glass-bg, rgba(15, 20, 25, 0.5));
   border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
   display: flex;
@@ -72,12 +66,10 @@
   padding: 1.5rem;
   gap: 1.5rem;
 }
-
 .subjects-sidebar .add-subject-form {
   display: flex;
   gap: 0.5rem;
 }
-
 .subjects-sidebar .add-subject-form input {
   flex: 1;
   background: rgba(255, 255, 255, 0.05);
@@ -87,23 +79,25 @@
   color: var(--color-text, #fff);
   font-size: 0.9rem;
 }
-
 .subjects-sidebar .add-subject-form input:focus {
   outline: none;
   border-color: var(--color-primary);
 }
-
 .subjects-sidebar .add-subject-form button {
   background: var(--color-primary);
   border: none;
   border-radius: 8px;
-  width: 36px;
+  width: 60px;
   color: var(--bg-1, #000);
   font-weight: 700;
   cursor: pointer;
   font-size: 1.2rem;
+  transition: ease-in-out 0.2s;
 }
-
+.subjects-sidebar .add-subject-form button:hover {
+  filter: brightness(1.1);
+  transition: ease-in-out 0.2s;
+}
 .subjects-sidebar .subjects-list {
   flex: 1;
   overflow-y: auto;
@@ -111,7 +105,6 @@
   flex-direction: column;
   gap: 0.8rem;
 }
-
 .subjects-sidebar .subject-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
@@ -123,31 +116,26 @@
   justify-content: space-between;
   align-items: center;
 }
-
 .subjects-sidebar .subject-card:hover {
   background: rgba(255, 255, 255, 0.06);
   transform: translateX(4px);
 }
-
 .subjects-sidebar .subject-card.active {
   background: rgba(var(--color-primary-rgb), 0.15);
   border-color: var(--color-primary);
 }
-
 .subjects-sidebar .subject-card .sub-info h3 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-text, #fff);
 }
-
 .subjects-sidebar .subject-card .sub-info .sub-avg {
   font-size: 0.8rem;
   color: var(--color-muted);
   margin-top: 4px;
   display: block;
 }
-
 .subjects-sidebar .subject-card .delete-btn {
   background: none;
   border: none;
@@ -157,11 +145,9 @@
   opacity: 0;
   transition: opacity 0.2s;
 }
-
 .subjects-sidebar .subject-card .delete-btn:hover {
   color: #ff4d4d;
 }
-
 .subjects-sidebar .subject-card:hover .delete-btn {
   opacity: 1;
 }
@@ -174,7 +160,6 @@
   display: flex;
   flex-direction: column;
 }
-
 .assessments-panel .empty-selection {
   flex: 1;
   display: flex;
@@ -183,7 +168,6 @@
   color: var(--color-muted);
   font-size: 1.2rem;
 }
-
 .assessments-panel .panel-header {
   display: flex;
   justify-content: space-between;
@@ -192,36 +176,30 @@
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
 }
-
 .assessments-panel .panel-header h2 {
   font-size: 2rem;
   margin: 0;
   color: var(--color-text, #fff);
 }
-
 .assessments-panel .panel-header .stats {
   display: flex;
   gap: 2rem;
 }
-
 .assessments-panel .panel-header .stats .stat {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
 }
-
 .assessments-panel .panel-header .stats .stat .label {
   font-size: 0.75rem;
   color: var(--color-muted);
   text-transform: uppercase;
 }
-
 .assessments-panel .panel-header .stats .stat .val {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-primary);
 }
-
 .assessments-panel .assessments-list {
   flex: 1;
   display: flex;
@@ -229,7 +207,6 @@
   gap: 0.8rem;
   margin-bottom: 2rem;
 }
-
 .assessments-panel .assessment-item {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
@@ -239,38 +216,31 @@
   align-items: center;
   gap: 1.5rem;
 }
-
 .assessments-panel .assessment-item .a-info {
   flex: 1;
 }
-
 .assessments-panel .assessment-item .a-info h4 {
   margin: 0;
   font-size: 1rem;
   color: var(--color-text, #fff);
 }
-
 .assessments-panel .assessment-item .a-info .a-date {
   font-size: 0.75rem;
   color: var(--color-muted);
 }
-
 .assessments-panel .assessment-item .a-score {
   text-align: right;
 }
-
 .assessments-panel .assessment-item .a-score .score-val {
   display: block;
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--color-text, #fff);
 }
-
 .assessments-panel .assessment-item .a-score .percentage {
   font-size: 0.8rem;
   color: var(--color-muted);
 }
-
 .assessments-panel .assessment-item .a-weight {
   font-size: 0.8rem;
   color: var(--color-muted);
@@ -278,7 +248,6 @@
   padding: 4px 8px;
   border-radius: 4px;
 }
-
 .assessments-panel .assessment-item .del-btn {
   background: none;
   border: none;
@@ -286,11 +255,9 @@
   cursor: pointer;
   font-size: 1.2rem;
 }
-
 .assessments-panel .assessment-item .del-btn:hover {
   color: #ff4d4d;
 }
-
 .assessments-panel .add-assessment-form {
   background: var(--glass-bg, rgba(15, 20, 25, 0.6));
   padding: 1.5rem;
@@ -300,7 +267,6 @@
   flex-direction: column;
   gap: 1rem;
 }
-
 .assessments-panel .add-assessment-form input {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
@@ -309,36 +275,29 @@
   color: var(--color-text, #fff);
   font-family: inherit;
 }
-
 .assessments-panel .add-assessment-form input:focus {
   outline: none;
   border-color: var(--color-primary);
 }
-
 .assessments-panel .add-assessment-form .row {
   display: flex;
   gap: 1rem;
   align-items: center;
 }
-
 .assessments-panel .add-assessment-form .row input {
   flex: 1;
 }
-
 .assessments-panel .add-assessment-form .row.weight-row {
   justify-content: flex-end;
 }
-
 .assessments-panel .add-assessment-form .row.weight-row label {
   color: var(--color-muted);
   font-size: 0.9rem;
 }
-
 .assessments-panel .add-assessment-form .row.weight-row input {
   flex: 0 0 100px;
 }
-
-.assessments-panel .add-assessment-form button[type="submit"] {
+.assessments-panel .add-assessment-form button[type=submit] {
   background: var(--color-primary);
   color: var(--bg-1, #000);
   border: none;
@@ -348,7 +307,6 @@
   cursor: pointer;
   margin-top: 0.5rem;
 }
-
-.assessments-panel .add-assessment-form button[type="submit"]:hover {
+.assessments-panel .add-assessment-form button[type=submit]:hover {
   filter: brightness(1.1);
-}
+}/*# sourceMappingURL=Grades.css.map */

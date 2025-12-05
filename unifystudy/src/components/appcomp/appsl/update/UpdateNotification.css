@@ -1,0 +1,145 @@
+.update-notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.update-card {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.update-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+.update-header .icon-wrapper {
+  width: 40px;
+  height: 40px;
+  background: rgba(79, 70, 229, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4f46e5;
+}
+.update-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #fff;
+  font-weight: 600;
+}
+.update-header .close-btn {
+  position: absolute;
+  right: -0.5rem;
+  top: -0.5rem;
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.update-header .close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.update-body p {
+  margin: 0;
+  color: #aaa;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.progress-container .progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-container .progress-bar .progress-fill {
+  height: 100%;
+  background: #4f46e5;
+  border-radius: 3px;
+}
+.progress-container .progress-text {
+  font-size: 0.85rem;
+  color: #888;
+  font-family: monospace;
+  min-width: 3ch;
+}
+
+.update-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.update-actions button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.update-actions button.btn-secondary {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #333;
+}
+.update-actions button.btn-secondary:hover:not(:disabled) {
+  border-color: #555;
+  color: #fff;
+}
+.update-actions button.btn-primary {
+  background: #4f46e5;
+  color: #fff;
+}
+.update-actions button.btn-primary:hover:not(:disabled) {
+  background: #4338ca;
+}
+.update-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}/*# sourceMappingURL=UpdateNotification.css.map */

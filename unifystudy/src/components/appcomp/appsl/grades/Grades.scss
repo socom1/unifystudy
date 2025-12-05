@@ -55,15 +55,13 @@
 .grades-container {
   flex: 1;
   display: flex;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
   overflow: hidden;
 }
 
 /* SIDEBAR */
 .subjects-sidebar {
-  width: 300px;
+  width: 325px;
   background: var(--glass-bg, rgba(15, 20, 25, 0.5));
   border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
   display: flex;
@@ -83,7 +81,7 @@
       padding: 0.6rem;
       color: var(--color-text, #fff);
       font-size: 0.9rem;
-      
+
       &:focus {
         outline: none;
         border-color: var(--color-primary);
@@ -94,11 +92,17 @@
       background: var(--color-primary);
       border: none;
       border-radius: 8px;
-      width: 36px;
+      width: 60px;
       color: var(--bg-1, #000);
       font-weight: 700;
       cursor: pointer;
       font-size: 1.2rem;
+      transition: ease-in-out 0.2s;
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+      transition: ease-in-out 0.2s;
     }
   }
 
@@ -132,8 +136,18 @@
     }
 
     .sub-info {
-      h3 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--color-text, #fff); }
-      .sub-avg { font-size: 0.8rem; color: var(--color-muted); margin-top: 4px; display: block; }
+      h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-text, #fff);
+      }
+      .sub-avg {
+        font-size: 0.8rem;
+        color: var(--color-muted);
+        margin-top: 4px;
+        display: block;
+      }
     }
 
     .delete-btn {
@@ -144,11 +158,15 @@
       font-size: 1.2rem;
       opacity: 0;
       transition: opacity 0.2s;
-      
-      &:hover { color: #ff4d4d; }
+
+      &:hover {
+        color: #ff4d4d;
+      }
     }
 
-    &:hover .delete-btn { opacity: 1; }
+    &:hover .delete-btn {
+      opacity: 1;
+    }
   }
 }
 
@@ -177,7 +195,11 @@
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
 
-    h2 { font-size: 2rem; margin: 0; color: var(--color-text, #fff); }
+    h2 {
+      font-size: 2rem;
+      margin: 0;
+      color: var(--color-text, #fff);
+    }
 
     .stats {
       display: flex;
@@ -187,9 +209,17 @@
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        
-        .label { font-size: 0.75rem; color: var(--color-muted); text-transform: uppercase; }
-        .val { font-size: 1.5rem; font-weight: 700; color: var(--color-primary); }
+
+        .label {
+          font-size: 0.75rem;
+          color: var(--color-muted);
+          text-transform: uppercase;
+        }
+        .val {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--color-primary);
+        }
       }
     }
   }
@@ -213,14 +243,29 @@
 
     .a-info {
       flex: 1;
-      h4 { margin: 0; font-size: 1rem; color: var(--color-text, #fff); }
-      .a-date { font-size: 0.75rem; color: var(--color-muted); }
+      h4 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--color-text, #fff);
+      }
+      .a-date {
+        font-size: 0.75rem;
+        color: var(--color-muted);
+      }
     }
 
     .a-score {
       text-align: right;
-      .score-val { display: block; font-weight: 700; font-size: 1.1rem; color: var(--color-text, #fff); }
-      .percentage { font-size: 0.8rem; color: var(--color-muted); }
+      .score-val {
+        display: block;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--color-text, #fff);
+      }
+      .percentage {
+        font-size: 0.8rem;
+        color: var(--color-muted);
+      }
     }
 
     .a-weight {
@@ -237,7 +282,9 @@
       color: var(--color-muted);
       cursor: pointer;
       font-size: 1.2rem;
-      &:hover { color: #ff4d4d; }
+      &:hover {
+        color: #ff4d4d;
+      }
     }
   }
 
@@ -257,21 +304,31 @@
       border-radius: 8px;
       color: var(--color-text, #fff);
       font-family: inherit;
-      
-      &:focus { outline: none; border-color: var(--color-primary); }
+
+      &:focus {
+        outline: none;
+        border-color: var(--color-primary);
+      }
     }
 
     .row {
       display: flex;
       gap: 1rem;
       align-items: center;
-      
-      input { flex: 1; }
-      
+
+      input {
+        flex: 1;
+      }
+
       &.weight-row {
         justify-content: flex-end;
-        label { color: var(--color-muted); font-size: 0.9rem; }
-        input { flex: 0 0 100px; }
+        label {
+          color: var(--color-muted);
+          font-size: 0.9rem;
+        }
+        input {
+          flex: 0 0 100px;
+        }
       }
     }
 
@@ -284,8 +341,10 @@
       font-weight: 700;
       cursor: pointer;
       margin-top: 0.5rem;
-      
-      &:hover { filter: brightness(1.1); }
+
+      &:hover {
+        filter: brightness(1.1);
+      }
     }
   }
 }

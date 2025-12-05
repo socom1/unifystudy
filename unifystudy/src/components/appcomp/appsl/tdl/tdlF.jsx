@@ -14,6 +14,7 @@ import {
   onValue,
   update,
 } from "firebase/database";
+import { Menu, ArrowLeft, Check, X, Trash2 } from "lucide-react";
 import "./tdlF.scss";
 
 // Add this style block or ensure it's in tdlF.scss
@@ -1079,74 +1080,36 @@ export default function TdlF() {
   };
 
   /* --- view state --- */
-  /* --- Render --- */
-  return (
-    <div className="tdl-root">
-      {/* LEFT: Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
-        <div className="sidebar-header">
-          <h2>Menu</h2>
-          {isMobile && (
-            <button
-              className="sidebarToggle"
-              onClick={() => setSidebarOpen((p) => !p)}
-            >
-              ×
-            </button>
-          )}
-        </div>
+  /* --- Render Helpers --- */
 
+  // 1. Root View: Folder List
+  const renderFolderList = () => (
+    <div className="tdl-root single-column">
+      <div className="sidebar full-width">
+        <div className="sidebar-header">
+          <h2>Directories</h2>
+          <button className="sidebarToggle" style={{ opacity: 0, pointerEvents: 'none' }}>
+            <Menu size={20} />
+          </button>
+        </div>
+        
         <div className="sidebar-content">
           <div className="sidebar-section">
-            <div className="section-title">TASKS</div>
+            <div className="section-title">FOLDERS</div>
             <ul>
-              <li
-                className={`nav-item ${
-                  activeView === "upcoming" ? "active" : ""
-                }`}
-                onClick={() => {
-                  setActiveView("upcoming");
-                  setCurrentFolderId(null);
-                }}
-              >
-                <span className="icon">»</span> Upcoming
-              </li>
-              <li
-                className={`nav-item ${activeView === "today" ? "active" : ""}`}
-                onClick={() => {
-                  setActiveView("today");
-                  setCurrentFolderId(null);
-                }}
-              >
-                <span className="icon">📅</span> Today
-              </li>
-              <li
-                className={`nav-item ${
-                  activeView === "calendar" ? "active" : ""
-                }`}
-                onClick={() => {
-                  setActiveView("calendar");
-                  setCurrentFolderId(null);
-                }}
-              >
-                <span className="icon">🗓</span> Calendar
-              </li>
-            </ul>
-          </div>
-
-          <div className="sidebar-section">
-            <div className="section-title">LISTS</div>
-            <ul>
-              {rootFolders.map((root) => (
+              {rootFolders.map((f) => (
                 <FolderNode
-                  key={root.id}
-                  folder={root}
-                  depth={0}
+                  key={f.id}
+                  folder={f}
                   childrenMap={childrenMap}
                   currentFolderId={currentFolderId}
                   setCurrentFolderId={(id) => {
                     setCurrentFolderId(id);
-                    setActiveView("folder");
+                    // Automatically switch to task view when folder selected
+                    if (id) {
+                      setActiveView("folder"); // Set activeView to trigger task fetching
+                      setSidebarOpen(false); // Close drawer if open
+                    }
                   }}
                   addSubfolderUI={addSubfolderUI}
                   creatingUnder={creatingUnder}
@@ -1156,7 +1119,7 @@ export default function TdlF() {
                   createFolderUnder={createFolderUnder}
                   deleteFolder={deleteFolder}
                   setShowFolderDetailMobile={setShowFolderDetailMobile}
-                  isMobile={isMobile}
+                  isMobile={true} // Always treat as mobile/single-column
                   onFolderDragStart={onFolderDragStart}
                   onFolderDragOver={onFolderDragOver}
                   onFolderDrop={onFolderDrop}
@@ -1164,82 +1127,115 @@ export default function TdlF() {
                 />
               ))}
             </ul>
-            <button
-              className="nav-item"
-              style={{ marginTop: "0.5rem", color: "var(--color-primary)" }}
-              onClick={() => {
-                setCreatingUnder(null);
-                setNewFolderInput(" ");
-              }}
-            >
-              + Add New List
-            </button>
-
-            {!creatingUnder && newFolderInput !== "" && (
-              <div className="subfolderInline" style={{ marginTop: 8 }}>
+            {creatingUnder === null && (
+              <div className="subfolderInline">
                 <input
                   value={newFolderInput}
+                  placeholder="New folder..."
                   onChange={(e) => setNewFolderInput(e.target.value)}
-                  placeholder="New List Name..."
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") createFolderUnder(null);
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      createFolderUnder(null);
+                    }
                   }}
-                  autoFocus
                 />
-                <button onClick={() => createFolderUnder(null)}>Add</button>
+                <button onClick={() => createFolderUnder(null)}>Create</button>
               </div>
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  );
 
-          <div className="sidebar-section">
-            <div className="section-title">TAGS</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {availableTags.map((tg) => (
-                <button
-                  key={tg}
-                  className={`nav-item ${tagFilter === tg ? "active" : ""}`}
-                  style={{ padding: "4px 8px", fontSize: "0.8rem" }}
-                  onClick={() => setTagFilter((p) => (p === tg ? null : tg))}
-                >
-                  {tg}
+  // 2. Task View: Task List with Hamburger
+  const renderTaskList = () => (
+    <div className="tdl-root single-column">
+      {/* Drawer Sidebar (Overlay) */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            <motion.div 
+              className="drawer-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+            />
+            <motion.div 
+              className="sidebar drawer"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            >
+              <div className="sidebar-header">
+                <h2>Directories</h2>
+                <button className="sidebarToggle" onClick={() => setSidebarOpen(false)}>
+                  <X size={20} />
                 </button>
-              ))}
-            </div>
-          </div>
-        </div>
+              </div>
+              <div className="sidebar-content">
+                <div className="sidebar-section">
+                  <div className="section-title">FOLDERS</div>
+                  <ul>
+                    {rootFolders.map((f) => (
+                      <FolderNode
+                        key={f.id}
+                        folder={f}
+                        childrenMap={childrenMap}
+                        currentFolderId={currentFolderId}
+                        setCurrentFolderId={(id) => {
+                          setCurrentFolderId(id);
+                          if (id) {
+                            setActiveView("folder"); // Set activeView to trigger task fetching
+                            setSidebarOpen(false);
+                          }
+                        }}
+                        addSubfolderUI={addSubfolderUI}
+                        creatingUnder={creatingUnder}
+                        setCreatingUnder={setCreatingUnder}
+                        newFolderInput={newFolderInput}
+                        setNewFolderInput={setNewFolderInput}
+                        createFolderUnder={createFolderUnder}
+                        deleteFolder={deleteFolder}
+                        setShowFolderDetailMobile={setShowFolderDetailMobile}
+                        isMobile={true}
+                        onFolderDragStart={onFolderDragStart}
+                        onFolderDragOver={onFolderDragOver}
+                        onFolderDrop={onFolderDrop}
+                        dragOverFolderId={dragOverFolderId}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-        <div className="sidebar-footer">
-          {/* <button onClick={requestNotificationPermission}>🔔 Enable Notifications</button> */}
-          {/* <button onClick={() => auth.signOut()}>↪ Sign out</button> */}
-        </div>
-      </aside>
-
-      {/* CENTER: Main Content */}
-      <main className="main-content">
+      <div className="main-content full-width">
         <header>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {isMobile && !sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#fff",
-                  fontSize: 20,
-                }}
-              >
-                ☰
-              </button>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button 
+              className="icon-btn" 
+              onClick={() => setSidebarOpen(true)}
+              title="Open Folders"
+            >
+              <Menu size={24} />
+            </button>
             <h1>
-              {activeView === "folder"
-                ? foldersFlat.find((f) => f.id === currentFolderId)?.text ||
-                  "Select a List"
-                : activeView.charAt(0).toUpperCase() + activeView.slice(1)}
+              {activeView === 'folder' 
+                ? (foldersFlat.find(f => f.id === currentFolderId)?.text || 'Tasks')
+                : activeView === 'today' ? 'Today'
+                : activeView === 'upcoming' ? 'Upcoming'
+                : 'Tasks'}
             </h1>
           </div>
-          <div style={{ color: "var(--color-muted)" }}>
-            {visibleTasks.length} tasks
+          <div className="header-actions">
+            {/* Add view toggles or search here if needed */}
           </div>
         </header>
 
@@ -1248,104 +1244,129 @@ export default function TdlF() {
             <input
               value={taskInput}
               onChange={(e) => setTaskInput(e.target.value)}
-              placeholder="Add a new task..."
-              onKeyDown={(e) => {
-                if (e.key === "Enter") addTask(e);
-              }}
+              onKeyDown={(e) => e.key === "Enter" && addTask(e)}
+              placeholder="Add a task..."
             />
           </div>
 
           <div className="tasks-list">
-            {visibleTasks.map((t) => {
-              const index = tasks.findIndex((x) => x.id === t.id);
-              return (
-                <div
-                  key={t.id}
-                  className={`task-item ${t.isActive ? "completed" : ""}`}
-                  draggable
-                  onDragStart={(e) => onDragStart(e, index)}
+            <AnimatePresence mode="popLayout">
+              {visibleTasks.map((task, idx) => (
+                <motion.div
+                  key={task.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  draggable={activeView === "folder"}
+                  onDragStart={(e) => onDragStart(e, idx)}
                   onDragOver={onDragOver}
-                  onDrop={(e) => onDrop(e, index)}
-                  onClick={() => setSelectedTaskId(t.id)}
+                  onDrop={(e) => onDrop(e, idx)}
+                  className={`task-item ${task.isActive ? "completed" : ""} ${
+                    selectedTaskId === task.id ? "selected" : ""
+                  }`}
+                  onClick={() => setSelectedTaskId(task.id)}
                 >
                   <div
-                    className={`checkbox ${t.isActive ? "checked" : ""}`}
+                    className={`checkbox ${task.isActive ? "checked" : ""}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleTask(t.id, t.isActive);
+                      toggleTask(task.id, task.isActive, task.folderId);
                     }}
                   >
-                    {t.isActive && "✓"}
+                    {task.isActive && <Check size={14} color="#fff" />}
                   </div>
-
                   <div className="task-content">
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <span className="task-text">{t.text}</span>
-                      {t.tags &&
-                        t.tags.map((tg) => (
+                    <span className="task-text">{task.text}</span>
+                    <div className="task-meta">
+                      {task.dueDate && (
+                        <span className="meta-tag">📅 {task.dueDate}</span>
+                      )}
+                      {task.tags &&
+                        task.tags.map((tag, i) => (
                           <span
-                            key={tg.label}
-                            className="meta-tag glowing-tag"
+                            key={i}
+                            className="meta-tag"
                             style={{
-                              backgroundColor: tg.color,
-                              boxShadow: `0 0 8px ${tg.color}, 0 0 4px ${tg.color}`,
+                              color: tag.color,
+                              background: `${tag.color}20`,
                             }}
                           >
-                            {tg.label}
+                            #{tag.label}
                           </span>
                         ))}
                     </div>
-                    <div className="task-meta">
-                      {t.dueDate && <span>📅 {t.dueDate}</span>}
-                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </main>
-
-      {/* RIGHT: Details Panel */}
-      <aside className="right-panel">
-        <div className="panel-inner">
-          <AnimatePresence mode="wait">
-            {selectedTaskId ? (
-              <TaskDetail
-                key={`task-${selectedTaskId}`}
-                taskId={selectedTaskId}
-                onClose={() => setSelectedTaskId(null)}
-              />
-            ) : selectedFolderId ? (
-              <FolderDetail
-                key={`folder-${selectedFolderId}`}
-                folder={foldersFlat.find((f) => f.id === selectedFolderId)}
-                onClose={() => setSelectedFolderId(null)}
-              />
-            ) : currentFolderId ? (
-              <FolderDetail
-                key={`folder-${currentFolderId}`}
-                folder={foldersFlat.find((f) => f.id === currentFolderId)}
-                onClose={() => setSelectedFolderId(null)}
-              />
-            ) : (
-              <div
-                className="muted"
-                style={{ textAlign: "center", marginTop: "50%" }}
-              >
-                Select a task to view details
+                  <button
+                    className="delete-btn-icon"
+                    onClick={(e) => deleteTask(task.id, e)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {visibleTasks.length === 0 && (
+              <div className="empty-state">
+                <p>No tasks found</p>
               </div>
             )}
-          </AnimatePresence>
+          </div>
         </div>
-      </aside>
+      </div>
     </div>
   );
+
+  // 3. Detail View: Task Details
+  const renderTaskDetail = () => (
+    <div className="tdl-root single-column">
+      <div className="right-panel full-width">
+        <div className="panel-inner">
+          <div className="detail-header">
+            <button 
+              className="back-btn" 
+              onClick={() => setSelectedTaskId(null)}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: 'var(--color-text)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                padding: 0
+              }}
+            >
+              <ArrowLeft size={20} />
+              Back to Tasks
+            </button>
+            <div className="actions">
+              <button 
+                className="danger"
+                onClick={(e) => deleteTask(selectedTaskId, e)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          
+          <TaskDetail 
+            taskId={selectedTaskId} 
+            onClose={() => setSelectedTaskId(null)} 
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Main Render Switch
+  if (selectedTaskId) {
+    return renderTaskDetail();
+  } else if (currentFolderId || activeView !== 'folder') {
+    return renderTaskList();
+  } else {
+    return renderFolderList();
+  }
 }

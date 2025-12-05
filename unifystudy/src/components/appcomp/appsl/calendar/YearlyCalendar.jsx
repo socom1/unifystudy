@@ -60,6 +60,18 @@ const YearlyCalendar = () => {
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
+  // Sync Status
+  const [syncStatus, setSyncStatus] = useState({ google: false, outlook: false });
+  useEffect(() => {
+    const checkSync = () => {
+      const saved = localStorage.getItem('calendar-sync-status');
+      if (saved) setSyncStatus(JSON.parse(saved));
+    };
+    checkSync();
+    window.addEventListener('storage', checkSync); // Listen for changes
+    return () => window.removeEventListener('storage', checkSync);
+  }, []);
+
   const handlePrev = () => {
     setDirection(-1);
     if (currentMonth === 0) {

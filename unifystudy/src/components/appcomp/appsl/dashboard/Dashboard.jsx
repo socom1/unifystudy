@@ -252,10 +252,6 @@ export default function Dashboard({ user }) {
       {/* 1. Header Section */}
       <header className="dashboard-header">
         <div className="header-left">
-          <div className="logo-area">
-            <span className="logo-icon">⚡</span>
-            <span className="logo-text">UnifyStudy</span>
-          </div>
           <div className="user-welcome">
             <div className="avatar-circle">
               {user?.photoURL ? <img src={user.photoURL} alt="User" /> : "U"}

@@ -11,16 +11,17 @@ const NotificationManager = ({ user }) => {
     const db = getDatabase();
 
     // 1. Break Reminders (Every 50 minutes)
-    const breakInterval = setInterval(() => {
-      const now = Date.now();
-      if (now - lastBreakTime.current > 50 * 60 * 1000) {
-        new Notification("Time for a Break!", {
-          body: "You've been studying for 50 minutes. Take a 5-minute stretch!",
-          icon: '/favicon.ico'
-        });
-        lastBreakTime.current = now;
-      }
-    }, 60 * 1000); // Check every minute
+    // NOTE: Disabled - should be tied to Pomodoro timer usage, not automatic
+    // const breakInterval = setInterval(() => {
+    //   const now = Date.now();
+    //   if (now - lastBreakTime.current > 50 * 60 * 1000) {
+    //     new Notification("Time for a Break!", {
+    //       body: "You've been studying for 50 minutes. Take a 5-minute stretch!",
+    //       icon: '/favicon.ico'
+    //     });
+    //     lastBreakTime.current = now;
+    //   }
+    // }, 60 * 1000); // Check every minute
 
     // 2. Daily Digest (On Mount/Login)
     const checkDailyDigest = async () => {
@@ -95,7 +96,7 @@ const NotificationManager = ({ user }) => {
     }, 60 * 60 * 1000); // Check every hour
 
     return () => {
-      clearInterval(breakInterval);
+      // clearInterval(breakInterval); // Disabled
       clearInterval(deadlineInterval);
     };
   }, [user]);

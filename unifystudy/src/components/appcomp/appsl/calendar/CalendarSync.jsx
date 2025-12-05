@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { Calendar, Check, RefreshCw, Plus, X } from 'lucide-react';
 import './CalendarSync.scss';
 
-const CalendarSync = ({ onSync }) => {
-  const [connected, setConnected] = useState({
-    google: false,
-    outlook: false
+const CalendarSync = ({ onSync, userEmail }) => {
+  const [connected, setConnected] = useState(() => {
+    const saved = localStorage.getItem('calendar-sync-status');
+    return saved ? JSON.parse(saved) : { google: false, outlook: false };
   });
   const [isSyncing, setIsSyncing] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -15,14 +15,22 @@ const CalendarSync = ({ onSync }) => {
     setIsSyncing(true);
     // Simulate API call/Auth flow
     setTimeout(() => {
-      setConnected(prev => ({ ...prev, [provider]: true }));
+      setConnected(prev => {
+        const newState = { ...prev, [provider]: true };
+        localStorage.setItem('calendar-sync-status', JSON.stringify(newState));
+        return newState;
+      });
       setIsSyncing(false);
       if (onSync) onSync(provider);
     }, 1500);
   };
 
   const handleDisconnect = (provider) => {
-    setConnected(prev => ({ ...prev, [provider]: false }));
+    setConnected(prev => {
+      const newState = { ...prev, [provider]: false };
+      localStorage.setItem('calendar-sync-status', JSON.stringify(newState));
+      return newState;
+    });
   };
 
   return (
@@ -54,7 +62,7 @@ const CalendarSync = ({ onSync }) => {
                   <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" alt="Google" />
                   <div>
                     <h4>Google Calendar</h4>
-                    <p>{connected.google ? 'Connected as user@gmail.com' : 'Import events from Google'}</p>
+                    <p>{connected.google ? `Connected as ${userEmail || 'User'}` : 'Import events from Google'}</p>
                   </div>
                 </div>
                 {connected.google ? (
@@ -78,7 +86,7 @@ const CalendarSync = ({ onSync }) => {
                   <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" alt="Outlook" />
                   <div>
                     <h4>Outlook Calendar</h4>
-                    <p>{connected.outlook ? 'Connected' : 'Import events from Outlook'}</p>
+                    <p>{connected.outlook ? `Connected as ${userEmail || 'User'}` : 'Import events from Outlook'}</p>
                   </div>
                 </div>
                 {connected.outlook ? (

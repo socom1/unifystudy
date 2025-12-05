@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 // Force rebuild
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -24,7 +25,9 @@ import {
   Library,
   Focus,
   CalendarRange,
-  Users
+  Users,
+  Menu,
+  X
 } from "lucide-react";
 import { db, auth } from "../appsl/firebase";
 import { ref, onValue, runTransaction, query, limitToLast, onChildAdded } from "firebase/database";
@@ -35,6 +38,26 @@ export default function Sidebar({ user, onSignOut }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // Mobile Detection
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
   // Focus Mode Toggle Handler
   const toggleFocusMode = () => {
@@ -167,7 +190,7 @@ export default function Sidebar({ user, onSignOut }) {
         key={item.to}
         to={item.to}
         className={`nav-item ${isActive ? "active" : ""}`}
-        title={isCollapsed ? item.label : ""}
+        title={isCollapsed && !isMobile ? item.label : ""}
       >
         <div className="nav-icon-wrapper">
           <Icon size={22} />
@@ -175,10 +198,225 @@ export default function Sidebar({ user, onSignOut }) {
             <span className="notification-badge">{item.badge > 99 ? '99+' : item.badge}</span>
           )}
         </div>
-        {!isCollapsed && <span className="nav-label">{item.label}</span>}
+        {(!isCollapsed || isMobile) && <span className="nav-label">{item.label}</span>}
       </Link>
     );
   };
+
+  const SidebarContent = () => (
+    <>
+      {/* Navigation Links */}
+      <nav className="sidebar-nav">
+        {/* DASHBOARD */}
+        <div className="nav-section">
+          {renderNavItem({ icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" })}
+        </div>
+
+        {/* PRODUCTIVITY Section */}
+        <div className="nav-section">
+          {(!isCollapsed || isMobile) && <div className="section-label">PRODUCTIVITY</div>}
+          {renderNavItem({ icon: Timer, label: "Pomodoro", to: "/pomodoro" })}
+          {renderNavItem({ icon: Calendar, label: "Timetable", to: "/timetable" })}
+          {renderNavItem({ icon: CheckSquare, label: "To-Do", to: "/todo" })}
+          {renderNavItem({ icon: StickyNote, label: "Notes", to: "/notes" })}
+          <Link
+            to="/calendar"
+            className={`nav-item ${location.pathname === '/calendar' ? 'active' : ''}`}
+            title={isCollapsed && !isMobile ? "Yearly Calendar" : ""}
+          >
+            <CalendarRange size={22} />
+            {(!isCollapsed || isMobile) && <span>Yearly Calendar</span>}
+          </Link>
+        </div>
+
+        {/* STUDY & COLLAB Section */}
+        <div className="nav-section">
+          {(!isCollapsed || isMobile) && <div className="section-label">STUDY & COLLAB</div>}
+          <Link
+            to="/mindmap"
+            className={`nav-item ${location.pathname === '/mindmap' ? 'active' : ''}`}
+            title={isCollapsed && !isMobile ? "Mind Map" : ""}
+          >
+            <BrainCircuit size={22} />
+            {(!isCollapsed || isMobile) && <span>Mind Map</span>}
+          </Link>
+          <Link
+            to="/workspace"
+            className={`nav-item ${location.pathname === '/workspace' ? 'active' : ''}`}
+            title={isCollapsed && !isMobile ? "Collaborative Workspace" : ""}
+          >
+            <Users size={22} />
+            {(!isCollapsed || isMobile) && <span>Workspace</span>}
+          </Link>
+          <Link
+            to="/study-buddy"
+            className={`nav-item ${location.pathname === '/study-buddy' ? 'active' : ''}`}
+            title={isCollapsed && !isMobile ? "Find Study Buddy" : ""}
+          >
+            <GraduationCap size={22} />
+            {(!isCollapsed || isMobile) && <span>Study Buddy</span>}
+          </Link>
+          {renderNavItem({ icon: MessageSquare, label: "Chat", to: "/chat", badge: unreadCount })}
+        </div>
+
+        {/* PROGRESS Section */}
+        <div className="nav-section">
+          {(!isCollapsed || isMobile) && <div className="section-label">PROGRESS</div>}
+          {renderNavItem({ icon: GraduationCap, label: "Grades", to: "/grades" })}
+          {renderNavItem({ icon: Trophy, label: "Leaderboard", to: "/leaderboard" })}
+          {renderNavItem({ icon: ShoppingBag, label: "Shop", to: "/shop" })}
+        </div>
+
+        {/* SETTINGS Section */}
+        <div className="nav-section">
+          {(!isCollapsed || isMobile) && <div className="section-label">SETTINGS</div>}
+          <Link
+            to="#"
+            className={`nav-item ${isFocusMode ? 'active' : ''}`}
+            onClick={(e) => {
+              e.preventDefault();
+              toggleFocusMode();
+            }}
+            title={isCollapsed && !isMobile ? "Focus Mode" : ""}
+          >
+            <Focus size={22} />
+            {(!isCollapsed || isMobile) && <span>Focus Mode</span>}
+          </Link>
+
+          <Link
+            to="/profile"
+            className={`nav-item ${location.pathname === '/profile' ? 'active' : ''}`}
+            title={isCollapsed && !isMobile ? "Settings" : ""}
+          >
+            <Settings size={22} />
+            {(!isCollapsed || isMobile) && <span className="nav-label">Settings</span>}
+          </Link>
+        </div>
+      </nav>
+
+      {/* Footer / User Section */}
+      <div className="sidebar-footer">
+        {user ? (
+          <div className="user-section">
+            <Link to="/profile" className="user-info">
+              <div className="avatar">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="User" />
+                ) : (
+                  <User size={20} />
+                )}
+              </div>
+              {(!isCollapsed || isMobile) && (
+                <div className="user-details">
+                  <span className="user-name">{user.displayName || "Student"}</span>
+                  <span className="user-role">Pro Plan</span>
+                </div>
+              )}
+            </Link>
+            {(!isCollapsed || isMobile) && (
+              <button onClick={onSignOut} className="logout-btn" title="Sign Out">
+                <LogOut size={20} />
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="user-section">
+            <Link to="/login" className="nav-item">
+              <LogOut size={20} />
+              {(!isCollapsed || isMobile) && <span>Sign In</span>}
+            </Link>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile Top Bar */}
+        <div className="mobile-top-bar">
+          <div className="logo-container">
+            <div className="logo-icon">&gt;_</div>
+            <span className="logo-text">UnifyStudy</span>
+          </div>
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu size={24} />
+          </button>
+        </div>
+
+        {/* Mobile Drawer */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <>
+              <motion.div
+                className="drawer-backdrop"
+                onClick={() => setIsMobileMenuOpen(false)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              />
+              <motion.div 
+                className="mobile-drawer"
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              >
+                <div className="drawer-header">
+                  {/* User Profile at Top */}
+                  {user ? (
+                    <div className="mobile-user-profile">
+                      <div className="avatar-large">
+                        {user.photoURL ? (
+                          <img src={user.photoURL} alt="User" />
+                        ) : (
+                          <User size={32} />
+                        )}
+                      </div>
+                      <div className="user-info-large">
+                        <span className="user-name-large">{user.displayName || "Student"}</span>
+                        <span className="user-role-large">Free Plan</span>
+                      </div>
+                    </div>
+                  ) : (
+                     <div className="logo-container">
+                      <div className="logo-icon">&gt;_</div>
+                      <span className="logo-text">UnifyStudy</span>
+                    </div>
+                  )}
+                  
+                  <button
+                    className="close-drawer-btn"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <SidebarContent />
+
+                {/* Upgrade to Pro Card */}
+                <div className="pro-card">
+                  <div className="pro-icon">
+                    <img src="https://images.unsplash.com/photo-1633409361618-c73427e4e206?q=80&w=2080&auto=format&fit=crop" alt="Pro" />
+                  </div>
+                  <div className="pro-content">
+                    <h3>Upgrade to PRO</h3>
+                    <p>One year support, monthly updates for up to 5 team members.</p>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </>
+    );
+  }
 
   return (
     <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
@@ -197,109 +435,7 @@ export default function Sidebar({ user, onSignOut }) {
         </button>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="sidebar-nav">
-        {/* GENERAL Section */}
-        <div className="nav-section">
-          {!isCollapsed && <div className="section-label">GENERAL</div>}
-          {generalItems.map(renderNavItem)}
-        </div>
-
-        {/* TOOLS/RESOURCES Section */}
-        <div className="nav-section">
-          {!isCollapsed && <div className="section-label">TOOLS/RESOURCES</div>}
-          {toolsItems.map(renderNavItem)}
-        </div>
-
-        {/* SETTINGS Section */}
-        <div className="nav-section">
-          {!isCollapsed && <div className="section-label">SETTINGS</div>}
-          <button
-            className={`nav-item ${isFocusMode ? 'active' : ''}`}
-            onClick={toggleFocusMode}
-            title={isCollapsed ? "Focus Mode" : ""}
-          >
-            <Focus size={22} />
-            {!isCollapsed && <span>Focus Mode</span>}
-          </button>
-
-          <Link
-            to="/calendar"
-            className={`nav-item ${location.pathname === '/calendar' ? 'active' : ''}`}
-            title={isCollapsed ? "Yearly Calendar" : ""}
-          >
-            <CalendarRange size={22} />
-            {!isCollapsed && <span>Yearly Calendar</span>}
-          </Link>
-
-          <Link 
-            to="/workspace" 
-            className={`nav-item ${location.pathname === '/workspace' ? 'active' : ''}`}
-            title={isCollapsed ? "Collaborative Workspace" : ""}
-          >
-            <Users size={22} />
-            {!isCollapsed && <span>Workspace</span>}
-          </Link>
-
-          <Link 
-            to="/study-buddy" 
-            className={`nav-item ${location.pathname === '/study-buddy' ? 'active' : ''}`}
-            title={isCollapsed ? "Find Study Buddy" : ""}
-          >
-            <GraduationCap size={22} />
-            {!isCollapsed && <span>Study Buddy</span>}
-          </Link>
-
-          <Link
-            to="/mindmap"
-            className={`nav-item ${location.pathname === '/mindmap' ? 'active' : ''}`}
-            title={isCollapsed ? "Mind Map" : ""}
-          >
-            <BrainCircuit size={22} />
-            {!isCollapsed && <span>Mind Map</span>}
-          </Link>
-
-          <Link
-            to="/profile"
-            className={`nav-item ${location.pathname === '/profile' ? 'active' : ''}`}
-            title={isCollapsed ? "Settings" : ""}
-          >
-            <Settings size={22} />
-            {!isCollapsed && <span className="nav-label">Settings</span>}
-          </Link>
-        </div>
-      </nav>
-
-      {/* Footer / User Section */}
-      <div className="sidebar-footer">
-        {user ? (
-          <div className="user-section">
-            <Link to="/profile" className="user-info">
-              <div className="avatar">
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="User" />
-                ) : (
-                  <User size={20} />
-                )}
-              </div>
-              {!isCollapsed && (
-                <div className="user-details">
-                  <span className="user-name">{user.displayName || "User"}</span>
-                  <span className="user-role">Student</span>
-                </div>
-              )}
-            </Link>
-            <button className="logout-btn" onClick={onSignOut} title="Sign Out">
-              <LogOut size={20} />
-            </button>
-          </div>
-        ) : (
-          <Link to="/signup" className="nav-item">
-            <User size={22} />
-            {!isCollapsed && <span>Sign In</span>}
-          </Link>
-        )}
-      </div>
+      <SidebarContent />
     </div>
   );
 }

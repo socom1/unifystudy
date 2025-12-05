@@ -32,7 +32,7 @@ const StudyBuddy = () => {
           </div>
           <div className="feature">
             <MessageCircle size={20} />
-            <span>Direct Messaging</span>
+            <span>Tutor Messaging</span>
           </div>
         </div>
         <span className="badge">Coming Soon...</span>

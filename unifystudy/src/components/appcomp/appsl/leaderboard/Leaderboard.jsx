@@ -149,20 +149,14 @@ export default function Leaderboard() {
         </div>
       ) : (
         <div className="lb-list">
-          <AnimatePresence mode="wait">
-            {leaders.map((user, index) => (
-              <motion.div 
-                layout
-                key={user.uid}
-                className={`lb-item ${index < 3 ? 'top-3' : ''}`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ delay: index * 0.03, type: "spring", stiffness: 300, damping: 30 }}
-                onClick={() => setSelectedUser(user)}
-              >
+          {leaders.map((user, i) => (
+            <div 
+              key={user.uid}
+              className={`lb-item ${i < 3 ? 'top-3' : ''}`}
+              onClick={() => setSelectedUser(user)}
+            >
                 <div className="rank">
-                  {index + 1}
+                  {i + 1}
                 </div>
                 
                 <div className="lb-avatar">
@@ -178,17 +172,16 @@ export default function Leaderboard() {
                     {user.tag && <span className="user-tag">{user.tag}</span>}
                   </div>
                   <div className="tags">
-                    {index === 0 && <span className="tag gold">👑 King</span>}
-                    {index === 1 && <span className="tag silver">🥈 Elite</span>}
-                    {index === 2 && <span className="tag bronze">🥉 Pro</span>}
+                    {i === 0 && <span className="tag gold">👑 King</span>}
+                    {i === 1 && <span className="tag silver">🥈 Elite</span>}
+                    {i === 2 && <span className="tag bronze">🥉 Pro</span>}
                   </div>
                 </div>
                 <div className="score">
                   {formatScore(user.score)}
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
         </div>
       )}
 

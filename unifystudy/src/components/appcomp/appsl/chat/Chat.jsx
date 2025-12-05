@@ -10,6 +10,7 @@ import {
   orderByChild,
   limitToLast,
   get,
+  onChildAdded,
 } from "firebase/database";
 import {
   ref as storageRef,
@@ -32,6 +33,7 @@ import {
   File,
   Menu,
   X,
+  MessageSquare,
 } from "lucide-react"; // Added Paperclip, File, Menu, X
 import "./Chat.scss";
 
@@ -49,12 +51,16 @@ const UserAvatar = ({ photoURL, displayName, avatarColor, className }) => {
     );
   }
 
+  // Show "?" for anonymous or unknown users
+  const isAnonymous = !displayName || displayName.toLowerCase() === 'anonymous' || displayName.trim() === '';
+  const initial = isAnonymous ? '?' : displayName[0].toUpperCase();
+
   return (
     <div
-      className={`avatar-placeholder ${className}`} // Added className here
+      className={`avatar-placeholder ${className}`}
       style={{ background: avatarColor || "#21262d", color: "white" }}
     >
-      {displayName ? displayName[0] : "?"}
+      {initial}
     </div>
   );
 };
@@ -88,6 +94,12 @@ const Chat = () => {
   // Rename State
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [renameValue, setRenameValue] = useState("");
+
+  // Notifications & Mentions
+  const [unreadChannels, setUnreadChannels] = useState({}); // { channelId: count }
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [showMentionPicker, setShowMentionPicker] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   // Mobile State
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // New state for mobile menu
@@ -237,6 +249,66 @@ const Chat = () => {
     return () => unsubscribe();
   }, [activeChannel]);
 
+  // Listen for unread messages in background channels
+  useEffect(() => {
+    if (!user) return;
+    
+    // We need to listen to all channels to track unread counts
+    // This is a simplified approach. Ideally, we'd have a separate listener for "lastMessage" of each channel.
+    // For now, we'll rely on the global listener in Sidebar to handle the "Global" count,
+    // but for specific channels, we can listen to `users/{uid}/unreadChannelCounts` if we implemented that,
+    // OR we can just listen to the channels we know about.
+    
+    // Let's implement a local listener for unread counts if the user is in the Chat component
+    const handleNewBackgroundMessage = (snapshot, channelId) => {
+      if (channelId === activeChannel) return; // Already viewing
+      
+      const msg = snapshot.val();
+      if (!msg || msg.uid === user.uid) return;
+      
+      setUnreadChannels(prev => ({
+        ...prev,
+        [channelId]: (prev[channelId] || 0) + 1
+      }));
+    };
+
+    const listeners = [];
+    
+    // Listen to global
+    const globalRef = query(ref(db, "global_chat"), limitToLast(1));
+    const unsubGlobal = onChildAdded(globalRef, (snap) => handleNewBackgroundMessage(snap, "global"));
+    listeners.push(unsubGlobal);
+    
+    // Listen to subjects
+    subjects.forEach(sub => {
+      const subRef = query(ref(db, `channels/${sub.id}`), limitToLast(1));
+      const unsub = onChildAdded(subRef, (snap) => handleNewBackgroundMessage(snap, sub.id));
+      listeners.push(unsub);
+    });
+    
+    // Listen to private/DMs
+    [...privateChannels, ...directMessages].forEach(ch => {
+      const chRef = query(ref(db, `channels/${ch.id}/messages`), limitToLast(1));
+      const unsub = onChildAdded(chRef, (snap) => handleNewBackgroundMessage(snap, ch.id));
+      listeners.push(unsub);
+    });
+    
+    return () => {
+      listeners.forEach(unsub => unsub());
+    };
+  }, [user, activeChannel, privateChannels, directMessages]);
+
+  // Clear unread for active channel
+  useEffect(() => {
+    if (activeChannel) {
+      setUnreadChannels(prev => {
+        const newCounts = { ...prev };
+        delete newCounts[activeChannel];
+        return newCounts;
+      });
+    }
+  }, [activeChannel]);
+
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -290,15 +362,57 @@ const Chat = () => {
         avatarColor: anonymousMode ? "#333" : avatarColor,
         isAnonymous: anonymousMode,
         timestamp: serverTimestamp(),
-        type: "text", // Added type for text messages
+        type: "text",
       };
 
       await set(newMsgRef, messageData);
       setNewMessage("");
+      setShowMentionPicker(false);
     } catch (err) {
       console.error("Send Error:", err);
       setError("Failed to send message: " + err.message);
     }
+  };
+
+
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setNewMessage(val);
+    setCursorPosition(e.target.selectionStart);
+
+    // Detect @mention
+    const lastAt = val.lastIndexOf("@", e.target.selectionStart);
+    if (lastAt !== -1) {
+      const query = val.slice(lastAt + 1, e.target.selectionStart);
+      if (!query.includes(" ")) {
+        setMentionQuery(query);
+        setShowMentionPicker(true);
+        return;
+      }
+    }
+    setShowMentionPicker(false);
+  };
+
+  const insertMention = (userName) => {
+    const before = newMessage.slice(0, newMessage.lastIndexOf("@", cursorPosition));
+    const after = newMessage.slice(cursorPosition);
+    const newVal = `${before}@${userName} ${after}`;
+    setNewMessage(newVal);
+    setShowMentionPicker(false);
+    // Focus back on input (ref needed)
+  };
+
+  const renderMessageText = (text) => {
+    if (!text) return null;
+    // Simple regex for @mentions
+    const parts = text.split(/(@\w+(?:\s\w+)?)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("@")) {
+        return <span key={i} className="mention-highlight">{part}</span>;
+      }
+      return part;
+    });
   };
 
   const handleFileUpload = async (e) => {
@@ -499,7 +613,7 @@ const Chat = () => {
       <AnimatePresence>
         {selectedUserProfile && (
           <motion.div
-            className="modal-overlay"
+            className="profile-modal-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -507,45 +621,70 @@ const Chat = () => {
             style={{ zIndex: 1100 }}
           >
             <motion.div
-              className="profile-card-modal"
+              className="profile-modal-card"
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button 
-                className="close-btn"
-                onClick={() => setSelectedUserProfile(null)}
-              >
-                <X size={20} />
-              </button>
-              
-              <div className="profile-header">
-                <UserAvatar
-                  photoURL={selectedUserProfile.photoURL}
-                  displayName={selectedUserProfile.displayName}
-                  avatarColor={selectedUserProfile.avatarColor}
-                  className="profile-avatar-large"
-                />
-                <h3>{selectedUserProfile.displayName}</h3>
-                <span className="profile-status">
-                  {selectedUserProfile.isAnonymous ? "Anonymous Student" : "Student"}
-                </span>
-              </div>
-
-              <div className="profile-actions">
+              <div 
+                className="modal-banner" 
+                style={{ 
+                  background: selectedUserProfile.bannerGradient || 
+                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                }}
+              />
+              <div className="modal-content">
+                <div className="modal-avatar">
+                  <UserAvatar
+                    photoURL={selectedUserProfile.photoURL}
+                    displayName={selectedUserProfile.displayName}
+                    avatarColor={selectedUserProfile.avatarColor}
+                    className="profile-avatar-large"
+                  />
+                </div>
+                <h2 className="modal-name">
+                  {selectedUserProfile.displayName || 'Unknown User'}
+                  {selectedUserProfile.tag && <span className="modal-tag">{selectedUserProfile.tag}</span>}
+                </h2>
+                <div className="modal-stats">
+                  <div className="stat-item">
+                    <span className="label">Status</span>
+                    <span className="value">
+                      {selectedUserProfile.isAnonymous ? "Anonymous" : "Online"}
+                    </span>
+                  </div>
+                  {selectedUserProfile.totalTime !== undefined && (
+                    <div className="stat-item">
+                      <span className="label">Study Time</span>
+                      <span className="value">{selectedUserProfile.totalTime}</span>
+                    </div>
+                  )}
+                  {selectedUserProfile.currency !== undefined && (
+                    <div className="stat-item">
+                      <span className="label">Lumens</span>
+                      <span className="value">💡 {selectedUserProfile.currency}</span>
+                    </div>
+                  )}
+                </div>
+                
                 {user && user.uid !== selectedUserProfile.uid && (
-                  <button 
-                    className="action-btn primary"
-                    onClick={handleStartDirectChat}
-                  >
-                    <Send size={16} />
-                    {directMessages.some(dm => dm.id.includes(selectedUserProfile.uid)) 
-                      ? "Send Message" 
-                      : "Start Chat"}
-                  </button>
+                  <div className="profile-actions">
+                    <button 
+                      className="action-btn primary"
+                      onClick={handleStartDirectChat}
+                    >
+                      <Send size={16} />
+                      {directMessages.some(dm => dm.id.includes(selectedUserProfile.uid)) 
+                        ? "Send Message" 
+                        : "Start Chat"}
+                    </button>
+                  </div>
                 )}
               </div>
+              <button className="close-btn" onClick={() => setSelectedUserProfile(null)}>
+                Close
+              </button>
             </motion.div>
           </motion.div>
         )}
@@ -733,6 +872,9 @@ const Chat = () => {
           >
             <Hash size={18} />
             <span>global-chat</span>
+            {unreadChannels["global"] > 0 && (
+              <span className="channel-badge">{unreadChannels["global"]}</span>
+            )}
           </div>
 
           <div className="section-label mt-4">SUBJECTS</div>
@@ -749,6 +891,9 @@ const Chat = () => {
             >
               <Hash size={18} />
               <span>{sub.name}</span>
+              {unreadChannels[sub.id] > 0 && (
+                <span className="channel-badge">{unreadChannels[sub.id]}</span>
+              )}
             </div>
           ))}
 
@@ -793,6 +938,9 @@ const Chat = () => {
             >
               <Lock size={16} />
               <span>{pc.name}</span>
+              {unreadChannels[pc.id] > 0 && (
+                <span className="channel-badge">{unreadChannels[pc.id]}</span>
+              )}
             </div>
           ))}
 
@@ -854,173 +1002,221 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Main Chat Area */}
+      {/* Mention Picker */}
+      <AnimatePresence>
+        {showMentionPicker && (
+          <motion.div
+            className="mention-picker"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+          >
+            {allUsers
+              .filter(u => u.displayName.toLowerCase().includes(mentionQuery.toLowerCase()))
+              .map(u => (
+                <div 
+                  key={u.uid} 
+                  className="mention-item"
+                  onClick={() => insertMention(u.displayName)}
+                >
+                  <UserAvatar 
+                    photoURL={u.photoURL} 
+                    displayName={u.displayName} 
+                    avatarColor={u.avatarColor}
+                    className="picker-avatar-small"
+                  />
+                  <span>{u.displayName}</span>
+                </div>
+              ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+    <div className="chat-container">
+      {/* Chat Main */}
       <div className="chat-main">
         <div className="chat-header">
-          <div
-            className="mobile-menu-btn"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <Menu size={24} />
-          </div>
-          <div className="channel-info">
-            {activeChannel === "global" ||
-            subjects.find((s) => s.id === activeChannel) ? (
-              <Hash size={20} className="text-muted" />
-            ) : (
-              <Lock size={20} className="text-muted" />
-            )}
-            <h3>{activeChannelName}</h3>
-            <span className="topic">
-              {activeChannel === "global"
-                ? "General discussion"
-                : subjects.find((s) => s.id === activeChannel)
-                ? `Study help for ${activeChannelName}`
-                : "Private Group"}
-            </span>
+          <div className="header-left">
+            <button 
+              className="mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu size={20} />
+            </button>
+            <div className="channel-info">
+              <h2>
+                {isPrivateOrDM ? <Lock size={20} /> : <Hash size={20} />}
+                {activeChannelName}
+              </h2>
+              <span className="channel-desc">
+                {activeChannel === "global"
+                  ? "Global chat room for all students"
+                  : isPrivateOrDM
+                  ? "Private conversation"
+                  : `Discussion channel for ${activeChannelName}`}
+              </span>
+            </div>
           </div>
           <div className="header-actions">
             {isPrivateOrDM && (
-              <>
-                <Users
-                  size={20}
-                  onClick={() => {
-                    setIsAddingUser(true);
-                    setShowUserPicker(true);
-                  }}
-                  title="Add People"
-                />
-                <MoreVertical
-                  size={20}
-                  onClick={() => {
-                    setRenameValue(activeChannelName);
-                    setShowRenameModal(true);
-                  }}
-                  title="Rename Chat"
-                />
-              </>
+              <button 
+                className="action-btn"
+                onClick={() => setShowRenameModal(true)}
+                title="Rename Channel"
+              >
+                <MoreVertical size={20} />
+              </button>
             )}
+            <button 
+              className="action-btn"
+              onClick={() => {
+                setIsAddingUser(true);
+                setShowUserPicker(true);
+              }}
+              title="Add People"
+            >
+              <Users size={20} />
+            </button>
           </div>
         </div>
 
-        <div className="messages-container">
-          {loading ? (
-            <div className="loading">
-              <div className="spinner"></div> {/* Updated loading spinner */}
-              <p>Loading messages...</p> {/* Updated loading text */}
-            </div>
-          ) : error ? (
-            <div className="error-state">
-              <AlertCircle size={32} color="#f85149" />
-              <h3>Connection Error</h3>
-              <p>{error}</p>
-              <p className="sub-text">Check your internet or database rules.</p>
+        {/* Messages Area */}
+        <div className="messages-area">
+          {loading && messages.length === 0 ? (
+            <div className="loading-state">
+              <div className="spinner" />
+              <p>Loading messages...</p>
             </div>
           ) : messages.length === 0 ? (
             <div className="empty-state">
-              <Hash size={48} color="#30363d" />
-              <h3>Welcome to #{activeChannelName}!</h3>
-              <p>Be the first to say hello.</p>
+              <div className="empty-icon">
+                <MessageSquare size={48} />
+              </div>
+              <h3>No messages yet</h3>
+              <p>Be the first to start the conversation!</p>
             </div>
           ) : (
-            <div className="messages-list">
-              {messages.map((msg, index) => {
-                const isMe = user && msg.uid === user.uid;
-                const showAvatar =
-                  index === 0 || messages[index - 1].uid !== msg.uid;
+            messages.map((msg, index) => {
+              const isOwn = user && msg.uid === user.uid;
+              const showAvatar =
+                !isOwn &&
+                (index === 0 || messages[index - 1].uid !== msg.uid);
 
-                return (
-                  <motion.div
-                    key={msg.id}
-                    className={`message-group ${isMe ? "me" : ""}`}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    {showAvatar && (
-                      <div 
-                        className="message-avatar"
-                        onClick={() => handleProfileClick(msg)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <UserAvatar
-                          photoURL={msg.photoURL}
-                          displayName={msg.displayName}
-                          avatarColor={msg.avatarColor}
-                        />
+              return (
+                <motion.div
+                  key={msg.id}
+                  className={`message-row ${isOwn ? "own" : ""}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  {!isOwn && (
+                    <div className="message-avatar">
+                      {showAvatar && (
+                        <div onClick={() => handleProfileClick(msg)} style={{ cursor: "pointer" }}>
+                          <UserAvatar
+                            photoURL={msg.photoURL}
+                            displayName={msg.displayName}
+                            avatarColor={msg.avatarColor}
+                            className="msg-avatar"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="message-content">
+                    {!isOwn && showAvatar && (
+                      <div className="message-sender">
+                        <span 
+                          className="sender-name"
+                          onClick={() => handleProfileClick(msg)}
+                        >
+                          {msg.displayName}
+                        </span>
+                        <span className="message-time">
+                          {formatTime(msg.timestamp)}
+                        </span>
                       </div>
                     )}
 
-                    <div className="message-content">
-                      {showAvatar && (
-                        <div className="message-meta">
-                          <span 
-                            className="sender"
-                            onClick={() => handleProfileClick(msg)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            {msg.displayName}
-                          </span>
-                          <span className="timestamp">
-                            {formatTime(msg.timestamp)}
-                          </span>
-                        </div>
-                      )}
+                    <div className={`message-bubble ${msg.type || "text"}`}>
                       {msg.type === "image" ? (
-                        <div className="message-image">
-                          <img src={msg.fileURL} alt="Uploaded content" />
+                        <div className="media-content">
+                          <img 
+                            src={msg.fileURL} 
+                            alt="Shared image" 
+                            loading="lazy"
+                            onClick={() => window.open(msg.fileURL, '_blank')}
+                          />
                         </div>
                       ) : msg.type === "file" ? (
-                        <div className="message-file">
+                        <div className="file-attachment">
                           <File size={24} />
-                          <a
-                            href={msg.fileURL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {msg.fileName}
-                          </a>
+                          <div className="file-info">
+                            <span className="file-name">{msg.fileName}</span>
+                            <a 
+                              href={msg.fileURL} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="download-link"
+                            >
+                              Download
+                            </a>
+                          </div>
                         </div>
                       ) : (
-                        <div className="message-bubble">{msg.text}</div>
+                        <p>{renderMessageText(msg.text)}</p>
                       )}
                     </div>
-                  </motion.div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
+                    
+                    {isOwn && (
+                      <div className="message-status">
+                         {formatTime(msg.timestamp)}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })
           )}
+          <div ref={messagesEndRef} />
         </div>
 
-        <form className="input-area" onSubmit={sendMessage}>
-          <div className={`input-wrapper ${!user ? "disabled" : ""}`}>
-            <div
-              className="input-tools"
+        {/* Input Area */}
+        <form className="chat-input-area" onSubmit={sendMessage}>
+          <div className="input-wrapper">
+            <button
+              type="button"
+              className="attach-btn"
               onClick={() => fileInputRef.current?.click()}
             >
               <Paperclip size={20} />
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                onChange={handleFileUpload}
-              />
-            </div>
+            </button>
             <input
-              type="text"
-              placeholder={
-                user ? `Message #${activeChannelName}` : "Please log in to chat"
-              }
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              disabled={!user}
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={handleFileUpload}
             />
-            <button type="submit" disabled={!user || !newMessage.trim()}>
-              <Send size={18} />
+            
+            <input
+              className="message-input"
+              placeholder={`Message #${activeChannelName}...`}
+              value={newMessage}
+              onChange={handleInputChange}
+            />
+            
+            <button
+              type="submit"
+              className="send-btn"
+              disabled={!newMessage.trim() && !loading}
+            >
+              <Send size={20} />
             </button>
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 };

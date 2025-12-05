@@ -6,15 +6,25 @@ import "./Shop.scss";
 
 const THEMES = [
   { id: "default", name: "Default Dark", price: 0, color: "#4b6c82" },
-  // Basic Themes
-  { id: "midnight", name: "Midnight Purple", price: 100, color: "#6c5ce7" },
-  { id: "forest", name: "Forest Green", price: 100, color: "#00b894" },
-  { id: "ocean", name: "Ocean Blue", price: 100, color: "#0984e3" },
-  // Premium Themes
-  { id: "obsidian", name: "Obsidian", price: 5000, color: "#ffd700" }, // Gold
-  { id: "nebula", name: "Nebula", price: 3500, color: "#d900ff" }, // Neon Purple
-  { id: "glass", name: "Glass", price: 3000, color: "#a8d0e6" }, // Light Blue/White
-  { id: "sunset", name: "Sunset", price: 2500, color: "#e17055" },
+  // Coding Classics
+  { id: "dracula", name: "Dracula", price: 150, color: "#bd93f9" },
+  { id: "monokai", name: "Monokai Pro", price: 150, color: "#f92672" },
+  { id: "solarized-dark", name: "Solarized Dark", price: 150, color: "#268bd2" },
+  { id: "nord", name: "Nord", price: 150, color: "#88c0d0" },
+  { id: "gruvbox", name: "Gruvbox", price: 150, color: "#d79921" },
+  { id: "onedark", name: "One Dark", price: 150, color: "#61afef" },
+  { id: "tokyo-night", name: "Tokyo Night", price: 200, color: "#7aa2f7" },
+  { id: "catppuccin", name: "Catppuccin", price: 200, color: "#cba6f7" },
+  // Neon/Cyberpunk
+  { id: "synthwave", name: "Synthwave '84", price: 250, color: "#ff00aa" },
+  { id: "cyberpunk", name: "Cyberpunk", price: 250, color: "#00ffff" },
+  { id: "neon-dream", name: "Neon Dream", price: 250, color: "#0ff" },
+  // Premium/Exclusive
+  { id: "midnight", name: "Midnight Purple", price: 300, color: "#6c5ce7" },
+  { id: "forest", name: "Forest Green", price: 300, color: "#00b894" },
+  { id: "ocean", name: "Ocean Blue", price: 300, color: "#0984e3" },
+  { id: "obsidian", name: "Obsidian", price: 5000, color: "#ffd700" },
+  { id: "nebula", name: "Nebula", price: 3500, color: "#d900ff" },
 ];
 
 const PROFILE_TAGS = [
@@ -34,16 +44,38 @@ const ICON_SETS = [
   { id: "retro", name: "Retro Pixel", description: "8-bit nostalgia", price: 1200, preview: "▣" },
 ];
 
+const BANNERS = [
+  { id: "default", name: "Default", type: "gradient", price: 0, preview: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+  // Emoji Banners
+  { id: "rocket", name: "🚀 Rocket", type: "emoji", price: 50, preview: "🚀" },
+  { id: "laptop", name: "💻 Laptop", type: "emoji", price: 50, preview: "💻" },
+  { id: "moon", name: "🌙 Moon", type: "emoji", price: 75, preview: "🌙" },
+  { id: "lightning", name: "⚡ Lightning", type: "emoji", price: 75, preview: "⚡" },
+  { id: "fire", name: "🔥 Fire", type: "emoji", price: 100, preview: "🔥" },
+  { id: "star", name: "⭐ Star", type: "emoji", price: 100, preview: "⭐" },
+  { id: "brain", name: "🧠 Brain", type: "emoji", price: 120, preview: "🧠" },
+  { id: "trophy", name: "🏆 Trophy", type: "emoji", price: 150, preview: "🏆" },
+  // Gradient Banners
+  { id: "sunset", name: "Sunset", type: "gradient", price: 100, preview: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
+  { id: "ocean", name: "Ocean", type: "gradient", price: 100, preview: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
+  { id: "forest", name: "Forest", type: "gradient", price: 100, preview: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
+  { id: "aurora", name: "Aurora", type: "gradient", price: 150, preview: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)" },
+  { id: "cyber", name: "Cyberpunk", type: "gradient", price: 200, preview: "linear-gradient(135deg, #f093fb 0%, #00d4ff 100%)" },
+  { id: "matrix", name: "Matrix", type: "gradient", price: 200, preview: "linear-gradient(135deg, #00ff41 0%, #00b712 100%)" },
+];
+
 export default function Shop() {
   const [coins, setCoins] = useState(0);
   const [unlockedThemes, setUnlockedThemes] = useState(["default"]);
   const [unlockedTags, setUnlockedTags] = useState([]);
   const [unlockedIcons, setUnlockedIcons] = useState(["default"]);
+  const [unlockedBanners, setUnlockedBanners] = useState(["default"]);
   const [currentTheme, setCurrentTheme] = useState("default");
   const [equippedTag, setEquippedTag] = useState(null);
   const [currentIconSet, setCurrentIconSet] = useState("default");
+  const [currentBanner, setCurrentBanner] = useState("default");
   const [userId, setUserId] = useState(null);
-  const [activeTab, setActiveTab] = useState("themes"); // "themes" | "tags" | "icons"
+  const [activeTab, setActiveTab] = useState("themes"); // "themes" | "tags" | "icons" | "banners"
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((u) => setUserId(u ? u.uid : null));
@@ -60,9 +92,11 @@ export default function Shop() {
         setUnlockedThemes(data.unlockedThemes || ["default"]);
         setUnlockedTags(data.unlockedTags || []);
         setUnlockedIcons(data.unlockedIcons || ["default"]);
+        setUnlockedBanners(data.unlockedBanners || ["default"]);
         setCurrentTheme(data.settings?.theme || "default");
         setEquippedTag(data.settings?.profileTag || null);
         setCurrentIconSet(data.settings?.iconSet || "default");
+        setCurrentBanner(data.settings?.banner || "default");
       }
     });
     return () => unsub();
@@ -96,6 +130,11 @@ export default function Shop() {
               if (!user.unlockedIcons.includes(item.id)) {
                 user.unlockedIcons.push(item.id);
               }
+            } else if (type === "banner") {
+              if (!user.unlockedBanners) user.unlockedBanners = ["default"];
+              if (!user.unlockedBanners.includes(item.id)) {
+                user.unlockedBanners.push(item.id);
+              }
             }
           }
         }
@@ -118,6 +157,10 @@ export default function Shop() {
 
   const equipIconSet = (iconSetId) => {
     update(ref(db, `users/${userId}/settings`), { iconSet: iconSetId });
+  };
+
+  const equipBanner = (bannerId) => {
+    update(ref(db, `users/${userId}/settings`), { banner: bannerId });
   };
 
   return (
@@ -148,6 +191,12 @@ export default function Shop() {
           onClick={() => setActiveTab("icons")}
         >
           ✨ Icon Sets
+        </button>
+        <button 
+          className={activeTab === "banners" ? "active" : ""}
+          onClick={() => setActiveTab("banners")}
+        >
+          🎨 Banners
         </button>
       </div>
 
@@ -279,6 +328,61 @@ export default function Shop() {
                     <button 
                       className="buy-btn"
                       onClick={() => buyItem(iconSet, "icon")}
+                    >
+                      Buy
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {activeTab === "banners" && (
+        <div className="items-grid">
+          {BANNERS.map(banner => {
+            const isUnlocked = unlockedBanners.includes(banner.id);
+            const isEquipped = currentBanner === banner.id;
+
+            return (
+              <motion.div 
+                key={banner.id} 
+                className={`item-card ${isEquipped ? 'equipped' : ''}`}
+                whileHover={{ y: -5 }}
+              >
+                <div 
+                  className="preview banner-preview" 
+                  style={{
+                    background: banner.type === 'gradient' ? banner.preview : '#1e1e1e',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: banner.type === 'emoji' ? '5rem' : '1rem'
+                  }}
+                >
+                  {banner.type === 'emoji' ? banner.preview : ''}
+                  {isEquipped && <span className="badge">Equipped</span>}
+                </div>
+                <div className="info">
+                  <h3>{banner.name}</h3>
+                  <div className="price">
+                    {isUnlocked ? "Owned" : `${banner.price} Lumens`}
+                  </div>
+                </div>
+                <div className="actions">
+                  {isUnlocked ? (
+                    <button 
+                      className="equip-btn" 
+                      disabled={isEquipped}
+                      onClick={() => equipBanner(banner.id)}
+                    >
+                      {isEquipped ? "Active" : "Equip"}
+                    </button>
+                  ) : (
+                    <button 
+                      className="buy-btn"
+                      onClick={() => buyItem(banner, "banner")}
                     >
                       Buy
                     </button>

@@ -449,9 +449,19 @@
   color: #fff;
 }
 .folderNode .folderChildren {
-  padding-left: 16px;
-  margin-left: 9px;
+  list-style: none;
+  margin: 0;
+  padding-left: 1.5rem;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
   border-left: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
+}
+.folderNode .folderRow.open + .folderChildren,
+.folderNode .folderNode:has(.folderRow.open) > .folderChildren {
+  max-height: 2000px;
+  opacity: 1;
 }
 
 /* Add New List / Subfolder Input Styles */
@@ -600,4 +610,81 @@
 }
 .folderNode .folderChildren {
   overflow: hidden;
+}
+
+/* Single Column Layout Overrides */
+.tdl-root.single-column {
+  position: relative;
+  /* Drawer Styles */
+  /* Header Updates */
+  /* Folder List specific */
+}
+.tdl-root.single-column .sidebar, .tdl-root.single-column .main-content, .tdl-root.single-column .right-panel {
+  width: 100%;
+  flex: 1;
+  border: none;
+}
+.tdl-root.single-column .full-width {
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+.tdl-root.single-column .drawer-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+  z-index: 40;
+}
+.tdl-root.single-column .sidebar.drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100%;
+  z-index: 50;
+  background: var(--glass-bg);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  transform: none !important; /* Override default sidebar transform */
+}
+.tdl-root.single-column header {
+  padding: 1rem 1.5rem;
+}
+.tdl-root.single-column header h1 {
+  font-size: 1.25rem;
+}
+.tdl-root.single-column header .icon-btn {
+  background: none;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tdl-root.single-column header .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.tdl-root.single-column .sidebar.full-width {
+  background: transparent;
+  border: none;
+}
+.tdl-root.single-column .sidebar.full-width .sidebar-header {
+  padding: 1.5rem;
+}
+.tdl-root.single-column .sidebar.full-width .sidebar-header h2 {
+  font-size: 1.5rem;
+  color: var(--color-text);
+}
+
+/* Ensure detail panel content fits */
+.right-panel .detail-header {
+  padding-top: 0;
 }/*# sourceMappingURL=tdlF.css.map */

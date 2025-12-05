@@ -99,6 +99,21 @@ const Workspace = ({ user }) => {
   const [editorContent, setEditorContent] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
   
+  // Page navigation state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pagesContent, setPagesContent] = useState({ 1: '' });
+
+  // Update pagesContent when editor blurs
+  const handleEditorBlur = (e) => {
+    const content = e.target.innerHTML;
+    setEditorContent(content);
+    setPagesContent(prev => ({
+      ...prev,
+      [currentPage]: content
+    }));
+  };
+  
   // Pagination
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
@@ -108,6 +123,11 @@ const Workspace = ({ user }) => {
   const [showChatSidebar, setShowChatSidebar] = useState(true);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [newMemberEmail, setNewMemberEmail] = useState('');
+  
+  // File/Folder creation modals
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
+  const [showCreateFileModal, setShowCreateFileModal] = useState(false);
+  const [newItemName, setNewItemName] = useState('');
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -166,6 +186,7 @@ const Workspace = ({ user }) => {
     const userRef = ref(db, `workspaces/${workspaceId}/users/${user.uid}`);
     const userData = {
       name: user.displayName || 'Anonymous',
+      photoURL: user.photoURL || null,
       color: '#' + Math.floor(Math.random()*16777215).toString(16),
       status: 'online'
     };
@@ -222,32 +243,41 @@ const Workspace = ({ user }) => {
   };
 
   // File Operations
-  const createFolder = async () => {
-    const name = prompt("Enter folder name:");
-    if (!name) return;
+  const createFolder = async (e) => {
+    e?.preventDefault();
+    if (!newItemName.trim()) return;
+    
     const filesRef = ref(db, `workspaces/${workspaceId}/files`);
     await push(filesRef, {
-      name,
+      name: newItemName,
       type: 'folder',
-      parentId: null, // Root level by default
+      parentId: null,
       createdAt: serverTimestamp(),
       createdBy: user.uid
     });
+    
+    setNewItemName('');
+    setShowCreateFolderModal(false);
   };
 
-  const createTextFile = async () => {
-    const name = prompt("Enter file name:");
-    if (!name) return;
+  const createTextFile = async (e) => {
+    e?.preventDefault();
+    if (!newItemName.trim()) return;
+    
     const filesRef = ref(db, `workspaces/${workspaceId}/files`);
+    const fileName = newItemName.endsWith('.txt') ? newItemName : `${newItemName}.txt`;
     const newFileRef = await push(filesRef, {
-      name: name.endsWith('.txt') ? name : `${name}.txt`,
+      name: fileName,
       type: 'file',
       content: '',
       parentId: null,
       createdAt: serverTimestamp(),
       createdBy: user.uid
     });
-    setActiveFile({ id: newFileRef.key, name, type: 'file', content: '' });
+    
+    setActiveFile({ id: newFileRef.key, name: fileName, type: 'file', content: '' });
+    setNewItemName('');
+    setShowCreateFileModal(false);
   };
 
   const handleFileUpload = async (e) => {
@@ -308,9 +338,9 @@ const Workspace = ({ user }) => {
       >
         <motion.header 
           className="dashboard-header"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.4 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
           <h1>My Projects</h1>
           <button className="create-btn" onClick={() => setShowCreateModal(true)}>
@@ -325,10 +355,9 @@ const Workspace = ({ user }) => {
             <motion.div 
               key={project.id} 
               className="project-card"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              whileHover={{ y: -5, scale: 1.02 }}
+              initial={false}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.15 }}
               onClick={() => enterWorkspace(project.id)}
             >
               <div className="card-icon">
@@ -434,8 +463,18 @@ const Workspace = ({ user }) => {
         <div className="header-actions">
           <div className="active-users">
             {activeUsers.map((u, i) => (
-              <div key={i} className="user-avatar" style={{ backgroundColor: u.color }} title={u.name}>
-                {u.name[0]}
+              <div 
+                key={i} 
+                className="user-avatar" 
+                style={{ 
+                  backgroundColor: u.color,
+                  backgroundImage: u.photoURL ? `url(${u.photoURL})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }} 
+                title={u.name}
+              >
+                {!u.photoURL && u.name[0]}
               </div>
             ))}
           </div>
@@ -458,13 +497,13 @@ const Workspace = ({ user }) => {
             initial={{ x: -250 }}
             animate={{ x: 0 }}
             exit={{ x: -250 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <div className="sidebar-header">
               <h3>Explorer</h3>
               <div className="file-actions">
-                <button onClick={createFolder} title="New Folder"><Folder size={16} /></button>
-                <button onClick={createTextFile} title="New File"><FileText size={16} /></button>
+                <button onClick={() => { setNewItemName(''); setShowCreateFolderModal(true); }} title="New Folder"><Folder size={16} /></button>
+                <button onClick={() => { setNewItemName(''); setShowCreateFileModal(true); }} title="New File"><FileText size={16} /></button>
                 <button onClick={() => fileInputRef.current?.click()} title="Upload PDF"><Upload size={16} /></button>
                 <button onClick={() => setShowFileSidebar(false)} title="Close Sidebar"><PanelLeftClose size={16} /></button>
                 <input 
@@ -526,14 +565,47 @@ const Workspace = ({ user }) => {
                     )}
                   </div>
                 </div>
-                <div 
-                  className="rich-text-editor"
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={(e) => setEditorContent(e.target.innerHTML)}
-                >
-                  <h1>{activeFile.name}</h1>
-                  <p>Start typing...</p>
+                <div className="workspace-document">
+                  <div className="page-controls">
+                    <div className="page-nav">
+                      <button 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        ← Previous
+                      </button>
+                      <span className="page-indicator">Page {currentPage} of {totalPages}</span>
+                      <button 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next →
+                      </button>
+                    </div>
+                    <button 
+                      className="new-page-btn"
+                      onClick={() => {
+                        const newPage = totalPages + 1;
+                        setTotalPages(newPage);
+                        setCurrentPage(newPage);
+                        setPagesContent(prev => ({ ...prev, [newPage]: '' }));
+                      }}
+                    >
+                      + New Page
+                    </button>
+                  </div>
+                  
+                  <div className="workspace-page">
+                    <div className="page-number">Page {currentPage}</div>
+                    <div 
+                      key={currentPage} // Force re-render on page change
+                      className="rich-text-editor"
+                      contentEditable
+                      suppressContentEditableWarning
+                      onBlur={handleEditorBlur}
+                      dangerouslySetInnerHTML={{ __html: pagesContent[currentPage] || (currentPage === 1 ? `<h1>${activeFile.name}</h1><p>Start typing...</p>` : '') }}
+                    />
+                  </div>
                 </div>
               </div>
             )
@@ -551,7 +623,7 @@ const Workspace = ({ user }) => {
             initial={{ x: 300 }}
             animate={{ x: 0 }}
             exit={{ x: 300 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <div className="sidebar-header">
               <h3>Team Chat</h3>
@@ -616,6 +688,86 @@ const Workspace = ({ user }) => {
               </form>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Folder Modal */}
+      <AnimatePresence>
+        {showCreateFolderModal && (
+          <div className="modal-backdrop" onClick={() => setShowCreateFolderModal(false)}>
+            <motion.div 
+              className="event-form"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="header">
+                <h3>Create New Folder</h3>
+              </div>
+              <form onSubmit={createFolder}>
+                <div className="form-group">
+                  <label>Folder Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="My Folder" 
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <div className="form-buttons">
+                  <button type="button" className="cancel-btn" onClick={() => setShowCreateFolderModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="save-btn">
+                    <Plus size={16} />
+                    Create
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Create File Modal */}
+      <AnimatePresence>
+        {showCreateFileModal && (
+          <div className="modal-backdrop" onClick={() => setShowCreateFileModal(false)}>
+            <motion.div 
+              className="event-form"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="header">
+                <h3>Create New Text File</h3>
+              </div>
+              <form onSubmit={createTextFile}>
+                <div className="form-group">
+                  <label>File Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="notes.txt" 
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <div className="form-buttons">
+                  <button type="button" className="cancel-btn" onClick={() => setShowCreateFileModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="save-btn">
+                    <Plus size={16} />
+                    Create
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </motion.div>

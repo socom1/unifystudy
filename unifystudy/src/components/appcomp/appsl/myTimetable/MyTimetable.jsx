@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "../firebase";
 import { ref, onValue, push, set, remove } from "firebase/database";
 import { Plus, Bell, BellOff, X, Trash2, Save } from "lucide-react";
-import CalendarSync from '../calendar/CalendarSync';
-import "./mt.css";
+import "./MyTimetable.scss";
+
+console.log("MyTimetable Component Loaded"); // Debug log
 
 const colors = [
   "var(--color-primary)",
@@ -38,13 +39,19 @@ export default function WeeklyCalendar() {
     color: colors[0],
   });
   const [userId, setUserId] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
 
   // Track logged-in user
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) setUserId(user.uid);
-      else setUserId(null);
+      if (user) {
+        setUserId(user.uid);
+        setUserEmail(user.email);
+      } else {
+        setUserId(null);
+        setUserEmail(null);
+      }
     });
     return unsubscribe;
   }, []);
@@ -165,12 +172,22 @@ export default function WeeklyCalendar() {
               </button>
             )}
           <div className="header-actions">
-          <CalendarSync onSync={(provider) => console.log(`Synced with ${provider}`)} />
-          <button className="add-btn" onClick={() => setIsFormOpen(true)}>
-            <Plus size={20} />
-            Add Event
-          </button>
-        </div>
+            <button className="add-btn" onClick={() => {
+              setForm({
+                title: "",
+                description: "",
+                day: "Monday",
+                start: 8,
+                end: 9,
+                color: colors[0],
+              });
+              setEditingEventId(null);
+              setIsFormOpen(true);
+            }}>
+              <Plus size={20} />
+              Add Event
+            </button>
+          </div>
         </div>
       </div>
 
@@ -331,33 +348,59 @@ export default function WeeklyCalendar() {
       </AnimatePresence>
 
       <div className="calendar-wrapper">
-        <div className="calendar-body">
-          {/* Time Sidebar */}
-          <div className="time-sidebar">
-            <div className="time-header-spacer"></div>
-            {hours.map((hour) => (
-              <div
-                key={hour}
-                className="time-label"
-                style={{ height: ROW_HEIGHT }}
-              >
-                <span>{hour}:00</span>
+        {/* 1. Sticky Header Row (Days) */}
+        <div className="header-row-sticky">
+          <div className="time-header-spacer"></div> {/* Empty box above time sidebar */}
+          <div className="days-header-row">
+            {days.map(day => (
+              <div key={day} className="day-header-cell">
+                <span className="desktop-day">{day}</span>
+                <span className="mobile-day">{day.slice(0, 3)}</span>
               </div>
             ))}
           </div>
+        </div>
 
-          {/* Days Columns */}
-          <div className="days-grid">
-            {days.map((day) => (
-              <DayColumn
-                key={day}
-                day={day}
-                events={eventsByDay[day]}
-                onEditEvent={editEvent}
-              />
-            ))}
-            {/* Global Dashed Line */}
-            <GlobalCurrentTimeLine />
+        {/* 2. Scrollable Body (Times + Grid) */}
+        <div className="calendar-scroll-area">
+          <div className="calendar-content">
+            
+            {/* A. Time Sidebar (Scrolls with grid) */}
+            <div className="time-sidebar">
+              {hours.map((hour) => (
+                <div
+                  key={hour}
+                  className="time-label"
+                  style={{ height: ROW_HEIGHT }}
+                >
+                  <span>{hour}:00</span>
+                </div>
+              ))}
+            </div>
+
+            {/* B. Days Grid (Scrolls with sidebar) */}
+            <div className="days-grid-body">
+              <div className="days-content-wrapper">
+                {/* Layer A: Background Grid Lines */}
+                <BackgroundGrid />
+
+                {/* Layer B: Event Columns */}
+                <div className="events-layer">
+                  {days.map((day) => (
+                    <DayColumn
+                      key={day}
+                      day={day}
+                      events={eventsByDay[day]}
+                      onEditEvent={editEvent}
+                    />
+                  ))}
+                </div>
+
+                {/* Layer C: Global Time Line */}
+                <GlobalCurrentTimeLine />
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -433,21 +476,65 @@ const NotificationManager = ({ events, userId }) => {
   return null;
 };
 
-// Memoized Day Column to prevent unnecessary re-renders
+// Background Grid Component (Renders full-width lines)
+const BackgroundGrid = () => {
+  return (
+    <div className="background-grid">
+      {hours.map((hour) => (
+        <div
+          key={hour}
+          className="grid-line-row"
+          style={{ height: ROW_HEIGHT }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Self-updating Day Time Line
+const DayCurrentTimeLine = ({ day }) => {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const startHour = 8;
+  const endHour = 24; // Extended to midnight so line shows late at night
+
+  if (currentHour < startHour || currentHour >= endHour) return null;
+
+  const daysArr = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const currentDayName = daysArr[now.getDay()];
+
+  if (day !== currentDayName) return null;
+
+  const topOffset =
+    (currentHour - startHour) * ROW_HEIGHT + (currentMinute / 60) * ROW_HEIGHT;
+
+  return (
+    <div className="current-time-line" style={{ top: `${topOffset}px` }}>
+      <div className="time-dot" />
+    </div>
+  );
+};
+
+// Memoized Day Column (Events Only)
 const DayColumn = memo(({ day, events, onEditEvent }) => {
   return (
     <div className="day-column">
-      <div className="day-header">{day}</div>
       <div className="day-content">
-        {/* Background Grid Lines */}
-        {hours.map((hour) => (
-          <div
-            key={hour}
-            className="grid-line"
-            style={{ height: ROW_HEIGHT }}
-          ></div>
-        ))}
-
         {/* Events for this day */}
         <AnimatePresence>
           {events &&
@@ -490,62 +577,26 @@ const GlobalCurrentTimeLine = () => {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60000);
+    const interval = setInterval(() => setNow(new Date()), 10000); // Update every 10s
     return () => clearInterval(interval);
   }, []);
 
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
   const startHour = 8;
-  const endHour = 21; // 9 PM
+  const endHour = 24; // Extended to midnight so line shows late at night
 
   if (currentHour < startHour || currentHour >= endHour) return null;
 
-  // Calculate pixel offset
-  const topOffset =
-    (currentHour - startHour) * ROW_HEIGHT + (currentMinute / 60) * ROW_HEIGHT;
-
-  // Add 50px to account for the day header height
-  return (
-    <div className="global-time-line" style={{ top: `${topOffset + 50}px` }} />
-  );
-};
-
-// Self-updating Day Time Line
-const DayCurrentTimeLine = ({ day }) => {
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-  const startHour = 8;
-  const endHour = 21; // 9 PM
-
-  if (currentHour < startHour || currentHour >= endHour) return null;
-
-  const daysArr = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const currentDayName = daysArr[now.getDay()];
-
-  if (day !== currentDayName) return null;
-
+  // Calculate pixel offset relative to the grid container
   const topOffset =
     (currentHour - startHour) * ROW_HEIGHT + (currentMinute / 60) * ROW_HEIGHT;
 
   return (
-    <div className="current-time-line" style={{ top: `${topOffset}px` }}>
-      <div className="time-dot" />
+    <div className="global-time-line-active" style={{ top: `${topOffset}px` }}>
+      <div className="time-label-tag">
+        {currentHour}:{currentMinute.toString().padStart(2, '0')}
+      </div>
     </div>
   );
 };

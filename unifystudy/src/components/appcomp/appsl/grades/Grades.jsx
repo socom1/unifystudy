@@ -9,7 +9,7 @@ export default function Grades() {
   const [subjects, setSubjects] = useState([]);
   const [newSubjectName, setNewSubjectName] = useState("");
   const [selectedSubject, setSelectedSubject] = useState(null);
-  
+
   // Assessment form
   const [assessName, setAssessName] = useState("");
   const [assessScore, setAssessScore] = useState("");
@@ -30,7 +30,12 @@ export default function Grades() {
         const arr = Object.entries(data).map(([id, val]) => ({
           id,
           ...val,
-          assessments: val.assessments ? Object.entries(val.assessments).map(([aid, aval]) => ({ id: aid, ...aval })) : []
+          assessments: val.assessments
+            ? Object.entries(val.assessments).map(([aid, aval]) => ({
+                id: aid,
+                ...aval,
+              }))
+            : [],
         }));
         setSubjects(arr);
       } else {
@@ -57,20 +62,22 @@ export default function Grades() {
   const addAssessment = async (e) => {
     e.preventDefault();
     if (!selectedSubject || !assessName.trim() || !userId) return;
-    
+
     const score = parseFloat(assessScore);
     const total = parseFloat(assessTotal);
     const weight = parseFloat(assessWeight);
 
     if (isNaN(score) || isNaN(total) || isNaN(weight)) return;
 
-    const newRef = push(ref(db, `users/${userId}/grades/${selectedSubject.id}/assessments`));
+    const newRef = push(
+      ref(db, `users/${userId}/grades/${selectedSubject.id}/assessments`)
+    );
     await set(newRef, {
       name: assessName,
       score,
       total,
       weight,
-      date: Date.now()
+      date: Date.now(),
     });
 
     setAssessName("");
@@ -81,7 +88,9 @@ export default function Grades() {
 
   const deleteAssessment = async (aid) => {
     if (!selectedSubject || !userId) return;
-    await remove(ref(db, `users/${userId}/grades/${selectedSubject.id}/assessments/${aid}`));
+    await remove(
+      ref(db, `users/${userId}/grades/${selectedSubject.id}/assessments/${aid}`)
+    );
   };
 
   // Calculations
@@ -90,13 +99,15 @@ export default function Grades() {
     let totalWeightedScore = 0;
     let totalWeight = 0;
 
-    assessments.forEach(a => {
+    assessments.forEach((a) => {
       const percentage = (a.score / a.total) * 100;
       totalWeightedScore += percentage * a.weight;
       totalWeight += a.weight;
     });
 
-    return totalWeight === 0 ? 0 : (totalWeightedScore / totalWeight).toFixed(1);
+    return totalWeight === 0
+      ? 0
+      : (totalWeightedScore / totalWeight).toFixed(1);
   };
 
   const getLetterGrade = (avg) => {
@@ -119,7 +130,7 @@ export default function Grades() {
     if (subjects.length === 0) return 0;
     let sum = 0;
     let count = 0;
-    subjects.forEach(s => {
+    subjects.forEach((s) => {
       const avg = parseFloat(calculateAverage(s.assessments));
       if (avg > 0) {
         sum += avg;
@@ -145,30 +156,39 @@ export default function Grades() {
         {/* Sidebar: Subjects List */}
         <div className="subjects-sidebar">
           <form onSubmit={addSubject} className="add-subject-form">
-            <input 
+            <input
               value={newSubjectName}
               onChange={(e) => setNewSubjectName(e.target.value)}
               placeholder="New Subject (e.g. Math)"
             />
-            <button type="submit">+</button>
+            <button type="submit" className="add-subject-btn">
+              +
+            </button>
           </form>
 
           <div className="subjects-list">
-            {subjects.map(sub => {
+            {subjects.map((sub) => {
               const avg = calculateAverage(sub.assessments);
               return (
-                <div 
-                  key={sub.id} 
-                  className={`subject-card ${selectedSubject?.id === sub.id ? 'active' : ''}`}
+                <div
+                  key={sub.id}
+                  className={`subject-card ${
+                    selectedSubject?.id === sub.id ? "active" : ""
+                  }`}
                   onClick={() => setSelectedSubject(sub)}
                 >
                   <div className="sub-info">
                     <h3>{sub.name}</h3>
-                    <span className="sub-avg">{avg}% ({getLetterGrade(avg)})</span>
+                    <span className="sub-avg">
+                      {avg}% ({getLetterGrade(avg)})
+                    </span>
                   </div>
-                  <button 
+                  <button
                     className="delete-btn"
-                    onClick={(e) => { e.stopPropagation(); deleteSubject(sub.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteSubject(sub.id);
+                    }}
                   >
                     ×
                   </button>
@@ -187,19 +207,25 @@ export default function Grades() {
                 <div className="stats">
                   <div className="stat">
                     <span className="label">Average</span>
-                    <span className="val">{calculateAverage(selectedSubject.assessments)}%</span>
+                    <span className="val">
+                      {calculateAverage(selectedSubject.assessments)}%
+                    </span>
                   </div>
                   <div className="stat">
                     <span className="label">Grade</span>
-                    <span className="val">{getLetterGrade(calculateAverage(selectedSubject.assessments))}</span>
+                    <span className="val">
+                      {getLetterGrade(
+                        calculateAverage(selectedSubject.assessments)
+                      )}
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div className="assessments-list">
                 <AnimatePresence>
-                  {selectedSubject.assessments.map(a => (
-                    <motion.div 
+                  {selectedSubject.assessments.map((a) => (
+                    <motion.div
                       key={a.id}
                       className="assessment-item"
                       initial={{ opacity: 0, y: 10 }}
@@ -208,52 +234,61 @@ export default function Grades() {
                     >
                       <div className="a-info">
                         <h4>{a.name}</h4>
-                        <span className="a-date">{new Date(a.date).toLocaleDateString()}</span>
+                        <span className="a-date">
+                          {new Date(a.date).toLocaleDateString()}
+                        </span>
                       </div>
                       <div className="a-score">
-                        <span className="score-val">{a.score}/{a.total}</span>
-                        <span className="percentage">{((a.score/a.total)*100).toFixed(1)}%</span>
+                        <span className="score-val">
+                          {a.score}/{a.total}
+                        </span>
+                        <span className="percentage">
+                          {((a.score / a.total) * 100).toFixed(1)}%
+                        </span>
                       </div>
-                      <div className="a-weight">
-                        Weight: {a.weight}x
-                      </div>
-                      <button onClick={() => deleteAssessment(a.id)} className="del-btn">×</button>
+                      <div className="a-weight">Weight: {a.weight}x</div>
+                      <button
+                        onClick={() => deleteAssessment(a.id)}
+                        className="del-btn"
+                      >
+                        ×
+                      </button>
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
 
               <form onSubmit={addAssessment} className="add-assessment-form">
-                <input 
-                  placeholder="Assessment Name" 
-                  value={assessName} 
-                  onChange={e => setAssessName(e.target.value)} 
+                <input
+                  placeholder="Assessment Name"
+                  value={assessName}
+                  onChange={(e) => setAssessName(e.target.value)}
                   required
                 />
                 <div className="row">
-                  <input 
-                    type="number" 
-                    placeholder="Score" 
-                    value={assessScore} 
-                    onChange={e => setAssessScore(e.target.value)} 
+                  <input
+                    type="number"
+                    placeholder="Score"
+                    value={assessScore}
+                    onChange={(e) => setAssessScore(e.target.value)}
                     required
                   />
                   <span>/</span>
-                  <input 
-                    type="number" 
-                    placeholder="Total" 
-                    value={assessTotal} 
-                    onChange={e => setAssessTotal(e.target.value)} 
+                  <input
+                    type="number"
+                    placeholder="Total"
+                    value={assessTotal}
+                    onChange={(e) => setAssessTotal(e.target.value)}
                     required
                   />
                 </div>
                 <div className="row weight-row">
                   <label>Weight:</label>
-                  <input 
-                    type="number" 
-                    step="0.1" 
-                    value={assessWeight} 
-                    onChange={e => setAssessWeight(e.target.value)} 
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={assessWeight}
+                    onChange={(e) => setAssessWeight(e.target.value)}
                   />
                 </div>
                 <button type="submit">Add Grade</button>
