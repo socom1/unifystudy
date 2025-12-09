@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "../firebase";
 import { ref, onValue, push, set, remove } from "firebase/database";
 import { Plus, Bell, BellOff, X, Trash2, Save } from "lucide-react";
+import Modal from "../../../common/Modal"; // Import shared Modal
 import "./MyTimetable.scss";
 
 console.log("MyTimetable Component Loaded"); // Debug log
@@ -191,27 +192,40 @@ export default function WeeklyCalendar() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {isFormOpen && (
-          <>
-            <motion.div
-              className="modal-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+      <Modal
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        title={editingEventId ? "Edit Event" : "New Event"}
+        footer={(
+          <div style={{ display: 'flex', gap: '1rem', width: '100%', justifyContent: 'flex-end', alignItems: 'center' }}>
+             {editingEventId && (
+              <button
+                type="button"
+                className="btn-danger"
+                style={{ marginRight: 'auto' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteEvent(editingEventId);
+                }}
+                title="Delete Event"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn-secondary"
               onClick={() => setIsFormOpen(false)}
-            />
-            <motion.form
-              onSubmit={addEvent}
-              className="event-form"
-              initial={{ opacity: 0, scale: 0.95, y: "-50%", x: "-50%" }}
-              animate={{ opacity: 1, scale: 1, y: "-50%", x: "-50%" }}
-              exit={{ opacity: 0, scale: 0.95, y: "-50%", x: "-50%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
             >
-              <div className="header">
-                <h3>{editingEventId ? "Edit Event" : "New Event"}</h3>
-              </div>
+              Cancel
+            </button>
+            <button type="button" className="btn-primary" onClick={addEvent} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Save size={18} /> {editingEventId ? "Save Changes" : "Add Event"}
+            </button>
+          </div>
+        )}
+      >
+          <div className="event-form-shared-body">
               <div className="form-group">
                 <div className="title">
                   <label>Title</label>
@@ -225,7 +239,7 @@ export default function WeeklyCalendar() {
                     placeholder="e.g. Math Class"
                   />
                 </div>
-                <div className="desc">
+                <div className="desc" style={{ marginTop: '1rem' }}>
                   <label>
                     Description{" "}
                     <span
@@ -246,8 +260,8 @@ export default function WeeklyCalendar() {
                   />
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group sel">
+              <div className="form-row" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                <div className="form-group sel" style={{ flex: 1 }}>
                   <div className="day">
                     <label>Day</label>
                     <select
@@ -264,7 +278,7 @@ export default function WeeklyCalendar() {
                     </select>
                   </div>
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ flex: 1 }}>
                   <div className="st">
                     <label>Start</label>
                     <select
@@ -281,7 +295,7 @@ export default function WeeklyCalendar() {
                     </select>
                   </div>
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ flex: 1 }}>
                   <div className="end">
                     <label>End</label>
                     <select
@@ -302,50 +316,26 @@ export default function WeeklyCalendar() {
               <div className="form-group">
                 <div className="cl">
                   <label>Color</label>
-                  <div className="color-picker">
+                  <div className="color-picker" style={{ display: 'flex', gap: '0.8rem'}}>
                     {colors.map((c) => (
                       <div
                         key={c}
                         className={`color-option ${
                           form.color === c ? "selected" : ""
                         }`}
-                        style={{ backgroundColor: c }}
+                        style={{ 
+                            backgroundColor: c, 
+                            width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer',
+                            border: form.color === c ? '2px solid white' : '2px solid transparent'
+                        }}
                         onClick={() => setForm({ ...form, color: c })}
                       />
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="form-buttons">
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => setIsFormOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="save-btn">
-                  <Save size={18} />{" "}
-                  {editingEventId ? "Save Changes" : "Add Event"}
-                </button>
-                {editingEventId && (
-                  <button
-                    type="button"
-                    className="delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteEvent(editingEventId);
-                    }}
-                    title="Delete Event"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                )}
-              </div>
-            </motion.form>
-          </>
-        )}
-      </AnimatePresence>
+          </div>
+      </Modal>
 
       <div className="calendar-wrapper">
         {/* 1. Sticky Header Row (Days) */}

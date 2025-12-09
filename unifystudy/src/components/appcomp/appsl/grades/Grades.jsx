@@ -2,13 +2,41 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "../firebase";
 import { ref, onValue, push, set, remove, update } from "firebase/database";
 import { motion, AnimatePresence } from "framer-motion";
+import { 
+  GraduationCap, 
+  Calendar as CalendarIcon, 
+  CheckSquare, 
+  MoreVertical, 
+  Plus, 
+  Trash2, 
+  TrendingUp, 
+  AlertCircle,
+  Clock,
+  ArrowRight
+} from "lucide-react";
 import "./Grades.scss";
 
-export default function Grades() {
+export default function SubjectHub() {
   const [userId, setUserId] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [newSubjectName, setNewSubjectName] = useState("");
   const [selectedSubject, setSelectedSubject] = useState(null);
+
+  // Hub Data
+  const [allTasks, setAllTasks] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    show: { opacity: 1, x: 0, transition: { duration: 0.3 } }
+  };
 
   // Assessment form
   const [assessName, setAssessName] = useState("");
@@ -21,6 +49,7 @@ export default function Grades() {
     return () => unsub();
   }, []);
 
+  // 1. Fetch Grades (Subjects)
   useEffect(() => {
     if (!userId) return;
     const gradesRef = ref(db, `users/${userId}/grades`);
@@ -44,6 +73,49 @@ export default function Grades() {
     });
     return () => unsub();
   }, [userId]);
+
+  // 2. Fetch Tasks for Linking
+  useEffect(() => {
+    if (!userId) return;
+    const foldersRef = ref(db, `users/${userId}/folders`);
+    const unsub = onValue(foldersRef, (snap) => {
+      const data = snap.val();
+      if (data) {
+        let tasks = [];
+        Object.values(data).forEach(folder => {
+          if (folder.tasks) {
+            Object.values(folder.tasks).forEach(task => {
+              if (!task.isActive) { // Only active active (not completed) tasks
+                tasks.push({
+                  ...task,
+                  folderName: folder.text
+                });
+              }
+            });
+          }
+        });
+        setAllTasks(tasks);
+      }
+    });
+    return () => unsub();
+  }, [userId]);
+
+  // 3. Fetch Calendar Events (LocalStorage)
+  useEffect(() => {
+    const loadEvents = () => {
+      const stored = localStorage.getItem('calendar-events');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setCalendarEvents(Array.isArray(parsed) ? parsed : []);
+        } catch (e) { console.error(e); }
+      }
+    };
+    loadEvents();
+    window.addEventListener('storage', loadEvents); 
+    return () => window.removeEventListener('storage', loadEvents);
+  }, []);
+
 
   const addSubject = async (e) => {
     e.preventDefault();
@@ -140,13 +212,56 @@ export default function Grades() {
     return count === 0 ? 0 : (sum / count).toFixed(1);
   };
 
+  // --- Filtering Linked Data ---
+  const getLinkedTasks = (subjectName) => {
+    if (!subjectName) return [];
+    const lowerName = subjectName.toLowerCase();
+    return allTasks.filter(t => 
+      (t.folderName && t.folderName.toLowerCase().includes(lowerName)) ||
+      (t.tags && t.tags.some(tag => tag.label.toLowerCase().includes(lowerName))) ||
+      t.text.toLowerCase().includes(lowerName)
+    );
+  };
+
+  const getLinkedEvents = (subjectName) => {
+    if (!subjectName) return [];
+    const lowerName = subjectName.toLowerCase();
+    const now = new Date();
+    return calendarEvents.filter(e => {
+        // Simple name match
+        const match = e.name && e.name.toLowerCase().includes(lowerName);
+        
+        // Filter out past events
+        let isFuture = true;
+        if (e.month !== undefined && e.day !== undefined) {
+             const eventDate = new Date(new Date().getFullYear(), e.month, e.day);
+             // handle year rollover coarsely
+             if (e.month < now.getMonth() && now.getMonth() > 9) {
+                 eventDate.setFullYear(now.getFullYear() + 1);
+             }
+             // Allow today's events
+             const today = new Date();
+             today.setHours(0,0,0,0);
+             isFuture = eventDate >= today;
+        }
+        return match && isFuture;
+    }).sort((a, b) => {
+        // Sort by date 
+        const yearA = new Date().getFullYear() + (a.month < now.getMonth() && now.getMonth() > 9 ? 1 : 0);
+        const yearB = new Date().getFullYear() + (b.month < now.getMonth() && now.getMonth() > 9 ? 1 : 0);
+        const dateA = new Date(yearA, a.month, a.day);
+        const dateB = new Date(yearB, b.month, b.day);
+        return dateA - dateB;
+    });
+  };
+
   return (
     <div className="grades-root">
       <header className="grades-header">
         <div className="header-content">
-          <h1>Academic Tracker</h1>
+          <h1>Subject Master Hub</h1>
           <div className="gpa-badge">
-            <span className="label">Overall Average</span>
+            <span className="label">GPA</span>
             <span className="value">{overallGPA()}%</span>
           </div>
         </div>
@@ -159,144 +274,154 @@ export default function Grades() {
             <input
               value={newSubjectName}
               onChange={(e) => setNewSubjectName(e.target.value)}
-              placeholder="New Subject (e.g. Math)"
+              placeholder="New Subject..."
             />
             <button type="submit" className="add-subject-btn">
-              +
+              <Plus size={18} />
             </button>
           </form>
 
-          <div className="subjects-list">
+          <motion.div className="subjects-list" variants={containerVariants} initial="hidden" animate="show">
             {subjects.map((sub) => {
               const avg = calculateAverage(sub.assessments);
               return (
-                <div
+                <motion.div
                   key={sub.id}
+                  variants={itemVariants}
                   className={`subject-card ${
                     selectedSubject?.id === sub.id ? "active" : ""
                   }`}
                   onClick={() => setSelectedSubject(sub)}
                 >
+                  <div className="sub-icon">
+                    <GraduationCap size={20} />
+                  </div>
                   <div className="sub-info">
                     <h3>{sub.name}</h3>
                     <span className="sub-avg">
-                      {avg}% ({getLetterGrade(avg)})
+                      {avg}% {getLetterGrade(avg)}
                     </span>
                   </div>
-                  <button
-                    className="delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteSubject(sub.id);
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
 
-        {/* Main: Assessments */}
+        {/* Main: Dashboard */}
         <div className="assessments-panel">
           {selectedSubject ? (
-            <>
-              <div className="panel-header">
-                <h2>{selectedSubject.name}</h2>
-                <div className="stats">
-                  <div className="stat">
-                    <span className="label">Average</span>
-                    <span className="val">
-                      {calculateAverage(selectedSubject.assessments)}%
-                    </span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Grade</span>
-                    <span className="val">
-                      {getLetterGrade(
-                        calculateAverage(selectedSubject.assessments)
-                      )}
-                    </span>
+            <div className="subject-dashboard">
+              <header className="panel-header">
+                <div className="title-group">
+                  <h2>{selectedSubject.name}</h2>
+                  <div className="grade-pill">
+                    {calculateAverage(selectedSubject.assessments)}% ({getLetterGrade(calculateAverage(selectedSubject.assessments))})
                   </div>
                 </div>
-              </div>
+                
+                <button className="delete-sub-btn" onClick={() => deleteSubject(selectedSubject.id)} title="Delete Subject">
+                    <Trash2 size={16} />
+                </button>
+              </header>
 
-              <div className="assessments-list">
-                <AnimatePresence>
-                  {selectedSubject.assessments.map((a) => (
-                    <motion.div
-                      key={a.id}
-                      className="assessment-item"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <div className="a-info">
-                        <h4>{a.name}</h4>
-                        <span className="a-date">
-                          {new Date(a.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="a-score">
-                        <span className="score-val">
-                          {a.score}/{a.total}
-                        </span>
-                        <span className="percentage">
-                          {((a.score / a.total) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="a-weight">Weight: {a.weight}x</div>
-                      <button
-                        onClick={() => deleteAssessment(a.id)}
-                        className="del-btn"
-                      >
-                        ×
-                      </button>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
+              <div className="dashboard-grid">
+                  {/* LEFT COL: Stats & Exams */}
+                  <div className="col-main">
+                      {/* Grade Details */}
+                      <section className="dashboard-card grades-card">
+                          <div className="card-header">
+                              <h3><TrendingUp size={16} /> Performance</h3>
+                              <span className="score-big">{calculateAverage(selectedSubject.assessments)}%</span>
+                          </div>
+                      
+                          <div className="assessments-list">
+                              <AnimatePresence>
+                                {selectedSubject.assessments.length === 0 && <div className="empty-msg">No grades recorded yet.</div>}
+                                {selectedSubject.assessments.map((a) => (
+                                    <motion.div
+                                    key={a.id}
+                                    className="assessment-row"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    >
+                                        <div className="a-info">
+                                          <span className="a-name">{a.name}</span>
+                                          <span className="a-weight-tag">{a.weight}x</span>
+                                        </div>
+                                        <div className="a-score">
+                                          <span>{a.score}/{a.total}</span>
+                                          <button onClick={() => deleteAssessment(a.id)} className="a-del"><Trash2 size={12}/></button>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                              </AnimatePresence>
+                          </div>
+                            <form onSubmit={addAssessment} className="quick-add-grade">
+                                <input placeholder="Quiz Name" value={assessName} onChange={e => setAssessName(e.target.value)} required />
+                                <div className="score-inputs">
+                                  <input type="number" placeholder="Score" value={assessScore} onChange={e => setAssessScore(e.target.value)} required />
+                                  <span>/</span>
+                                  <input type="number" placeholder="Total" value={assessTotal} onChange={e => setAssessTotal(e.target.value)} required />
+                                </div>
+                                <button type="submit"><Plus size={14}/></button>
+                            </form>
+                      </section>
 
-              <form onSubmit={addAssessment} className="add-assessment-form">
-                <input
-                  placeholder="Assessment Name"
-                  value={assessName}
-                  onChange={(e) => setAssessName(e.target.value)}
-                  required
-                />
-                <div className="row">
-                  <input
-                    type="number"
-                    placeholder="Score"
-                    value={assessScore}
-                    onChange={(e) => setAssessScore(e.target.value)}
-                    required
-                  />
-                  <span>/</span>
-                  <input
-                    type="number"
-                    placeholder="Total"
-                    value={assessTotal}
-                    onChange={(e) => setAssessTotal(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="row weight-row">
-                  <label>Weight:</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={assessWeight}
-                    onChange={(e) => setAssessWeight(e.target.value)}
-                  />
-                </div>
-                <button type="submit">Add Grade</button>
-              </form>
-            </>
+                       {/* Upcoming Exams */}
+                      <section className="dashboard-card exams-card">
+                          <div className="card-header">
+                            <h3><CalendarIcon size={16} /> Upcoming Events</h3>
+                          </div>
+                          <div className="linked-list">
+                              {getLinkedEvents(selectedSubject.name).length === 0 ? (
+                                  <div className="empty-linked">No upcoming exams found for "{selectedSubject.name}".</div>
+                              ) : (
+                                  getLinkedEvents(selectedSubject.name).map((ev, i) => (
+                                      <div key={i} className={`linked-item event ${ev.type}`}>
+                                          <div className="li-icon"><Clock size={14}/></div>
+                                          <div className="li-content">
+                                              <span className="li-title">{ev.name}</span>
+                                              <span className="li-meta">{ev.type} • {ev.month + 1}/{ev.day}</span>
+                                          </div>
+                                      </div>
+                                  ))
+                              )}
+                          </div>
+                      </section>
+                  </div>
+
+                  {/* RIGHT COL: Tasks & Resources */}
+                  <div className="col-side">
+                      {/* Linked Tasks */}
+                      <section className="dashboard-card tasks-card">
+                           <div className="card-header">
+                            <h3><CheckSquare size={16} /> Pending Tasks</h3>
+                          </div>
+                           <div className="linked-list">
+                              {getLinkedTasks(selectedSubject.name).length === 0 ? (
+                                  <div className="empty-linked">No active tasks found for "{selectedSubject.name}".</div>
+                              ) : (
+                                  getLinkedTasks(selectedSubject.name).map((t, i) => (
+                                      <div key={i} className="linked-item task">
+                                          <div className="li-icon"><AlertCircle size={14}/></div>
+                                           <div className="li-content">
+                                              <span className="li-title">{t.text}</span>
+                                              <span className="li-meta">In: {t.folderName}</span>
+                                          </div>
+                                      </div>
+                                  ))
+                              )}
+                          </div>
+                      </section>
+                  </div>
+              </div>
+            </div>
           ) : (
             <div className="empty-selection">
-              <p>Select a subject to view grades</p>
+              <GraduationCap size={48} />
+              <p>Select a Subject to view its Hub</p>
             </div>
           )}
         </div>

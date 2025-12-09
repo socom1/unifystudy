@@ -11,6 +11,7 @@ import {
   limitToLast,
   get,
   onChildAdded,
+  update,
 } from "firebase/database";
 import {
   ref as storageRef,
@@ -34,7 +35,16 @@ import {
   Menu,
   X,
   MessageSquare,
-} from "lucide-react"; // Added Paperclip, File, Menu, X
+  GraduationCap,
+  Pencil,
+  Trash2,
+  Reply,
+  ChevronDown,
+  Circle,
+  MinusCircle,
+  Moon,
+  Clock
+} from "lucide-react";
 import "./Chat.scss";
 
 const UserAvatar = ({ photoURL, displayName, avatarColor, className }) => {
@@ -77,10 +87,27 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // User Status
+  const [userStatus, setUserStatus] = useState("online");
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
+
+  const handleStatusChange = async (status) => {
+    setUserStatus(status);
+    setShowStatusPicker(false);
+    if(user) {
+        await update(ref(db, `users/${user.uid}`), { status });
+    }
+  };
+  
+  // Typing Indicators
+  const [typingUsers, setTypingUsers] = useState([]);
+  const typingTimeoutRef = useRef(null);
+
   // Channels State
   const [activeChannel, setActiveChannel] = useState("global"); // 'global', 'math', 'science', or private ID
   const [activeChannelName, setActiveChannelName] = useState("global-chat");
   const [privateChannels, setPrivateChannels] = useState([]);
+  const [uniChannels, setUniChannels] = useState([]); // New state for Uni channels
   const [directMessages, setDirectMessages] = useState([]);
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
@@ -104,12 +131,79 @@ const Chat = () => {
   // Mobile State
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // New state for mobile menu
 
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null); // ID of message being edited
+  const [editValue, setEditValue] = useState("");
+
   const subjects = [
     { id: "math", name: "mathematics" },
     { id: "science", name: "science" },
     { id: "history", name: "history" },
     { id: "cs", name: "computer-science" },
   ];
+
+  // Irish University Domains (Updated for Students)
+  const uniDomains = {
+      'tcd.ie': { id: 'uni_tcd', name: 'Trinity College Dublin', icon: '🏰' },
+      'myucd.ie': { id: 'uni_ucd', name: 'University College Dublin (Student)', icon: '🏛️' },
+      'ucdconnect.ie': { id: 'uni_ucd', name: 'University College Dublin', icon: '🏛️' },
+      'mail.dcu.ie': { id: 'uni_dcu', name: 'Dublin City University', icon: '⚡' },
+      'dcu.ie': { id: 'uni_dcu', name: 'Dublin City University (Staff)', icon: '⚡' },
+      'umail.ucc.ie': { id: 'uni_ucc', name: 'UCC Student', icon: '🎓' },
+      'ucc.ie': { id: 'uni_ucc', name: 'University College Cork', icon: '🎓' },
+      'nuigalway.ie': { id: 'uni_galway', name: 'University of Galway', icon: '🌊' },
+      'universityofgalway.ie': { id: 'uni_galway', name: 'University of Galway', icon: '🌊' },
+      'student.ul.ie': { id: 'uni_ul', name: 'UL Student', icon: '🐺' },
+      'mumail.ie': { id: 'uni_maynooth', name: 'Maynooth Student', icon: '🏺' },
+      'mytudublin.ie': { id: 'uni_tud', name: 'TU Dublin Student', icon: '🏙️' },
+      'tudublin.ie': { id: 'uni_tud', name: 'TU Dublin', icon: '🏙️' }
+  };
+
+
+  const verifyUniversity = async () => {
+      if (!user || !user.email) {
+          alert("Please sign in with an email address.");
+          return;
+      }
+      
+      const domain = user.email.split('@')[1];
+      const uni = uniDomains[domain];
+
+      if (uni) {
+          // Verify and Join
+          try {
+             const channelId = uni.id;
+             // Set Channel Metadata (if not exists)
+             await set(ref(db, `channels/${channelId}/metadata`), {
+                 name: uni.name,
+                 createdBy: 'system',
+                 type: 'university',
+                 icon: uni.icon,
+                 verifiedDomain: domain
+             });
+
+             // Add User to Channel
+             await set(ref(db, `users/${user.uid}/channels/${channelId}`), true);
+             
+             // Update User Verification Status
+             await set(ref(db, `users/${user.uid}/universityVerified`), {
+                 uniId: uni.id,
+                 uniName: uni.name,
+                 domain: domain,
+                 verifiedAt: serverTimestamp()
+             });
+
+             alert(`Welcome to the ${uni.name} channel! 🎓`);
+             setActiveChannel(channelId);
+             setActiveChannelName(uni.name);
+          } catch (err) {
+              console.error(err);
+              alert("Error joining university channel.");
+          }
+      } else {
+          alert("Your email domain isn't recognized as a supported Irish University. Please use your official college email.");
+      }
+  };
 
   // Track logged-in user & settings
   useEffect(() => {
@@ -154,6 +248,11 @@ const Chat = () => {
                         }
                       });
                     }
+                  } else if (meta.type === "university") {
+                     setUniChannels((prev) => {
+                        const filtered = prev.filter((p) => p.id !== cid);
+                        return [...filtered, { id: cid, ...meta }];
+                     });
                   } else {
                     setPrivateChannels((prev) => {
                       const filtered = prev.filter((p) => p.id !== cid);
@@ -334,6 +433,63 @@ const Chat = () => {
     }
   }, [messages, user, activeChannel]);
 
+  const cancelReply = () => {
+    setReplyingTo(null);
+  };
+
+  const handleReply = (msg) => {
+    setReplyingTo(msg);
+  };
+
+  const handleEdit = (msg) => {
+     // Check if < 5 mins
+     const diff = Date.now() - msg.timestamp;
+     if (diff > 5 * 60 * 1000) {
+         alert("Message matches historical records and cannot be edited. (Limit: 5 mins)");
+         return;
+     }
+     setEditingMessageId(msg.id);
+     setEditValue(msg.text);
+  };
+
+  const saveEdit = async () => {
+      if(!editingMessageId) return;
+      let path = "global_chat";
+      if (activeChannel !== "global" && !subjects.find((s) => s.id === activeChannel)) {
+        path = `channels/${activeChannel}/messages`;
+      } else if (activeChannel !== "global") {
+        path = `channels/${activeChannel}`;
+      }
+
+      try {
+          await update(ref(db, `${path}/${editingMessageId}`), {
+              text: editValue,
+              isEdited: true,
+              editedAt: serverTimestamp() // Client timestamp for immediate UI update? No, server is safer.
+          });
+          setEditingMessageId(null);
+          setEditValue("");
+      } catch(err) {
+          console.error("Edit failed", err);
+      }
+  };
+
+  const handleDelete = async (msgId) => {
+      if(!window.confirm("Delete this message?")) return;
+      let path = "global_chat";
+      if (activeChannel !== "global" && !subjects.find((s) => s.id === activeChannel)) {
+        path = `channels/${activeChannel}/messages`;
+      } else if (activeChannel !== "global") {
+        path = `channels/${activeChannel}`;
+      }
+      try {
+          // setting to null deletes it
+          await set(ref(db, `${path}/${msgId}`), null);
+      } catch(err) {
+          console.error("Delete failed", err);
+      }
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
@@ -363,16 +519,111 @@ const Chat = () => {
         isAnonymous: anonymousMode,
         timestamp: serverTimestamp(),
         type: "text",
+        role: uniChannels.length > 0 ? 'Verified Student' : 'Student', // Simple role logic
       };
 
+      if (replyingTo) {
+          messageData.replyTo = {
+              id: replyingTo.id,
+              displayName: replyingTo.displayName,
+              text: replyingTo.text,
+              uid: replyingTo.uid
+          };
+      }
+
       await set(newMsgRef, messageData);
+
+      // Check for Mentions
+      const mentionRegex = /@(\w+)/g;
+      let match;
+      const mentionedUsers = new Set();
+      while ((match = mentionRegex.exec(newMessage)) !== null) {
+          const mentionedName = match[1].toLowerCase();
+          // Find user by name (case-insensitive partial match)
+          const targetUser = allUsers.find(u => 
+              u.displayName.toLowerCase().replace(/\s/g, '') === mentionedName ||
+              u.displayName.toLowerCase().includes(mentionedName)
+          );
+          if (targetUser && targetUser.uid !== user.uid) {
+              mentionedUsers.add(targetUser);
+          }
+      }
+
+      // Send Notifications
+      mentionedUsers.forEach(async (targetUser) => {
+          const notifRef = push(ref(db, `users/${targetUser.uid}/notifications`));
+          await set(notifRef, {
+              type: 'mention',
+              title: `New Mention in ${activeChannelName}`,
+              message: `${messageData.displayName} mentioned you: "${newMessage}"`,
+              channelId: activeChannel,
+              timestamp: serverTimestamp(),
+              read: false,
+              link: '/chat'
+          });
+      });
+
       setNewMessage("");
       setShowMentionPicker(false);
+      setReplyingTo(null); // Clear reply
     } catch (err) {
-      console.error("Send Error:", err);
       setError("Failed to send message: " + err.message);
     }
   };
+
+  const handleTyping = () => {
+    if (!user || !activeChannel) return;
+
+    // Determine path based on channel logic (reused from sendMessage)
+    // Actually, let's just stick to a consistent path for typing metadata
+    // For simplicity, we'll assume the same structure logic or just use a verified path
+    // But `sendMessage` has complex path logic for 'global_chat' vs 'channels'.
+    
+    // We need a consistent "metadata/typing" path.
+    // Let's use `channels/${activeChannel}/typing` for all channels, and `global_chat_typing` for global.
+    let path = `channels/${activeChannel}/typing/${user.uid}`;
+    if (activeChannel === "global") path = `global_chat_typing/${user.uid}`;
+    else if (!subjects.find(s => s.id === activeChannel)) {
+        // DM or private
+        path = `channels/${activeChannel}/typing/${user.uid}`;
+    }
+
+    const typingRef = ref(db, path);
+    set(typingRef, {
+        name: user.displayName || "Someone",
+        timestamp: Date.now() // Use local for simpler client cleanup
+    });
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+        set(typingRef, null);
+    }, 3000);
+  };
+
+  // Listen for typing
+  useEffect(() => {
+    if (!activeChannel) return;
+    
+    let path = `channels/${activeChannel}/typing`;
+    if (activeChannel === "global") path = `global_chat_typing`;
+
+    const typingRef = ref(db, path);
+    const unsub = onValue(typingRef, (snap) => {
+        const data = snap.val();
+        if (data && user) {
+            const typers = Object.entries(data)
+                .filter(([uid]) => uid !== user.uid)
+                .map(([_, val]) => val.name);
+            setTypingUsers(typers);
+        } else {
+            setTypingUsers([]);
+        }
+    });
+
+    return () => unsub();
+  }, [activeChannel, user]);
+
+
 
 
 
@@ -380,6 +631,7 @@ const Chat = () => {
     const val = e.target.value;
     setNewMessage(val);
     setCursorPosition(e.target.selectionStart);
+    handleTyping();
 
     // Detect @mention
     const lastAt = val.lastIndexOf("@", e.target.selectionStart);
@@ -690,6 +942,22 @@ const Chat = () => {
         )}
       </AnimatePresence>
 
+      <div className="typing-indicator-area" style={{ 
+          padding: '0 1rem', 
+          height: '20px', 
+          fontSize: '0.8rem', 
+          color: 'var(--color-muted)',
+          fontStyle: 'italic',
+          display: 'flex',
+          alignItems: 'center'
+      }}>
+        {typingUsers.length > 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+            </motion.div>
+        )}
+      </div>
+
       {/* User Picker Modal */}
       <AnimatePresence>
         {showUserPicker && (
@@ -877,6 +1145,45 @@ const Chat = () => {
             )}
           </div>
 
+          <div className="section-label mt-4">UNIVERSITY</div>
+          <button 
+             onClick={verifyUniversity}
+             style={{ 
+                 width: '100%', 
+                 marginBottom: '0.5rem', 
+                 fontSize: '0.8rem',
+                 padding: '6px',
+                 background: 'rgba(57, 211, 83, 0.1)', 
+                 color: '#39d353',
+                 border: '1px solid rgba(57, 211, 83, 0.2)',
+                 borderRadius: '6px',
+                 cursor: 'pointer',
+                 display: 'flex',
+                 alignItems: 'center',
+                 justifyContent: 'center',
+                 gap: '6px'
+             }}
+          >
+             <GraduationCap size={14} /> Verify Email
+          </button>
+          
+          {uniChannels.map((uni) => (
+            <div
+              key={uni.id}
+              className={`channel-item ${activeChannel === uni.id ? "active" : ""}`}
+              onClick={() => {
+                setActiveChannel(uni.id);
+                setActiveChannelName(uni.name);
+              }}
+            >
+              <span style={{ marginRight: '6px' }}>{uni.icon}</span>
+              <span className="channel-name-truncate">{uni.name}</span>
+               {unreadChannels[uni.id] > 0 && (
+                <span className="channel-badge">{unreadChannels[uni.id]}</span>
+              )}
+            </div>
+          ))}
+
           <div className="section-label mt-4">SUBJECTS</div>
           {subjects.map((sub) => (
             <div
@@ -988,16 +1295,42 @@ const Chat = () => {
           )}
         </div>
         <div className="user-status-bar">
-          <div className={`status-dot ${user ? "online" : "offline"}`}></div>
-          <div className="user-info">
-            <span className="name">
-              {user
-                ? anonymousMode
-                  ? "Anonymous Mode"
-                  : user.displayName || "User"
-                : "Guest"}
-            </span>
-            {!user && <span className="login-hint">Log in to chat</span>}
+          <div 
+              className="user-info-container" 
+              onClick={() => setShowStatusPicker(!showStatusPicker)}
+              style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, width: '100%', position: 'relative'}}
+          >
+              <div className={`status-dot ${userStatus}`}></div>
+              <div className="user-info">
+                <span className="name">
+                  {user
+                    ? anonymousMode
+                      ? "Anonymous Mode"
+                      : user.displayName || "User"
+                    : "Guest"}
+                </span>
+                <span className="login-hint" style={{fontSize: 10, opacity: 0.7, textTransform: 'capitalize'}}>
+                    {userStatus === 'dnd' ? 'Do Not Disturb' : userStatus}
+                </span>
+              </div>
+              <ChevronDown size={14} style={{marginLeft: 'auto', opacity: 0.5}}/>
+
+              {showStatusPicker && (
+                  <div className="status-picker-menu" onClick={(e) => { e.stopPropagation(); setShowStatusPicker(false); }}>
+                      <div className="status-option" onClick={() => handleStatusChange('online')}>
+                          <div className="status-dot online"/> Online
+                      </div>
+                      <div className="status-option" onClick={() => handleStatusChange('dnd')}>
+                          <div className="status-dot dnd"/> Do Not Disturb
+                      </div>
+                      <div className="status-option" onClick={() => handleStatusChange('idle')}>
+                          <div className="status-dot idle"/> Away
+                      </div>
+                      <div className="status-option" onClick={() => handleStatusChange('offline')}>
+                          <div className="status-dot offline"/> Invisible
+                      </div>
+                  </div>
+              )}
           </div>
         </div>
       </div>
@@ -1101,17 +1434,28 @@ const Chat = () => {
               const showAvatar =
                 !isOwn &&
                 (index === 0 || messages[index - 1].uid !== msg.uid);
+              const isEditing = editingMessageId === msg.id;
 
               return (
                 <motion.div
                   key={msg.id}
-                  className={`message-row ${isOwn ? "own" : ""}`}
+                  className={`message-row ${isOwn ? "own" : ""} ${msg.replyTo ? "has-reply" : ""}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
+                    {/* Reply Context */}
+                    {msg.replyTo && (
+                      <div className={`reply-context ${isOwn ? 'own-reply' : ''}`}>
+                          <div className="reply-line"></div>
+                          <Reply size={12} style={{ marginRight: 4, opacity: 0.7 }}/>
+                          <span className="reply-name">@{msg.replyTo.displayName}</span>
+                          <span className="reply-text-trunc">{msg.replyTo.text}</span>
+                      </div>
+                    )}
+
                   {!isOwn && (
                     <div className="message-avatar">
-                      {showAvatar && (
+                      {showAvatar ? (
                         <div onClick={() => handleProfileClick(msg)} style={{ cursor: "pointer" }}>
                           <UserAvatar
                             photoURL={msg.photoURL}
@@ -1120,11 +1464,11 @@ const Chat = () => {
                             className="msg-avatar"
                           />
                         </div>
-                      )}
+                      ) : <div className="avatar-spacer" style={{width: 32}}></div>}
                     </div>
                   )}
 
-                  <div className="message-content">
+                  <div className="message-content group">
                     {!isOwn && showAvatar && (
                       <div className="message-sender">
                         <span 
@@ -1133,41 +1477,96 @@ const Chat = () => {
                         >
                           {msg.displayName}
                         </span>
+                        
+                        {/* Role Badge */}
+                        {msg.role && (
+                            <span className={`role-badge ${msg.role === 'Verified Student' ? 'uni' : 'guest'}`} 
+                                  style={{
+                                      fontSize: '0.65rem',
+                                      padding: '1px 4px',
+                                      borderRadius: '4px',
+                                      marginLeft: '6px',
+                                      background: msg.role === 'Verified Student' ? 'rgba(57, 211, 83, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                                      color: msg.role === 'Verified Student' ? '#39d353' : '#8b949e',
+                                      display: 'inline-flex',
+                                      alignItems: 'center'
+                                  }}>
+                                {msg.role === 'Verified Student' && <GraduationCap size={10} style={{marginRight:3}}/>}
+                                {msg.role}
+                            </span>
+                        )}
+
                         <span className="message-time">
                           {formatTime(msg.timestamp)}
                         </span>
                       </div>
                     )}
 
-                    <div className={`message-bubble ${msg.type || "text"}`}>
-                      {msg.type === "image" ? (
-                        <div className="media-content">
-                          <img 
-                            src={msg.fileURL} 
-                            alt="Shared image" 
-                            loading="lazy"
-                            onClick={() => window.open(msg.fileURL, '_blank')}
-                          />
-                        </div>
-                      ) : msg.type === "file" ? (
-                        <div className="file-attachment">
-                          <File size={24} />
-                          <div className="file-info">
-                            <span className="file-name">{msg.fileName}</span>
-                            <a 
-                              href={msg.fileURL} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="download-link"
-                            >
-                              Download
-                            </a>
+                    <div className={`message-bubble ${msg.type || "text"} ${isEditing ? 'editing' : ''}`}>
+                      {isEditing ? (
+                          <div className="edit-container">
+                              <input 
+                                  value={editValue} 
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  className="edit-input"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                      if(e.key === 'Enter') saveEdit();
+                                      if(e.key === 'Escape') setEditingMessageId(null);
+                                  }}
+                              />
+                              <div className="edit-hints">
+                                  <span>enter to save • esc to cancel</span>
+                              </div>
                           </div>
-                        </div>
                       ) : (
-                        <p>{renderMessageText(msg.text)}</p>
+                          <>
+                            {msg.type === "image" ? (
+                                <div className="media-content">
+                                <img 
+                                    src={msg.fileURL} 
+                                    alt="Shared image" 
+                                    loading="lazy"
+                                    onClick={() => window.open(msg.fileURL, '_blank')}
+                                />
+                                </div>
+                            ) : msg.type === "file" ? (
+                                <div className="file-attachment">
+                                <File size={24} />
+                                <div className="file-info">
+                                    <span className="file-name">{msg.fileName}</span>
+                                    <a 
+                                    href={msg.fileURL} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="download-link"
+                                    >
+                                    Download
+                                    </a>
+                                </div>
+                                </div>
+                            ) : (
+                                <p>
+                                    {renderMessageText(msg.text)}
+                                    {msg.isEdited && <span className="edited-label">(edited)</span>}
+                                </p>
+                            )}
+                          </>
                       )}
                     </div>
+
+                    {/* Discord Actions */}
+                    {!isEditing && (
+                        <div className="msg-actions">
+                            <button onClick={() => handleReply(msg)} title="Reply"><Reply size={14}/></button>
+                            {isOwn && (
+                                <>
+                                <button onClick={() => handleEdit(msg)} title="Edit"><Pencil size={14}/></button>
+                                <button onClick={() => handleDelete(msg.id)} title="Delete"><Trash2 size={14}/></button>
+                                </>
+                            )}
+                        </div>
+                    )}
                     
                     {isOwn && (
                       <div className="message-status">
@@ -1184,6 +1583,17 @@ const Chat = () => {
 
         {/* Input Area */}
         <form className="chat-input-area" onSubmit={sendMessage}>
+          {replyingTo && (
+              <div className="reply-banner">
+                  <div className="reply-info">
+                      <Reply size={14}/>
+                      <span>Replying to <strong>{replyingTo.displayName}</strong></span>
+                  </div>
+                  <button type="button" className="close-reply" onClick={cancelReply}>
+                      <X size={16}/>
+                  </button>
+              </div>
+          )}
           <div className="input-wrapper">
             <button
               type="button"

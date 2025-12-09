@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 // Force rebuild
 import { Link, useLocation } from "react-router-dom";
@@ -27,17 +27,218 @@ import {
   CalendarRange,
   Users,
   Menu,
-  X
+  X,
+  Zap,
+  BarChart2,
+  Activity
 } from "lucide-react";
 import { db, auth } from "../appsl/firebase";
 import { ref, onValue, runTransaction, query, limitToLast, onChildAdded } from "firebase/database";
 import "./Sidebar.scss";
 
-export default function Sidebar({ user, onSignOut }) {
+// Extracted NavItem component to avoid re-creation
+const NavItem = ({ item, location, isCollapsed, isMobile }) => {
+  const Icon = item.icon;
+  const isActive = location.pathname === item.to;
+  return (
+    <Link
+      to={item.to}
+      className={`nav-item ${isActive ? "active" : ""}`}
+      title={isCollapsed && !isMobile ? item.label : ""}
+    >
+      <div className="nav-icon-wrapper">
+        {Icon ? <Icon size={22} /> : item.iconElement}
+        {item.badge && item.badge > 0 && (
+          <span className="notification-badge">{item.badge > 99 ? '99+' : item.badge}</span>
+        )}
+      </div>
+      {(!isCollapsed || isMobile) && <span className="nav-label">{item.label}</span>}
+    </Link>
+  );
+};
+
+// Extracted SidebarContent to prevent re-renders causing scroll reset
+const SidebarContent = React.memo(({ 
+  user, 
+  isCollapsed, 
+  isMobile, 
+  location, 
+  unreadCount, 
+  isFocusMode, 
+  onFocusToggle, 
+  onSignOut 
+}) => {
+  
+  const renderNavItem = (item) => (
+    <NavItem 
+      key={item.to} 
+      item={item} 
+      location={location} 
+      isCollapsed={isCollapsed} 
+      isMobile={isMobile} 
+    />
+  );
+
+  return (
+    <>
+      {/* Navigation Links */}
+      <nav className="sidebar-nav">
+        {/* DASHBOARD */}
+        <div className="nav-section">
+          {renderNavItem({ icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" })}
+        </div>
+
+        {/* PRODUCTIVITY Section */}
+        <div className="nav-section">
+          {(!isCollapsed || isMobile) && <div className="section-label">PRODUCTIVITY</div>}
+          {renderNavItem({ icon: Timer, label: "Pomodoro", to: "/pomodoro" })}
+          {renderNavItem({ icon: Calendar, label: "Timetable", to: "/timetable" })}
+          {renderNavItem({ icon: CheckSquare, label: "To-Do", to: "/todo" })}
+          {renderNavItem({ icon: StickyNote, label: "Notes", to: "/notes" })}
+          
+           <NavItem 
+              item={{ iconElement: <CalendarRange size={22} />, label: "Yearly Calendar", to: "/calendar" }}
+              location={location}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
+           />
+        </div>
+
+        {/* STUDY & COLLAB Section */}
+        <div className="nav-section">
+          {(!isCollapsed || isMobile) && <div className="section-label">STUDY & COLLAB</div>}
+          
+           <NavItem 
+              item={{ iconElement: <Zap size={22} />, label: "Flashcards", to: "/flashcards" }}
+              location={location}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
+           />
+           <NavItem 
+              item={{ iconElement: <BrainCircuit size={22} />, label: "Mind Map", to: "/mindmap" }}
+              location={location}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
+           />
+           <NavItem 
+              item={{ iconElement: <Library size={22} />, label: "Resource Library", to: "/resources" }}
+              location={location}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
+           />
+           <NavItem 
+              item={{ iconElement: <Users size={22} />, label: "Collaborative Workspace", to: "/workspace" }}
+              location={location}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
+           />
+           <NavItem 
+              item={{ iconElement: <GraduationCap size={22} />, label: "Find Study Buddy", to: "/study-buddy" }}
+              location={location}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
+           />
+
+          {renderNavItem({ icon: MessageSquare, label: "Chat", to: "/chat", badge: unreadCount })}
+        </div>
+
+        {/* PROGRESS Section */}
+        <div className="nav-section">
+          {(!isCollapsed || isMobile) && <div className="section-label">PROGRESS</div>}
+           <NavItem 
+              item={{ iconElement: <BarChart2 size={22} />, label: "Analytics", to: "/analytics" }}
+              location={location}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
+           />
+           <NavItem 
+              item={{ iconElement: <Activity size={22} />, label: "Habit Tracker", to: "/habits" }}
+              location={location}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
+           />
+
+          {renderNavItem({ icon: GraduationCap, label: "Grades", to: "/grades" })}
+          {renderNavItem({ icon: Trophy, label: "Leaderboard", to: "/leaderboard" })}
+          {renderNavItem({ icon: ShoppingBag, label: "Shop", to: "/shop" })}
+        </div>
+
+        {/* SETTINGS Section */}
+        <div className="nav-section">
+          {(!isCollapsed || isMobile) && <div className="section-label">SETTINGS</div>}
+          <Link
+            to="#"
+            className={`nav-item ${isFocusMode ? 'active' : ''}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onFocusToggle();
+            }}
+            title={isCollapsed && !isMobile ? "Focus Mode" : ""}
+          >
+            <div className="nav-icon-wrapper">
+               <Focus size={22} />
+            </div>
+            {(!isCollapsed || isMobile) && <span className="nav-label">Focus Mode</span>}
+          </Link>
+
+          <Link
+            to="/profile"
+            className={`nav-item ${location.pathname === '/profile' ? 'active' : ''}`}
+            title={isCollapsed && !isMobile ? "Settings" : ""}
+          >
+            <div className="nav-icon-wrapper">
+                <Settings size={22} />
+            </div>
+            {(!isCollapsed || isMobile) && <span className="nav-label">Settings</span>}
+          </Link>
+        </div>
+      </nav>
+
+      {/* Footer / User Section */}
+      <div className="sidebar-footer">
+        {user ? (
+          <div className="user-section">
+            <Link to="/profile" className="user-info">
+              <div className="avatar">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="User" />
+                ) : (
+                  <User size={20} />
+                )}
+              </div>
+              {(!isCollapsed || isMobile) && (
+                <div className="user-details">
+                  <span className="user-name">{user.displayName || "Student"}</span>
+                  <span className="user-role">Pro Plan</span>
+                </div>
+              )}
+            </Link>
+            {(!isCollapsed || isMobile) && (
+              <button onClick={onSignOut} className="logout-btn" title="Sign Out">
+                <LogOut size={20} />
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="user-section">
+            <Link to="/login" className="nav-item">
+               <div className="nav-icon-wrapper">
+                   <LogOut size={20} />
+               </div>
+              {(!isCollapsed || isMobile) && <span>Sign In</span>}
+            </Link>
+          </div>
+        )}
+      </div>
+    </>
+  );
+});
+
+export default function Sidebar({ user, onSignOut, isFocusMode, onFocusToggle }) {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isFocusMode, setIsFocusMode] = useState(false);
+
 
   // Mobile Detection
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -59,12 +260,7 @@ export default function Sidebar({ user, onSignOut }) {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  // Focus Mode Toggle Handler
-  const toggleFocusMode = () => {
-    setIsFocusMode(!isFocusMode);
-    // Dispatch event for AppS to handle
-    window.dispatchEvent(new CustomEvent('toggle-focus-mode', { detail: !isFocusMode }));
-  };
+
 
   // Section-organized menu items
   const generalItems = [
@@ -182,155 +378,6 @@ export default function Sidebar({ user, onSignOut }) {
     };
   }, [user]);
 
-  const renderNavItem = (item) => {
-    const Icon = item.icon;
-    const isActive = location.pathname === item.to;
-    return (
-      <Link
-        key={item.to}
-        to={item.to}
-        className={`nav-item ${isActive ? "active" : ""}`}
-        title={isCollapsed && !isMobile ? item.label : ""}
-      >
-        <div className="nav-icon-wrapper">
-          <Icon size={22} />
-          {item.badge && item.badge > 0 && (
-            <span className="notification-badge">{item.badge > 99 ? '99+' : item.badge}</span>
-          )}
-        </div>
-        {(!isCollapsed || isMobile) && <span className="nav-label">{item.label}</span>}
-      </Link>
-    );
-  };
-
-  const SidebarContent = () => (
-    <>
-      {/* Navigation Links */}
-      <nav className="sidebar-nav">
-        {/* DASHBOARD */}
-        <div className="nav-section">
-          {renderNavItem({ icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" })}
-        </div>
-
-        {/* PRODUCTIVITY Section */}
-        <div className="nav-section">
-          {(!isCollapsed || isMobile) && <div className="section-label">PRODUCTIVITY</div>}
-          {renderNavItem({ icon: Timer, label: "Pomodoro", to: "/pomodoro" })}
-          {renderNavItem({ icon: Calendar, label: "Timetable", to: "/timetable" })}
-          {renderNavItem({ icon: CheckSquare, label: "To-Do", to: "/todo" })}
-          {renderNavItem({ icon: StickyNote, label: "Notes", to: "/notes" })}
-          <Link
-            to="/calendar"
-            className={`nav-item ${location.pathname === '/calendar' ? 'active' : ''}`}
-            title={isCollapsed && !isMobile ? "Yearly Calendar" : ""}
-          >
-            <CalendarRange size={22} />
-            {(!isCollapsed || isMobile) && <span>Yearly Calendar</span>}
-          </Link>
-        </div>
-
-        {/* STUDY & COLLAB Section */}
-        <div className="nav-section">
-          {(!isCollapsed || isMobile) && <div className="section-label">STUDY & COLLAB</div>}
-          <Link
-            to="/mindmap"
-            className={`nav-item ${location.pathname === '/mindmap' ? 'active' : ''}`}
-            title={isCollapsed && !isMobile ? "Mind Map" : ""}
-          >
-            <BrainCircuit size={22} />
-            {(!isCollapsed || isMobile) && <span>Mind Map</span>}
-          </Link>
-          <Link
-            to="/workspace"
-            className={`nav-item ${location.pathname === '/workspace' ? 'active' : ''}`}
-            title={isCollapsed && !isMobile ? "Collaborative Workspace" : ""}
-          >
-            <Users size={22} />
-            {(!isCollapsed || isMobile) && <span>Workspace</span>}
-          </Link>
-          <Link
-            to="/study-buddy"
-            className={`nav-item ${location.pathname === '/study-buddy' ? 'active' : ''}`}
-            title={isCollapsed && !isMobile ? "Find Study Buddy" : ""}
-          >
-            <GraduationCap size={22} />
-            {(!isCollapsed || isMobile) && <span>Study Buddy</span>}
-          </Link>
-          {renderNavItem({ icon: MessageSquare, label: "Chat", to: "/chat", badge: unreadCount })}
-        </div>
-
-        {/* PROGRESS Section */}
-        <div className="nav-section">
-          {(!isCollapsed || isMobile) && <div className="section-label">PROGRESS</div>}
-          {renderNavItem({ icon: GraduationCap, label: "Grades", to: "/grades" })}
-          {renderNavItem({ icon: Trophy, label: "Leaderboard", to: "/leaderboard" })}
-          {renderNavItem({ icon: ShoppingBag, label: "Shop", to: "/shop" })}
-        </div>
-
-        {/* SETTINGS Section */}
-        <div className="nav-section">
-          {(!isCollapsed || isMobile) && <div className="section-label">SETTINGS</div>}
-          <Link
-            to="#"
-            className={`nav-item ${isFocusMode ? 'active' : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              toggleFocusMode();
-            }}
-            title={isCollapsed && !isMobile ? "Focus Mode" : ""}
-          >
-            <Focus size={22} />
-            {(!isCollapsed || isMobile) && <span>Focus Mode</span>}
-          </Link>
-
-          <Link
-            to="/profile"
-            className={`nav-item ${location.pathname === '/profile' ? 'active' : ''}`}
-            title={isCollapsed && !isMobile ? "Settings" : ""}
-          >
-            <Settings size={22} />
-            {(!isCollapsed || isMobile) && <span className="nav-label">Settings</span>}
-          </Link>
-        </div>
-      </nav>
-
-      {/* Footer / User Section */}
-      <div className="sidebar-footer">
-        {user ? (
-          <div className="user-section">
-            <Link to="/profile" className="user-info">
-              <div className="avatar">
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="User" />
-                ) : (
-                  <User size={20} />
-                )}
-              </div>
-              {(!isCollapsed || isMobile) && (
-                <div className="user-details">
-                  <span className="user-name">{user.displayName || "Student"}</span>
-                  <span className="user-role">Pro Plan</span>
-                </div>
-              )}
-            </Link>
-            {(!isCollapsed || isMobile) && (
-              <button onClick={onSignOut} className="logout-btn" title="Sign Out">
-                <LogOut size={20} />
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="user-section">
-            <Link to="/login" className="nav-item">
-              <LogOut size={20} />
-              {(!isCollapsed || isMobile) && <span>Sign In</span>}
-            </Link>
-          </div>
-        )}
-      </div>
-    </>
-  );
-
   if (isMobile) {
     return (
       <>
@@ -398,7 +445,16 @@ export default function Sidebar({ user, onSignOut }) {
                   </button>
                 </div>
 
-                <SidebarContent />
+                <SidebarContent 
+                  user={user}
+                  isCollapsed={false}
+                  isMobile={true}
+                  location={location}
+                  unreadCount={unreadCount}
+                  isFocusMode={isFocusMode}
+                  onFocusToggle={onFocusToggle}
+                  onSignOut={onSignOut}
+                />
 
                 {/* Upgrade to Pro Card */}
                 <div className="pro-card">
@@ -435,7 +491,16 @@ export default function Sidebar({ user, onSignOut }) {
         </button>
       </div>
 
-      <SidebarContent />
+      <SidebarContent 
+        user={user}
+        isCollapsed={isCollapsed}
+        isMobile={false}
+        location={location}
+        unreadCount={unreadCount}
+        isFocusMode={isFocusMode}
+        onFocusToggle={onFocusToggle}
+        onSignOut={onSignOut}
+      />
     </div>
   );
 }

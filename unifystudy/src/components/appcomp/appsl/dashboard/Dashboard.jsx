@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { db } from "../firebase";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, push, set } from "firebase/database";
 import {
   ACHIEVEMENTS,
   getAchievementById,
@@ -51,6 +51,7 @@ export default function Dashboard({ user }) {
           });
         }
       });
+      setAllTasksForOpt(allTasks); // Save for optimizer
 
       // Sort tasks by due date and priority
       const sortedTasks = allTasks
@@ -167,11 +168,15 @@ export default function Dashboard({ user }) {
       }
     });
 
+
     // ... (Events, Rank, Achievements fetch remain same) ...
     const eventsRef = ref(db, `users/${user.uid}/events`);
     const unsubEvents = onValue(eventsRef, (snap) => {
       const data = snap.val();
       if (data) {
+        const eventsList = Object.values(data);
+        setRawEvents(eventsList); // Save raw for optimizer
+
         const now = new Date();
         const currentDay = [
           "Sunday",
@@ -247,6 +252,45 @@ export default function Dashboard({ user }) {
     return date.toLocaleDateString();
   };
 
+  /* --- Smart Schedule Logic --- */
+  const [scheduleSuggestions, setScheduleSuggestions] = useState([]);
+  const [rawEvents, setRawEvents] = useState([]);
+  const [allTasksForOpt, setAllTasksForOpt] = useState([]);
+
+  // Optimize when tasks or events change
+  useEffect(() => {
+    if (allTasksForOpt.length > 0 && rawEvents.length >= 0) {
+        import("../../../../utils/scheduleOptimizer").then(({ optimizeSchedule }) => {
+            const suggestions = optimizeSchedule(allTasksForOpt, rawEvents);
+            setScheduleSuggestions(suggestions);
+        });
+    }
+  }, [allTasksForOpt, rawEvents]);
+
+  const handleAcceptSuggestion = async (suggestion) => {
+      if (!user) return;
+      const newEventRef = push(ref(db, `users/${user.uid}/events`));
+      
+      // Parse start/end times "09:00" -> 9 (float/int)
+      const [sh, sm] = suggestion.start.split(':').map(Number);
+      const [eh, em] = suggestion.end.split(':').map(Number);
+      
+      const newEvent = {
+          title: suggestion.title,
+          day: suggestion.day, // e.g., "Monday"
+          start: sh + sm/60,
+          end: eh + em/60,
+          color: "var(--color-primary)",
+          description: "Smart Schedule Suggestion"
+      };
+      
+      await set(newEventRef, newEvent);
+      
+      // Remove from local suggestions to avoid dupes
+      setScheduleSuggestions(prev => prev.filter(s => s !== suggestion));
+      alert("Added to Timetable!");
+  };
+
   return (
     <div className="dashboard-container">
       {/* 1. Header Section */}
@@ -269,7 +313,7 @@ export default function Dashboard({ user }) {
             <input type="text" placeholder="Search..." />
           </div> */}
           <button className="icon-btn">🔔</button>
-          <button className="icon-btn">⚙️</button>
+          <Link to="/settings" className="icon-btn">⚙️</Link>
         </div>
       </header>
 
@@ -354,17 +398,26 @@ export default function Dashboard({ user }) {
               </p>
 
               <div className="hero-actions">
-                <div className="quick-start-row">
-                  <Link to="/pomodoro?time=25" className="quick-btn">
-                    25m
+                <div className="quick-start-buttons" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
+                  <Link to="/pomodoro" className="primary-btn" style={{ 
+                      background: 'rgba(255,255,255,0.1)', 
+                      color: 'var(--color-text)', 
+                      border: '1px solid var(--glass-border)',
+                      display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 
+                  }}>
+                    <span>Default</span>
+                    <span style={{ fontSize: '0.8em', opacity: 0.6 }}>(25/5)</span>
                   </Link>
-                  <Link to="/pomodoro?time=50" className="quick-btn">
-                    50m
+                  <Link to="/pomodoro" className="primary-btn" style={{ 
+                      background: 'var(--color-primary)', 
+                      color: 'white', 
+                      border: 'none',
+                      display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 
+                  }}>
+                    <span>Deep Work</span>
+                    <span style={{ fontSize: '0.8em', opacity: 0.8 }}>(50/10)</span>
                   </Link>
                 </div>
-                <Link to="/pomodoro" className="primary-btn">
-                  Open Timer ⚡
-                </Link>
               </div>
             </div>
             <div className="hero-bg-effect"></div>
@@ -385,8 +438,8 @@ export default function Dashboard({ user }) {
             {weeklyActivity.map((day, i) => {
               const maxMinutes = Math.max(
                 ...weeklyActivity.map((d) => d.minutes),
-                60
-              ); // Min 60 for scale
+                1 // Use 1 to ensure some scale, but effectively fill height
+              );
               const heightPercent = (day.minutes / maxMinutes) * 100;
 
               return (
@@ -411,6 +464,32 @@ export default function Dashboard({ user }) {
 
         {/* Column 2: Side Widgets Stack */}
         <div className="side-widgets-area">
+          
+          {/* Smart Schedule Suggestions */}
+          {scheduleSuggestions.length > 0 && (
+            <div className="widget-card smart-plan-widget" style={{ borderColor: 'var(--color-secondary)' }}>
+                <div className="widget-header">
+                    <h3>✨ Smart Plan</h3>
+                </div>
+                <div className="suggestions-list">
+                    {scheduleSuggestions.map((s, i) => (
+                        <div key={i} className="suggestion-item" style={{ marginBottom: '10px', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{s.title}</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{s.start} - {s.end} today</span>
+                                <button 
+                                    onClick={() => handleAcceptSuggestion(s)}
+                                    style={{ background: 'var(--color-primary)', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '2px 8px', fontSize: '0.8rem' }}
+                                >
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+          )}
+
           {/* Urgent Tasks */}
           <div className="widget-card task-widget">
             <div className="widget-header">

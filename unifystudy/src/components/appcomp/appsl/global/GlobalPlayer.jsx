@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { db } from "../firebase";
+import { ref, onValue, set } from "firebase/database";
 import "./GlobalPlayer.scss";
 
 export default function GlobalPlayer() {
@@ -8,20 +10,32 @@ export default function GlobalPlayer() {
   const [youtubeId, setYoutubeId] = useState("jfKfPfyJRdk"); // Default Lofi Girl
   const [inputVal, setInputVal] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Sync State
+  const [syncSessionId, setSyncSessionId] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
+
   const playerRef = React.useRef(null);
   const containerRef = React.useRef(null);
 
   const toggleOpen = () => setIsOpen(!isOpen);
   
   const togglePlay = () => {
+    const newState = !isPlaying;
     if (mode === "youtube" && playerRef.current) {
-      if (isPlaying) {
-        playerRef.current.pauseVideo();
-      } else {
-        playerRef.current.playVideo();
-      }
+      if (newState) playerRef.current.playVideo();
+      else playerRef.current.pauseVideo();
     }
-    setIsPlaying(!isPlaying);
+    setIsPlaying(newState);
+
+    // Sync Update
+    if (isSyncing && syncSessionId) {
+        set(ref(db, `music_sessions/${syncSessionId}`), {
+            videoId: youtubeId,
+            isPlaying: newState,
+            timestamp: Date.now()
+        });
+    }
   };
 
   // Click outside to close
@@ -74,10 +88,45 @@ export default function GlobalPlayer() {
     };
   }, [mode, youtubeId]);
 
+  // Sync Listener
+  useEffect(() => {
+    if(!isSyncing || !syncSessionId) return;
+    
+    const sessionRef = ref(db, `music_sessions/${syncSessionId}`);
+    const unsub = onValue(sessionRef, (snap) => {
+        const data = snap.val();
+        if(data) {
+            if(data.videoId && data.videoId !== youtubeId) setYoutubeId(data.videoId);
+            if(data.isPlaying !== undefined && data.isPlaying !== isPlaying) {
+                setIsPlaying(data.isPlaying);
+                if(playerRef.current && typeof playerRef.current.playVideo === 'function') {
+                    if(data.isPlaying) playerRef.current.playVideo();
+                    else playerRef.current.pauseVideo();
+                }
+            }
+        }
+    });
+    return () => unsub();
+  }, [isSyncing, syncSessionId]); // Reduced deps to avoid loops
+
+  const handleSyncToggle = () => {
+      if(isSyncing) {
+          setIsSyncing(false);
+          setSyncSessionId("");
+          alert("Disconnected from session.");
+      } else {
+          const id = prompt("Enter Session ID to join/host (e.g. 'room1'):");
+          if(id) {
+              setSyncSessionId(id);
+              setIsSyncing(true);
+              alert(`Joined session '${id}'. Playback is now synced!`);
+          }
+      }
+  };
+
   const handleYoutubeSubmit = (e) => {
     e.preventDefault();
     if (!inputVal.trim()) return;
-    // Extract ID from URL if needed
     let id = inputVal;
     if (inputVal.includes("v=")) {
       id = inputVal.split("v=")[1].split("&")[0];
@@ -87,8 +136,16 @@ export default function GlobalPlayer() {
     setYoutubeId(id);
     setInputVal("");
     setIsPlaying(false);
-  };
-
+    
+    // Sync Update
+    if (isSyncing && syncSessionId) {
+        set(ref(db, `music_sessions/${syncSessionId}`), {
+            videoId: id,
+            isPlaying: false,
+            timestamp: Date.now()
+        });
+    }
+  }; 
   return (
     <div className="global-player" ref={containerRef}>
       <motion.div
@@ -149,6 +206,22 @@ export default function GlobalPlayer() {
             ></iframe>
           ) : (
             <div className="youtube-player">
+              <div className="sync-controls" style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                 <button 
+                    onClick={handleSyncToggle} 
+                    style={{ 
+                        fontSize: '0.7rem', 
+                        padding: '2px 8px', 
+                        background: isSyncing ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
+                        color: isSyncing ? '#000' : '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                    }}
+                 >
+                    {isSyncing ? `Synced: ${syncSessionId}` : "Start Sync Party"}
+                 </button>
+              </div>
               <iframe
                 id="youtube-player-iframe"
                 width="100%"

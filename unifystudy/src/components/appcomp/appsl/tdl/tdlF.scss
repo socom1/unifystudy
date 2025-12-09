@@ -7,7 +7,62 @@
   background: var(--bg-1); /* Match app background */
   color: var(--color-text, #c9d1d9); /* Match app text color */
   font-family: "Fira Code", monospace; /* Match app font */
+  position: relative; /* Contain absolute children like sidebar toggle */
   overflow: hidden;
+
+  /* Resizable Layout Support */
+  &.resizable-layout {
+    flex-direction: row;
+    
+    .sidebar {
+      position: relative;
+      height: 100%;
+      transform: none !important;
+      flex-shrink: 0;
+      /* width set via inline style */
+    }
+
+    .main-content {
+      flex: 1;
+      min-width: 300px; /* minimum width for main content */
+    }
+
+    .right-panel {
+      position: relative;
+      height: 100%;
+      flex-shrink: 0;
+      /* width set via inline style */
+      backdrop-filter: none; /* performance */
+      background: var(--glass-bg, rgba(12, 18, 20, 0.95));
+    }
+  }
+
+  /* Resize Handles */
+  .resize-handle {
+    width: 6px;
+    background: transparent;
+    cursor: col-resize;
+    position: relative;
+    z-index: 20;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    margin: 0 -3px; /* visual overlap */
+
+    &:hover, &:active {
+      background: var(--color-primary);
+      opacity: 0.5;
+    }
+    
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 2px;
+      width: 2px;
+      background: rgba(255,255,255,0.05);
+    }
+  }
 
   /* 1. Sidebar (Left) */
   .sidebar {
@@ -444,91 +499,100 @@
   }
 }
 
+/* Directory / Folder Tree Styling (Workspace Match) */
 .folderNode {
-  /* ... (Keep existing folder node styles but ensure they work with new layout) ... */
   margin-bottom: 2px;
+  
   .folderRow {
-    padding: 6px 10px;
-    border-radius: 6px;
     display: flex;
     align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
     cursor: pointer;
     color: var(--color-muted);
+    font-size: 14px;
     transition: all 0.2s;
+    position: relative;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--color-text, #c9d1d9);
-    }
-    &.open {
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--color-text, #c9d1d9);
+      background: var(--bg-1); /* Slightly darker/lighter hover */
+      color: var(--color-text);
+      
+      .folderActions { opacity: 1; }
     }
 
-    .folderIcon {
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
+    &.active {
+      background: rgba(var(--color-primary-rgb), 0.1);
+      color: var(--color-primary);
+    }
+
+    .chevron {
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 8px;
-      font-size: 12px;
-      background: rgba(var(--color-primary-rgb, 88, 166, 255), 0.15);
+      width: 16px;
+      height: 16px;
+      opacity: 0.7;
+      color: var(--color-muted);
+    }
+
+    .folderIcon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: var(--color-primary);
+      /* Size controlled by SVG props */
     }
 
     .folderName {
       flex: 1;
-      font-size: 0.9rem;
-    }
-    .folderActions {
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    &:hover .folderActions {
-      opacity: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
     }
 
-    .folderActions button {
-      background: none;
-      border: none;
-      color: var(--color-muted);
-      padding: 2px 4px;
-      cursor: pointer;
-      &:hover {
-        color: #fff;
+    .folderActions {
+      display: flex;
+      gap: 4px;
+      opacity: 0; /* Show on hover */
+      transition: opacity 0.2s;
+
+      button {
+        background: transparent;
+        border: none;
+        color: var(--color-muted);
+        padding: 2px 4px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+
+        &:hover {
+          background: rgba(255,255,255,0.1);
+          color: #fff;
+        }
       }
     }
   }
 
   .folderChildren {
+    /* No left border, just indentation via component props */
     list-style: none;
     margin: 0;
-    padding-left: 1.5rem;
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    border-left: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-  }
-
-  .folderRow.open + .folderChildren,
-  .folderNode:has(.folderRow.open) > .folderChildren {
-    max-height: 2000px;
-    opacity: 1;
+    padding: 0; 
+    overflow: hidden; 
   }
 }
 
-/* Add New List / Subfolder Input Styles */
+/* Subfolder Inline Input */
 .subfolderInline {
   display: flex;
   gap: 0.5rem;
-  padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  margin-top: 0.5rem;
-  animation: fadeIn 0.2s ease;
+  padding: 0.5rem; /* Indentation handled by component logic ideally, or keep simple */
+  margin-left: 1rem; 
+  /* ... existing styles ... */
 
   input {
     flex: 1;
@@ -761,5 +825,54 @@
 .right-panel {
   .detail-header {
     padding-top: 0;
+  }
+}
+
+/* Mobile Layout Enforcement */
+@media (max-width: 768px) {
+  .tdl-root {
+    /* Override flex behavior */
+    display: block; 
+    position: relative;
+    
+    /* Hide panels by default unless actived by JS classes */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 100;
+      background: var(--bg-1);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      
+      &.mobile-visible {
+        transform: translateX(0);
+      }
+    }
+
+    .main-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .right-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 101;
+      background: var(--bg-1);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      
+      &.mobile-visible {
+        transform: translateX(0);
+      }
+    }
   }
 }

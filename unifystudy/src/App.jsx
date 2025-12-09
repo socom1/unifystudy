@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 
-import Sidebar from "./components/appcomp/nav/Sidebar";
 import AppS from "./components/appcomp/appsl/AppS";
 import "./App.css";
 
@@ -53,22 +52,14 @@ function App() {
 
   return (
     <Router>
-      <div className="app-layout">
-        {/* Sidebar Navigation */}
-        <Sidebar user={user} onSignOut={handleSignOut} />
-
-        {/* Main Content Area */}
-        <div className="main-content">
-          <AppS
-            user={user}
-            onLoginSuccess={handleLoginSuccess}
-            onSignOut={handleSignOut}
-          />
-        </div>
-        
-        {user && <GlobalPlayer />}
-        <UpdateNotification />
-      </div>
+      <AppS
+        user={user}
+        onLoginSuccess={handleLoginSuccess}
+        onSignOut={handleSignOut}
+      />
+      
+      {user && <GlobalPlayer />}
+      <UpdateNotification />
     </Router>
   );
 }

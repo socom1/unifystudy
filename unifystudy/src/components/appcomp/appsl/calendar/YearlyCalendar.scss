@@ -29,6 +29,7 @@
         font-weight: 300;
         min-width: 250px;
         text-align: center;
+        color: var(--color-primary);
       }
 
       button {
@@ -227,9 +228,11 @@
         overflow: hidden;
         padding: 0;
         margin: 0;
+        background: transparent;
         
         &:hover:not(.empty) {
-          background: rgba(var(--color-primary-rgb), 0.1);
+          background: var(--bg-2);
+          border-color: var(--color-primary);
           transform: scale(1.05);
           z-index: 1;
         }

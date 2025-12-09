@@ -1,28 +1,46 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Folder, FileText, Link as LinkIcon, Plus, Search, Trash2, ExternalLink, Video, Image, ChevronRight, Upload, ArrowLeft, X } from 'lucide-react';
+import { Folder, FileText, Link as LinkIcon, Plus, Search, Trash2, ExternalLink, Video, Image, ChevronRight, Upload, X, Eye } from 'lucide-react';
+import { db, storage } from '../firebase';
+import { ref, onValue, push, remove, set } from 'firebase/database';
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import './ResourceLibrary.scss';
+import Modal from '../../../common/Modal'; // Assuming we can reuse shared Modal if desired, or simple inline
 
-const ResourceLibrary = () => {
+const ResourceLibrary = ({ user }) => {
   const [currentFolder, setCurrentFolder] = useState(null); // null = root
   const [breadcrumbs, setBreadcrumbs] = useState([{ id: null, name: 'Library' }]);
-  const [resources, setResources] = useState([
-    { id: 1, type: 'folder', name: 'Calculus 101', parentId: null, items: 3 },
-    { id: 2, type: 'pdf', name: 'Lecture Notes - Week 1.pdf', parentId: null, tag: 'Math' },
-    { id: 3, type: 'link', name: 'Khan Academy - Derivatives', parentId: null, url: 'https://khanacademy.org', tag: 'Math' },
-    { id: 4, type: 'video', name: 'Physics - Newton Laws', parentId: null, tag: 'Physics' },
-    // Inside Calculus 101
-    { id: 5, type: 'pdf', name: 'Derivatives Cheat Sheet.pdf', parentId: 1, tag: 'Math' },
-    { id: 6, type: 'pdf', name: 'Integrals Practice.pdf', parentId: 1, tag: 'Math' },
-  ]);
+  const [resources, setResources] = useState([]);
   
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemType, setNewItemType] = useState('folder');
+  const [newItemUrl, setNewItemUrl] = useState(''); // For links
+  
+  // File Upload State
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Preview State
+  const [previewFile, setPreviewFile] = useState(null);
   
   const fileInputRef = useRef(null);
+
+  // Fetch Resources
+  useEffect(() => {
+    if (!user) return;
+    const resourcesRef = ref(db, `users/${user.uid}/resources`);
+    const unsub = onValue(resourcesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setResources(Object.entries(data).map(([id, val]) => ({ id, ...val })));
+      } else {
+        setResources([]);
+      }
+    });
+    return () => unsub();
+  }, [user]);
 
   const getIcon = (type) => {
     switch (type) {
@@ -40,42 +58,93 @@ const ResourceLibrary = () => {
     setBreadcrumbs([...breadcrumbs, { id: folder.id, name: folder.name }]);
   };
 
+  const handleItemClick = (item) => {
+    if (item.type === 'folder') {
+      handleFolderClick(item);
+    } else if (item.url) {
+        if(item.type === 'pdf' || item.type === 'image') {
+            setPreviewFile(item);
+        } else {
+            window.open(item.url, '_blank', 'noopener,noreferrer');
+        }
+    }
+  };
+
   const handleBreadcrumbClick = (index) => {
     const newBreadcrumbs = breadcrumbs.slice(0, index + 1);
     setBreadcrumbs(newBreadcrumbs);
     setCurrentFolder(newBreadcrumbs[newBreadcrumbs.length - 1].id);
   };
 
-  const handleAddItem = (e) => {
+  const handleAddItem = async (e) => {
     e.preventDefault();
-    if (!newItemName.trim()) return;
+    if (!newItemName.trim() || !user) return;
+    if (newItemType === 'link' && !newItemUrl.trim()) return;
 
-    const newItem = {
-      id: Date.now(),
+    const resourcesRef = ref(db, `users/${user.uid}/resources`);
+    await push(resourcesRef, {
       type: newItemType,
       name: newItemName,
       parentId: currentFolder,
-      tag: 'New',
-      items: 0
-    };
+      url: newItemType === 'link' ? newItemUrl : null,
+      createdAt: Date.now()
+    });
 
-    setResources([...resources, newItem]);
     setShowAddModal(false);
     setNewItemName('');
+    setNewItemUrl('');
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const newItem = {
-        id: Date.now(),
-        type: 'pdf', // Simplified for now
-        name: file.name,
-        parentId: currentFolder,
-        tag: 'Upload'
-      };
-      setResources([...resources, newItem]);
+    if (!file || !user) return;
+
+    setIsUploading(true);
+    try {
+        const fileRef = storageRef(storage, `users/${user.uid}/resources/${Date.now()}_${file.name}`);
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
+        
+        let type = 'file';
+        if (file.type.includes('pdf')) type = 'pdf';
+        else if (file.type.includes('image')) type = 'image';
+        else if (file.type.includes('video')) type = 'video';
+
+        const resourcesRef = ref(db, `users/${user.uid}/resources`);
+        await push(resourcesRef, {
+            type,
+            name: file.name,
+            parentId: currentFolder,
+            url,
+            storagePath: fileRef.fullPath, // Store path for deletion
+            createdAt: Date.now()
+        });
+    } catch (error) {
+        console.error("Upload failed", error);
+        alert("Upload failed!");
+    } finally {
+        setIsUploading(false);
     }
+  };
+  
+  const handleDelete = async (res) => {
+      if(!window.confirm(`Delete ${res.name}?`)) return;
+      
+      // Delete from DB
+      await remove(ref(db, `users/${user.uid}/resources/${res.id}`));
+      
+      // If it's a folder, recursively delete children (simplified: just list items)
+      // For now, orphaned children will remain hidden but in DB. A recursive delete function is better.
+      // We will just filter them out for now.
+      
+      // If file, delete from storage
+      if (res.storagePath) {
+          try {
+              await deleteObject(storageRef(storage, res.storagePath));
+          } catch(e) {
+              console.warn("Storage delete failed", e);
+          }
+      }
   };
 
   const filteredResources = resources.filter(res => {
@@ -105,15 +174,15 @@ const ResourceLibrary = () => {
           </div>
         </div>
         <div className="header-actions">
-          <button className="add-btn secondary" onClick={() => fileInputRef.current.click()}>
-            <Upload size={18} /> Upload
+          <button className="add-btn secondary" onClick={() => fileInputRef.current.click()} disabled={isUploading}>
+            <Upload size={18} /> {isUploading ? "Uploading..." : "Upload"}
           </button>
           <input 
             type="file" 
             ref={fileInputRef} 
             style={{ display: 'none' }} 
             onChange={handleFileUpload}
-            accept=".pdf,.doc,.docx,.png,.jpg"
+            accept=".pdf,.doc,.docx,.png,.jpg,.mp4"
           />
           <button className="add-btn primary" onClick={() => setShowAddModal(true)}>
             <Plus size={18} /> Create
@@ -165,7 +234,7 @@ const ResourceLibrary = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               className="resource-card"
-              onClick={() => res.type === 'folder' && handleFolderClick(res)}
+              onClick={() => handleItemClick(res)}
             >
               <div className="card-icon">
                 {getIcon(res.type)}
@@ -176,7 +245,7 @@ const ResourceLibrary = () => {
                   {res.type === 'folder' ? (
                     <span>{resources.filter(r => r.parentId === res.id).length} items</span>
                   ) : (
-                    <span className="tag">{res.tag}</span>
+                    <span className="date">{new Date(res.createdAt).toLocaleDateString()}</span>
                   )}
                 </div>
               </div>
@@ -188,7 +257,7 @@ const ResourceLibrary = () => {
                 )}
                 <button className="action-btn delete" onClick={(e) => {
                   e.stopPropagation();
-                  setResources(resources.filter(r => r.id !== res.id));
+                  handleDelete(res);
                 }}>
                   <Trash2 size={16} />
                 </button>
@@ -198,6 +267,7 @@ const ResourceLibrary = () => {
         </AnimatePresence>
       </div>
 
+      {/* Creation Modal */}
       <AnimatePresence>
         {showAddModal && (
           <motion.div 
@@ -241,6 +311,17 @@ const ResourceLibrary = () => {
                     autoFocus
                   />
                 </div>
+                {newItemType === 'link' && (
+                    <div className="form-group">
+                        <label>URL</label>
+                        <input 
+                            type="url" 
+                            placeholder="https://example.com"
+                            value={newItemUrl}
+                            onChange={(e) => setNewItemUrl(e.target.value)}
+                        />
+                    </div>
+                )}
                 <div className="modal-actions">
                   <button type="button" onClick={() => setShowAddModal(false)}>Cancel</button>
                   <button type="submit" className="primary">Create</button>
@@ -250,6 +331,34 @@ const ResourceLibrary = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* File Preview Modal */}
+        <AnimatePresence>
+            {previewFile && (
+                <div className="modal-backdrop" onClick={() => setPreviewFile(null)}>
+                    <motion.div 
+                        className="file-preview-modal"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        onClick={e => e.stopPropagation()}
+                        style={{ width: '80%', height: '80%', background: 'var(--bg-2)', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                    >
+                        <header style={{ padding: '1rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3>{previewFile.name}</h3>
+                            <button onClick={() => setPreviewFile(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={24} /></button>
+                        </header>
+                        <div style={{ flex: 1, background: '#000', position: 'relative' }}>
+                             {previewFile.type === 'pdf' ? (
+                                 <iframe src={previewFile.url} width="100%" height="100%" />
+                             ) : (
+                                 <img src={previewFile.url} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+                             )}
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
     </div>
   );
 };

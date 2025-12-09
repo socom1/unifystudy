@@ -1,69 +1,123 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
+@import "./styles/_shared.scss"; // Global shared styles
 
-$aC: #4b6c82;
-$asC: #afd4ed;
-$bC: #1e1e1e;
-$wC: #f2f2f2;
-$rC: #bf4040;
-$gC: #40bf46;
-$fB: rgb(19, 19, 19);
+/* --- Design System Tokens --- */
+:root {
+  /* Palette - Dark Mode "Hacker" Theme */
+  --bg-1: #0f1012;       /* Deepest background (body) */
+  --bg-2: #16181b;       /* Panel background */
+  --bg-3: #212429;       /* Hover states / inputs */
+  
+  --color-primary: #8fd2ff;  /* Main accent (Blue) */
+  --color-secondary: #afd4ed; /* Secondary accent */
+  --color-success: #4ade80;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  
+  --color-text: #e2e8f0;      /* Primary text */
+  --color-text-dim: #94a3b8;  /* Secondary text */
+  --color-muted: #64748b;     /* Muted text */
+  
+  --glass-bg: rgba(22, 24, 27, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  
+  --font-mono: "Fira Code", monospace;
+  --font-sans: "Roboto", sans-serif;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
 
+/* Legacy Variable Mapping (For backward compatibility) */
+$aC: var(--color-primary);
+$asC: var(--color-secondary);
+$bC: var(--bg-1);
+$wC: var(--color-text);
+$rC: var(--color-danger);
+$gC: var(--color-success);
+$fB: var(--bg-1);
+
+/* --- Global Reset & Base Styles --- */
 * {
   padding: 0;
   margin: 0;
-  // font-family: "Poppins", sans-serif;
-  font-family: "Fira Code", monospace;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
 }
 
-.flex {
-  display: flex;
-}
-
-li {
-  list-style: none;
-}
-
-/* Mobile first */
-.container {
-  // margin-top: 60px; /* space for NavS toggle bar */
-}
-
-html {
+html, body {
   height: 100vh;
   width: 100vw;
-  margin: 0;
+  background-color: var(--bg-1);
+  color: var(--color-text);
+  overflow: hidden; /* App-like feel */
+}
 
-  .app-layout {
-    display: flex;
-    height: fit-content;
-    width: 100vw;
-    margin: 0;
-  }
+/* --- Global Scrollbar --- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  .main-content {
-    flex: 1;
-    width: 100%;
-  }
-  .app {
-    .container {
-      .navf {
-        flex-direction: row;
-        padding-right: 0%;
-        margin: 0;
-        justify-content: center;
-        width: 100vw;
-        height: fit-content;
-        z-index: 1000;
-      }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-      @media (max-width: 900px) {
-        .navf {
-          margin: 0;
-          padding: 0;
-        }
-      }
-    }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
   }
 }
+
+/* --- Layout Utils --- */
+.flex { display: flex; }
+.full-size { width: 100%; height: 100%; overflow: hidden; }
+
+/* --- App Layout Structure --- */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  
+  .main-content {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-1);
+  }
+}
+
+/* --- Button Utility Class (Optional Usage) --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  
+  &.btn-primary {
+    background: var(--color-primary);
+    color: var(--bg-1);
+    &:hover { opacity: 0.9; transform: translateY(-1px); }
+  }
+  
+  &.btn-ghost {
+    background: transparent;
+    color: var(--color-text);
+    &:hover { background: var(--bg-3); }
+  }
+}
+

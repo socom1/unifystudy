@@ -2,30 +2,8 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "../firebase";
 import { ref, onValue, update, runTransaction } from "firebase/database";
 import { motion } from "framer-motion";
+import { THEMES } from "../../../../constants/themes";
 import "./Shop.scss";
-
-const THEMES = [
-  { id: "default", name: "Default Dark", price: 0, color: "#4b6c82" },
-  // Coding Classics
-  { id: "dracula", name: "Dracula", price: 150, color: "#bd93f9" },
-  { id: "monokai", name: "Monokai Pro", price: 150, color: "#f92672" },
-  { id: "solarized-dark", name: "Solarized Dark", price: 150, color: "#268bd2" },
-  { id: "nord", name: "Nord", price: 150, color: "#88c0d0" },
-  { id: "gruvbox", name: "Gruvbox", price: 150, color: "#d79921" },
-  { id: "onedark", name: "One Dark", price: 150, color: "#61afef" },
-  { id: "tokyo-night", name: "Tokyo Night", price: 200, color: "#7aa2f7" },
-  { id: "catppuccin", name: "Catppuccin", price: 200, color: "#cba6f7" },
-  // Neon/Cyberpunk
-  { id: "synthwave", name: "Synthwave '84", price: 250, color: "#ff00aa" },
-  { id: "cyberpunk", name: "Cyberpunk", price: 250, color: "#00ffff" },
-  { id: "neon-dream", name: "Neon Dream", price: 250, color: "#0ff" },
-  // Premium/Exclusive
-  { id: "midnight", name: "Midnight Purple", price: 300, color: "#6c5ce7" },
-  { id: "forest", name: "Forest Green", price: 300, color: "#00b894" },
-  { id: "ocean", name: "Ocean Blue", price: 300, color: "#0984e3" },
-  { id: "obsidian", name: "Obsidian", price: 5000, color: "#ffd700" },
-  { id: "nebula", name: "Nebula", price: 3500, color: "#d900ff" },
-];
 
 const PROFILE_TAGS = [
   { id: "scholar", name: "🎓 Scholar", description: "For the dedicated learner", price: 150, color: "#6c5ce7" },
@@ -45,7 +23,7 @@ const ICON_SETS = [
 ];
 
 const BANNERS = [
-  { id: "default", name: "Default", type: "gradient", price: 0, preview: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+  { id: "default", name: "Default", type: "gradient", price: 0, preview: "#667eea" },
   // Emoji Banners
   { id: "rocket", name: "🚀 Rocket", type: "emoji", price: 50, preview: "🚀" },
   { id: "laptop", name: "💻 Laptop", type: "emoji", price: 50, preview: "💻" },
@@ -55,13 +33,13 @@ const BANNERS = [
   { id: "star", name: "⭐ Star", type: "emoji", price: 100, preview: "⭐" },
   { id: "brain", name: "🧠 Brain", type: "emoji", price: 120, preview: "🧠" },
   { id: "trophy", name: "🏆 Trophy", type: "emoji", price: 150, preview: "🏆" },
-  // Gradient Banners
-  { id: "sunset", name: "Sunset", type: "gradient", price: 100, preview: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
-  { id: "ocean", name: "Ocean", type: "gradient", price: 100, preview: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
-  { id: "forest", name: "Forest", type: "gradient", price: 100, preview: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
-  { id: "aurora", name: "Aurora", type: "gradient", price: 150, preview: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)" },
-  { id: "cyber", name: "Cyberpunk", type: "gradient", price: 200, preview: "linear-gradient(135deg, #f093fb 0%, #00d4ff 100%)" },
-  { id: "matrix", name: "Matrix", type: "gradient", price: 200, preview: "linear-gradient(135deg, #00ff41 0%, #00b712 100%)" },
+  // Solid Banners (formerly gradients)
+  { id: "sunset", name: "Sunset", type: "gradient", price: 100, preview: "#f5576c" },
+  { id: "ocean", name: "Ocean", type: "gradient", price: 100, preview: "#4facfe" },
+  { id: "forest", name: "Forest", type: "gradient", price: 100, preview: "#43e97b" },
+  { id: "aurora", name: "Aurora", type: "gradient", price: 150, preview: "#6c5ce7" },
+  { id: "cyber", name: "Cyberpunk", type: "gradient", price: 200, preview: "#00d4ff" },
+  { id: "matrix", name: "Matrix", type: "gradient", price: 200, preview: "#00ff41" },
 ];
 
 export default function Shop() {

@@ -41,10 +41,10 @@ export const db = getDatabase(app);
 // });
 // Note: Realtime Database enables offline persistence by default for short sessions, 
 // but for disk persistence in web, it's actually `enableIndexedDbPersistence` for Firestore.
-// For Realtime Database, it handles connection drops automatically, but full disk persistence 
-// is more limited in web SDK compared to mobile. 
-// However, we can keep the `keepSynced` logic if needed for specific paths.
-// For now, we'll rely on default caching behavior and the OfflineIndicator.
+// For Realtime Database on Web, offline persistence is experimental or limited compared to Firestore.
+// However, the SDK handles temporary disconnects automatically.
+// We can use `keepSynced(ref)` on critical paths within components if strictly needed.
+// For now, the app relies on internal caching and the OfflineIndicator to warn users.
 export const storage = getStorage(app);
 
 export default app;

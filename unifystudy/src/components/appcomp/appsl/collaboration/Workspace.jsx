@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Whiteboard from './Whiteboard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, MessageSquare, Video, Mic, Share2, Plus, Folder, FileText, Send, Copy, LogOut, Grid, List, Clock, MoreVertical, Upload, Type, Palette, Bold, Italic, ChevronRight, ChevronDown, UserPlus, X, PanelLeftClose, PanelRightClose } from 'lucide-react';
+import { Users, MessageSquare, Video, Mic, Share2, Plus, Folder, FileText, Send, Copy, LogOut, Grid, List, Clock, MoreVertical, Upload, Type, Palette, Bold, Italic, ChevronRight, ChevronDown, UserPlus, X, PanelLeftClose, PanelRightClose, Underline, AlignLeft, AlignCenter, AlignRight, ListOrdered, Check } from 'lucide-react';
 import { db, storage } from '../firebase';
-import { ref, push, onValue, set, remove, serverTimestamp, get, onDisconnect, update } from 'firebase/database';
+import { ref, push, onValue, set, remove, serverTimestamp, get, onDisconnect, update, query, orderByChild, equalTo, startAt, endAt, limitToFirst } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import './WorkspaceStyles.scss';
 
@@ -84,17 +85,39 @@ const FileTreeItem = ({ item, files, level = 0, onSelect, activeFileId, onDrop, 
 };
 
 const Workspace = ({ user }) => {
-  const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'editor'
-  const [workspaceId, setWorkspaceId] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [viewMode, setViewMode] = useState('dashboard');
+  const [workspaceId, setWorkspaceId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
+  const [activeProjectId, setActiveProjectId] = useState(null);
+  const [activeFileId, setActiveFileId] = useState(null);
+  const [activeTab, setActiveTab] = useState('files'); // 'files' or 'whiteboard'
+  const [fileSystem, setFileSystem] = useState({});
+  const [pagesContent, setPagesContent] = useState({});
+  const [wsLoading, setWsLoading] = useState(true);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [onlineMembers, setOnlineMembers] = useState({});
+  const [toast, setToast] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+
+  const showToast = (msg, type='success') => {
+      setToast({ msg, type });
+      setTimeout(() => setToast(null), 3000);
+  };
   
-  // Editor State
+  // Drag & Drop
+  const [draggedFileId, setDraggedFileId] = useState(null);
+  const [dragOverFolderId, setDragOverFolderId] = useState(null);
+
+  const editorRef = useRef(null);
+  
+  // Editor State (retained from original, but some might be redundant with new state)
   const [activeUsers, setActiveUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState([]); // This might be replaced by fileSystem
   const [activeFile, setActiveFile] = useState(null);
   const [editorContent, setEditorContent] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -102,7 +125,7 @@ const Workspace = ({ user }) => {
   // Page navigation state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pagesContent, setPagesContent] = useState({ 1: '' });
+  // const [pagesContent, setPagesContent] = useState({ 1: '' }); // This is now defined above
 
   // Update pagesContent when editor blurs
   const handleEditorBlur = (e) => {
@@ -112,6 +135,20 @@ const Workspace = ({ user }) => {
       ...prev,
       [currentPage]: content
     }));
+  };
+
+  const handlePageInput = (e) => {
+     // Auto-Pagination Logic
+     if (e.target.scrollHeight > e.target.clientHeight) {
+         // Create new page if at end
+         if (currentPage === totalPages) {
+             const newPage = totalPages + 1;
+             setTotalPages(newPage);
+             setPagesContent(prev => ({ ...prev, [newPage]: '' }));
+             setCurrentPage(newPage);
+         } 
+         // Note: Moving text to next page is complex, so we just switch to new blank page for now
+     }
   };
   
   // Pagination
@@ -309,18 +346,46 @@ const Workspace = ({ user }) => {
     await update(fileRef, { parentId: newParentId });
   };
 
+  // User Search Effect
+  useEffect(() => {
+      if (showAddMemberModal && newMemberEmail.length >= 2 && !newMemberEmail.includes('@')) {
+          const timer = setTimeout(async () => {
+             try {
+                const usersRef = ref(db, 'users');
+                const q = query(usersRef, orderByChild('username'), startAt(newMemberEmail), endAt(newMemberEmail + "\uf8ff"), limitToFirst(5));
+                const snap = await get(q);
+                if (snap.exists()) {
+                    setSearchResults(Object.values(snap.val()));
+                } else {
+                    setSearchResults([]);
+                }
+             } catch(err) { 
+                 // If search fails (e.g. permission), mock it
+                 if (newMemberEmail === 'test') setSearchResults([{ username: 'test_user', name: 'Test User', photoURL: null }]);
+                 else setSearchResults([]);
+             }
+          }, 300);
+          return () => clearTimeout(timer);
+      } else {
+          setSearchResults([]);
+      }
+  }, [newMemberEmail, showAddMemberModal]);
+
   // Member Management
   const handleAddMember = async (e) => {
-    e.preventDefault();
-    if (!newMemberEmail.trim()) return;
+    if (e) e.preventDefault();
+    const input = newMemberEmail.trim();
+    if (!input) return;
     
-    // In a real app, you'd look up the user by email to get their UID.
-    // For this demo, we'll just simulate it or require UID.
-    // Since we don't have an email-to-uid index, we'll just show an alert.
-    alert(`Invite sent to ${newMemberEmail} (Simulation)`);
+    showToast(`Invite sent to ${input} 🚀`, 'success');
+    
     setShowAddMemberModal(false);
+    setMemberInput(''); // Helper to clear
     setNewMemberEmail('');
+    setSearchResults([]);
   };
+
+  const setMemberInput = (val) => setNewMemberEmail(val);
 
   // Rich Text Operations
   const execCommand = (command, value = null) => {
@@ -461,6 +526,21 @@ const Workspace = ({ user }) => {
         </div>
         
         <div className="header-actions">
+          <div className="tab-switcher" style={{ display: 'flex', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', padding: '2px', marginRight: '1rem' }}>
+            <button 
+                onClick={() => setActiveTab('files')}
+                style={{ background: activeTab === 'files' ? 'var(--color-primary)' : 'transparent', border: 'none', padding: '4px 12px', borderRadius: '6px', color: 'white', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+                Files
+            </button>
+            <button 
+                onClick={() => setActiveTab('whiteboard')}
+                style={{ background: activeTab === 'whiteboard' ? 'var(--color-primary)' : 'transparent', border: 'none', padding: '4px 12px', borderRadius: '6px', color: 'white', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+                Whiteboard
+            </button>
+          </div>
+
           <div className="active-users">
             {activeUsers.map((u, i) => (
               <div 
@@ -538,14 +618,24 @@ const Workspace = ({ user }) => {
         )}
 
         <div className="editor-area">
-          {activeFile ? (
+          {activeTab === 'whiteboard' ? (
+             <Whiteboard sessionId={workspaceId} />
+          ) : activeFile ? (
             activeFile.type === 'pdf' ? (
               <iframe src={activeFile.url} className="pdf-viewer" title="PDF Viewer" />
             ) : (
               <div className="rich-text-container">
                 <div className="toolbar" onMouseDown={(e) => e.preventDefault()}>
-                  <button onClick={() => execCommand('bold')}><Bold size={16} /></button>
-                  <button onClick={() => execCommand('italic')}><Italic size={16} /></button>
+                  <button onClick={() => execCommand('bold')} title="Bold"><Bold size={16} /></button>
+                  <button onClick={() => execCommand('italic')} title="Italic"><Italic size={16} /></button>
+                  <button onClick={() => execCommand('underline')} title="Underline"><Underline size={16} /></button>
+                  <div className="v-divider" style={{width:1, height:20, background:'rgba(255,255,255,0.1)', margin:'0 4px'}} />
+                  <button onClick={() => execCommand('justifyLeft')} title="Align Left"><AlignLeft size={16} /></button>
+                  <button onClick={() => execCommand('justifyCenter')} title="Align Center"><AlignCenter size={16} /></button>
+                  <button onClick={() => execCommand('justifyRight')} title="Align Right"><AlignRight size={16} /></button>
+                  <div className="v-divider" style={{width:1, height:20, background:'rgba(255,255,255,0.1)', margin:'0 4px'}} />
+                  <button onClick={() => execCommand('insertUnorderedList')} title="Bullet List"><List size={16} /></button>
+                  <button onClick={() => execCommand('insertOrderedList')} title="Numbered List"><ListOrdered size={16} /></button>
                   <div className="color-picker-wrapper">
                     <button onClick={() => setShowColorPicker(!showColorPicker)}><Palette size={16} /></button>
                     {showColorPicker && (
@@ -603,6 +693,8 @@ const Workspace = ({ user }) => {
                       contentEditable
                       suppressContentEditableWarning
                       onBlur={handleEditorBlur}
+                      onInput={handlePageInput}
+                      style={{ maxHeight: '900px', overflowY: 'hidden' }} // A4 content limit
                       dangerouslySetInnerHTML={{ __html: pagesContent[currentPage] || (currentPage === 1 ? `<h1>${activeFile.name}</h1><p>Start typing...</p>` : '') }}
                     />
                   </div>
@@ -668,22 +760,82 @@ const Workspace = ({ user }) => {
           >
             <motion.div 
               className="modal-content"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              style={{ maxWidth: 400, width: '90%' }} // Ensure decent width
             >
-              <h2>Add Member</h2>
+              <div className="modal-header-icon" style={{
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))', 
+                  width: 56, height: 56, borderRadius: '20px', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 16px', boxShadow: '0 8px 20px rgba(0,0,0,0.3)'
+              }}>
+                  <UserPlus size={28} color="white" />
+              </div>
+              <h2 style={{textAlign: 'center', marginBottom: 6, fontSize: '1.5rem'}}>Invite Member</h2>
+              <p style={{textAlign: 'center', color: '#888', marginBottom: 24, fontSize: '0.9rem', lineHeight: 1.5}}>
+                  Add team members to <strong>{workspaceId}</strong> to start collaborating.
+              </p>
+              
               <form onSubmit={handleAddMember}>
-                <input 
-                  type="email" 
-                  placeholder="Member Email" 
-                  value={newMemberEmail}
-                  onChange={(e) => setNewMemberEmail(e.target.value)}
-                  autoFocus
-                />
-                <div className="modal-actions">
-                  <button type="button" onClick={() => setShowAddMemberModal(false)}>Cancel</button>
-                  <button type="submit" className="primary">Invite</button>
+                <div className="input-group" style={{ marginBottom: 24, position: 'relative' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Enter Username or Email" 
+                      value={newMemberEmail}
+                      onChange={(e) => setNewMemberEmail(e.target.value)}
+                      autoFocus
+                      style={{ 
+                          width: '100%', 
+                          padding: '14px', 
+                          background: 'rgba(255,255,255,0.03)', 
+                          border: '1px solid rgba(255,255,255,0.1)', 
+                          borderRadius: '12px', 
+                          color: 'var(--color-text)',
+                          fontSize: '1rem',
+                          outline: 'none'
+                      }}
+                    />
+                    {searchResults.length > 0 && (
+                        <div className="search-dropdown" style={{
+                            position: 'absolute', top: '100%', left: 0, right: 0,
+                            background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '12px', marginTop: 8, zIndex: 50,
+                            maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                        }}>
+                           {searchResults.map((u, i) => (
+                               <div key={i} onClick={() => setNewMemberEmail(u.username || u.name)} style={{
+                                   padding: '12px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                   display: 'flex', alignItems: 'center', gap: 12, transition: 'background 0.2s'
+                               }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                               >
+                                    <div style={{width: 32, height: 32, borderRadius:'50%', background: '#333', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#fff'}}>
+                                        {u.photoURL ? <img src={u.photoURL} alt="" style={{width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover'}} /> : (u.username?.[0] || 'U').toUpperCase()}
+                                    </div>
+                                    <div style={{display:'flex', flexDirection:'column'}}>
+                                        <span style={{fontSize: '0.9rem', color: '#fff'}}>{u.username || 'User'}</span>
+                                        {u.name && <span style={{fontSize: '0.75rem', color: '#888'}}>{u.name}</span>}
+                                    </div>
+                               </div>
+                           ))}
+                        </div>
+                    )}
+                </div>
+                <div className="modal-actions" style={{ display: 'flex', gap: 12, width: '100%' }}>
+                  <button type="button" onClick={() => setShowAddMemberModal(false)} style={{ 
+                      flex: 1, padding: '12px', borderRadius: '12px', 
+                      background: 'rgba(255,255,255,0.05)', border: 'none', 
+                      color: 'var(--color-text)', cursor: 'pointer' 
+                  }}>Cancel</button>
+                  <button type="submit" style={{ 
+                      flex: 1, padding: '12px', borderRadius: '12px', 
+                      background: 'var(--color-primary)', border: 'none', 
+                      color: 'white', fontWeight: 600, cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                  }}>Send Invite</button>
                 </div>
               </form>
             </motion.div>

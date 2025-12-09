@@ -1,0 +1,191 @@
+/* HabitTracker.scss */
+
+.habits-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: var(--bg-1);
+  color: var(--color-text);
+  overflow: hidden;
+
+  .habits-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    .header-left {
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+        .subtitle {
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+    }
+
+    .header-right {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+
+        .daily-stats {
+            background: var(--bg-2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            
+            .stat-pill {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                
+                .label { font-size: 0.8rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+                .value { font-size: 1.1rem; font-weight: 700; color: var(--color-text); }
+                .mini-progress {
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    /* background set inline */
+                    position: relative;
+                     &::after {
+                        content: ''; position: absolute; inset: 4px; background: var(--bg-2); border-radius: 50%;
+                     }
+                }
+            }
+        }
+
+        button {
+          background: var(--color-primary);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          padding: 0.7rem 1.2rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+          &:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+          }
+        }
+    }
+  }
+
+  .habits-grid-container {
+    background: var(--bg-2);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    overflow-x: auto;
+    flex: 1;
+
+    .habits-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            color: var(--color-muted);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Day Columns */
+        .day-col {
+            text-align: center;
+            width: 40px;
+            min-width: 40px;
+            
+            .day-label {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                span:first-child { font-size: 0.7rem; opacity: 0.7; }
+                span:last-child { font-weight: 700; }
+                
+                &.today { color: var(--color-primary); }
+            }
+        }
+
+        /* Habit Rows */
+        .habit-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            
+            .habit-color {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+            }
+        }
+        
+        .habit-delete {
+            opacity: 0;
+            transition: 0.2s;
+            cursor: pointer;
+            color: var(--color-danger);
+            background: none;
+            border: none;
+        }
+
+        tr:hover .habit-delete { opacity: 1; }
+
+        .check-cell {
+            text-align: center;
+            cursor: pointer;
+            
+            .checkbox {
+                width: 24px;
+                height: 24px;
+                border-radius: 6px;
+                background: var(--bg-1);
+                border: 2px solid var(--glass-border);
+                margin: 0 auto;
+                transition: 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+
+                &.checked {
+                    border-color: transparent;
+                    transform: scale(1.1);
+                }
+            }
+            
+            &:hover .checkbox:not(.checked) {
+                border-color: var(--color-primary);
+            }
+        }
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        color: var(--color-muted);
+    }
+  }
+}

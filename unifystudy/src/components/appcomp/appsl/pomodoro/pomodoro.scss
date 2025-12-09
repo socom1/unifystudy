@@ -15,6 +15,13 @@ header {
   align-items: center;
 }
 
+.pom-root.zen-layout {
+  background: transparent !important;
+  min-height: auto !important;
+  padding: 0 !important;
+  display: block; /* Reset flex center if needed, or keep to center timer */
+}
+
 /* HEADER */
 .header {
   display: flex;

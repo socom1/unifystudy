@@ -1,0 +1,170 @@
+/* src/styles/_shared.scss */
+
+/* --- Glassmorphism Utils --- */
+@mixin glass-panel($bg: var(--glass-bg), $blur: 16px) {
+  background: $bg;
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-panel {
+  @include glass-panel;
+}
+
+/* --- Reusable Modal Styles --- */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000; /* High z-index to cover everything */
+  opacity: 0;
+  animation: fadeIn 0.2s forwards;
+}
+
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-2, #0f1516);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  padding: 2rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  z-index: 2001; /* Higher than backdrop */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  color: var(--color-text, #fff);
+  max-height: 90vh;
+  overflow-y: auto;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--color-text, #fff);
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-muted);
+      cursor: pointer;
+      padding: 0.4rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--color-text);
+      }
+    }
+  }
+
+  .modal-body {
+    margin-bottom: 2rem;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--glass-border);
+
+    button {
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+
+      &.btn-secondary {
+        background: transparent;
+        color: var(--color-muted);
+        &:hover {
+          color: var(--color-text);
+          background: rgba(255, 255, 255, 0.05);
+        }
+      }
+
+      &.btn-primary {
+        background: var(--color-primary);
+        color: var(--bg-1, #000);
+        &:hover {
+          opacity: 0.9;
+        }
+      }
+
+      &.btn-danger {
+        background: #ff4d4d;
+        color: #fff;
+        &:hover {
+          background: #e04343;
+        }
+      }
+    }
+  }
+}
+
+/* --- Common Form Styles --- */
+.form-group {
+  margin-bottom: 1.25rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: var(--bg-1);
+    border: 1px solid var(--glass-border);
+    padding: 0.8rem;
+    border-radius: 8px;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    
+    /* Remove browser default styles */
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

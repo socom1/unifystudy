@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import "./pomodoro.scss";
 import { useTimer } from "./TimerContext";
 
-export default function Pomodoro() {
+export default function Pomodoro({ zenMode = false }) {
   const {
     templateList,
     setTemplateList,
@@ -120,7 +120,7 @@ export default function Pomodoro() {
   const timerClass = running ? "timer running" : "timer";
 
   return (
-    <div className="pom-root">
+    <div className={`pom-root ${zenMode ? "zen-layout" : ""}`}>
       <main className="main">
         {/* Timer card */}
         <section className={timerClass} aria-live="polite">
@@ -227,7 +227,8 @@ export default function Pomodoro() {
           </div>
         </section>
 
-        {/* Templates area */}
+        {/* Templates area (Hidden in Zen Mode) */}
+        {!zenMode && (
         <section className="templates">
           <div className="templates__header">
             <h2>Templates</h2>
@@ -292,6 +293,30 @@ export default function Pomodoro() {
             </button>
           </div>
         </section>
+        )}
+
+        {/* ZEN MODE TEMPLATES (Simplified) */}
+        {zenMode && (
+          <motion.div 
+            className="zen-templates"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <h3 className="zen-templates-label">Templates</h3>
+            <div className="zen-templates-list">
+            {templateList.map((tpl) => (
+              <button
+                key={tpl.id}
+                className={`zen-template-pill ${selectedTemplateId === tpl.id ? "active" : ""}`}
+                onClick={() => setSelectedTemplateId(tpl.id)}
+              >
+                {tpl.name}
+              </button>
+            ))}
+            </div>
+          </motion.div>
+        )}
       </main>
 
       {/* Editor/Selector modal */}

@@ -36,6 +36,8 @@ import {
 } from "firebase/storage";
 import CalendarSync from "../calendar/CalendarSync";
 import "./profile.scss"; // companion SCSS (below)
+import { THEMES } from "../../../../constants/themes";
+import { ShoppingBag } from "lucide-react";
 
 export default function ProfilePage() {
   const user = auth.currentUser;
@@ -79,22 +81,22 @@ export default function ProfilePage() {
     {
       id: "gradient-1",
       name: "Ocean",
-      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      gradient: "#667eea",
     },
     {
       id: "gradient-2",
       name: "Sunset",
-      gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+      gradient: "#f5576c",
     },
     {
       id: "gradient-3",
       name: "Forest",
-      gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+      gradient: "#00b894",
     },
     {
       id: "gradient-4",
       name: "Aurora",
-      gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+      gradient: "#6c5ce7",
     },
   ];
 
@@ -390,6 +392,7 @@ export default function ProfilePage() {
         avatarColor: avatarColor,
       });
       // Apply theme immediately
+      document.documentElement.setAttribute('data-theme', selectedTheme);
       document.body.className = `theme-${selectedTheme}`;
       setTempStatus("Customization saved!");
     } catch (err) {
@@ -713,7 +716,12 @@ export default function ProfilePage() {
           <div className="panel-body">
             {/* Profile Banner Selection */}
             <div className="customize-section">
-              <h3>Profile Banner</h3>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                <h3>Profile Banner</h3>
+                <a href="/shop" style={{fontSize:'0.8rem', color:'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                  <ShoppingBag size={14} /> Store
+                </a>
+              </div>
               <div className="banner-grid">
                 {presetBanners.map((banner) => (
                   <motion.div
@@ -735,7 +743,12 @@ export default function ProfilePage() {
 
             {/* Profile Tag Selection */}
             <div className="customize-section">
-              <h3>Profile Tags (Max 3)</h3>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                <h3>Profile Tags (Max 3)</h3>
+                <a href="/shop" style={{fontSize:'0.8rem', color:'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                  <ShoppingBag size={14} /> Store
+                </a>
+              </div>
               {ownedTags.length > 0 ? (
                 <div className="tags-grid">
                   {ownedTags.map((tag) => {
@@ -785,58 +798,47 @@ export default function ProfilePage() {
 
             {/* Theme Selection */}
             <div className="customize-section">
-              <h3>App Theme</h3>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                 <h3>App Theme</h3>
+                 <a href="/shop" style={{fontSize:'0.8rem', color:'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                   <ShoppingBag size={14} /> Store
+                 </a>
+              </div>
+              
               <div className="banner-grid">
-                {[
-                  { id: "default", name: "Default", color: "#0c1214" },
-                  // Basic
-                  { id: "midnight", name: "Midnight", color: "#6c5ce7" },
-                  { id: "forest", name: "Forest", color: "#00b894" },
-                  { id: "ocean", name: "Ocean", color: "#0984e3" },
-                  // Premium
-                  { id: "obsidian", name: "Obsidian", color: "#000000" },
-                  { id: "nebula", name: "Nebula", color: "#0b0014" },
-                  { id: "glass", name: "Glass", color: "#1a1a2e" },
-                  { id: "sunset", name: "Sunset", color: "#14100c" },
-                ]
-                  .filter((t) => ownedThemes.includes(t.id))
-                  .map((theme) => (
-                    <motion.div
-                      layout
-                      key={theme.id}
-                      className={`banner-option ${
-                        selectedTheme === theme.id ? "selected" : ""
-                      }`}
-                      style={{
-                        background: theme.color,
-                        border:
-                          selectedTheme === theme.id
-                            ? "2px solid var(--color-primary)"
-                            : "1px solid rgba(255,255,255,0.1)",
-                      }}
-                      onClick={() => {
+                {THEMES.filter(t => ownedThemes.includes(t.id)).map((theme) => (
+                  <motion.div
+                    layout
+                    key={theme.id}
+                    className={`banner-option ${
+                      selectedTheme === theme.id ? "selected" : ""
+                    }`}
+                    style={{ background: theme.color, color: (theme.id === 'light' || theme.id === 'cute') ? '#000' : '#fff' }}
+                    onClick={() => {
                         setSelectedTheme(theme.id);
-                        // Instant preview
-                        document.body.className = `theme-${theme.id}`;
-                      }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {theme.name}
-                    </motion.div>
-                  ))}
+                        document.documentElement.setAttribute('data-theme', theme.id);
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {theme.name}
+                  </motion.div>
+                ))}
+                
+                {THEMES.filter(t => !ownedThemes.includes(t.id)).slice(0, 2).map((theme) => (
+                   <motion.div
+                    key={theme.id}
+                    className="banner-option locked"
+                    style={{ background: '#222', opacity: 0.6, cursor: 'not-allowed', border:'1px dashed #555' }}
+                  >
+                    🔒 {theme.name}
+                  </motion.div>
+                ))}
               </div>
               {ownedThemes.length === 1 && (
-                <p
-                  className="muted-text"
-                  style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}
-                >
-                  Visit the{" "}
-                  <a href="/shop" style={{ color: "var(--color-primary)" }}>
-                    Shop
-                  </a>{" "}
-                  to unlock premium themes!
-                </p>
+                 <p className="muted-text" style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}>
+                   Visit the <a href="/shop" style={{ color: "var(--color-primary)" }}>Shop</a> to unlock premium themes!
+                 </p>
               )}
             </div>
 

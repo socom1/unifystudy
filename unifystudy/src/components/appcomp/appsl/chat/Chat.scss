@@ -209,11 +209,15 @@
 
           h2 {
             margin: 0;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             color: var(--color-text);
             white-space: nowrap;
             flex-shrink: 0;
+
+            svg{
+              padding-top: 5px;
+            }
           }
 
           .channel-desc {
@@ -223,6 +227,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             display: none;
+            margin-top: 5px;
             
             @media (min-width: 768px) {
               display: block;
@@ -238,8 +243,11 @@
         flex-shrink: 0;
         margin-left: 16px;
 
-        svg {
+        .action-btn {
+          background-color: transparent;
           cursor: pointer;
+          border: none;
+          color: var(--color-muted);
           &:hover {
             color: var(--color-text);
           }
@@ -366,13 +374,14 @@
           .message-bubble {
             background-color: var(--bg-3);
             color: var(--color-text);
-            padding: 10px 14px;
-            border-radius: 0 12px 12px 12px;
-            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 4px 18px 18px 18px; /* Modern "Chat" look */
+            font-size: 15px; /* Slightly larger text */
             line-height: 1.5;
             word-wrap: break-word;
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(255,255,255,0.05);
             position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             
             .mention-highlight {
               background: rgba(59, 130, 246, 0.2);
@@ -431,6 +440,44 @@
       padding: 16px;
       background-color: var(--bg-3);
       border-top: 1px solid var(--glass-border);
+      position: relative;
+      z-index: 50;
+
+      .reply-banner {
+          position: absolute;
+          bottom: 100%;
+          left: 0;
+          right: 0;
+          background: var(--bg-2); /* Distinct from input area */
+          border-top: 1px solid var(--glass-border);
+          border-bottom: 1px solid var(--glass-border);
+          padding: 10px 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.9rem;
+          color: var(--color-muted);
+          z-index: 5;
+          box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+          
+          .reply-info {
+             display: flex;
+             align-items: center;
+             gap: 8px;
+             strong { color: var(--color-text); font-weight: 600; }
+          }
+          
+          .close-reply {
+              background: none;
+              border: none;
+              color: var(--color-muted);
+              cursor: pointer;
+              padding: 4px;
+              border-radius: 4px;
+              display: flex;
+              &:hover { color: var(--color-text); background: var(--bg-3); }
+          }
+      }
 
       .input-wrapper {
         display: flex;
@@ -762,4 +809,171 @@
   .message-bubble {
     transition: transform 0.2s, box-shadow 0.2s;
   }
+}
+
+/* Discord Style Additions */
+
+.message-row {
+  position: relative;
+  /* margin-bottom: 2px !important; Tighter Discord spacing - handled by flex gap */ 
+  padding: 2px 0; /* Align with compact look */
+  
+  &:hover {
+      background: rgba(255, 255, 255, 0.02); /* Subtle hover highlight like Discord */
+      .msg-actions {
+          opacity: 1;
+          pointer-events: auto;
+      }
+  }
+  
+  &.has-reply {
+      margin-top: 6px;
+  }
+}
+
+/* Hover Actions Menu */
+.msg-actions {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 15px;
+  top: -15px; /* Slight overlap above message */
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+  padding: 2px;
+  display: flex;
+  gap: 2px;
+  transition: opacity 0.1s;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.msg-actions button {
+  background: transparent;
+  border: none;
+  color: var(--color-muted);
+  padding: 6px; /* Larger hit area */
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  transition: all 0.2s;
+
+  &:hover {
+      background: var(--bg-3);
+      color: var(--color-text);
+  }
+  
+  /* Ensure icons are sizeable */
+  svg {
+      width: 16px;
+      height: 16px;
+  }
+}
+
+/* Edit Box */
+.edit-container {
+  padding: 4px 0;
+  width: 100%;
+}
+.edit-input {
+  width: 100%;
+  background: var(--bg-3);
+  border: 1px solid var(--color-primary) !important;
+  color: var(--color-text);
+  padding: 8px 10px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  outline: none;
+  font-size: 14px;
+}
+.edit-hints {
+  font-size: 11px;
+  color: var(--color-muted);
+  text-align: right;
+  span {
+     margin-left: 8px;
+  }
+}
+
+.edited-label {
+  font-size: 10px;
+  color: var(--color-muted);
+  margin-left: 4px;
+  user-select: none;
+}
+
+/* Role Badges */
+.role-badge {
+  vertical-align: middle;
+  user-select: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+  
+  &.uni {
+      background: rgba(57, 211, 83, 0.15);
+      color: #39d353;
+      border: 1px solid rgba(57, 211, 83, 0.2);
+  }
+  
+  &.guest {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--color-muted);
+  }
+}
+
+/* Reply Context Line */
+.reply-context {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 2px;
+  margin-left: 56px; /* Indent to align with bubble content not avatar */
+  opacity: 0.9;
+  position: relative;
+  
+  &:hover {
+     opacity: 1;
+     .reply-name { text-decoration: underline; cursor: pointer; }
+  }
+}
+
+.message-row.own .reply-context {
+  flex-direction: row-reverse;
+  margin-right: 18px; /* Align with right bubble */
+  margin-left: 0;
+  
+  .reply-name { margin-right: 0; margin-left: 6px; }
+  svg { transform: scaleX(-1); margin-right: 0; margin-left: 4px; }
+}
+
+.reply-line {
+    display: none;
+}
+
+.reply-name {
+  font-weight: 600;
+  margin-right: 6px;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.reply-text-trunc {
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
 }

@@ -25,13 +25,12 @@
 /* Card base */
 .profile-card,
 .panel {
-  background: var(--glass-bg, rgba(22, 27, 34, 0.8));
+  background: var(--bg-2);
   border-radius: 12px;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
   padding: 2rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   width: 100%;
-  backdrop-filter: blur(12px);
 }
 
 /* Sections grid for panels */
@@ -438,7 +437,6 @@
 
   &.selected {
     border-color: var(--color-secondary);
-    box-shadow: 0 0 20px rgba(143, 210, 255, 0.3);
   }
 }
 

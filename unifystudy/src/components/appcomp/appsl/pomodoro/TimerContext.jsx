@@ -157,11 +157,10 @@ export const TimerProvider = ({ children }) => {
     secondsLeftRef.current = totalSeconds;
   };
 
-  const switchMode = (newMode) => {
+  const switchMode = (newMode, autoStart = false) => {
       setMode(newMode);
       // The effect on totalSeconds isn't enough because we need to force the new time immediately
       // to avoid a frame of old time.
-      // Actually, we can just calculate the new time here.
       let newTime = 25 * 60;
       if (newMode === 'work') newTime = (selectedTemplate?.work || 25) * 60;
       if (newMode === 'short') newTime = (selectedTemplate?.short || 5) * 60;
@@ -169,9 +168,18 @@ export const TimerProvider = ({ children }) => {
       
       setSecondsLeft(newTime);
       secondsLeftRef.current = newTime;
-      setRunning(false);
+      
       cancelRaf();
       endTimeRef.current = null;
+
+      if (autoStart) {
+          setRunning(true);
+          const now = performance.now();
+          endTimeRef.current = now + Math.max(0, newTime) * 1000;
+          rafRef.current = requestAnimationFrame(rafLoop);
+      } else {
+          setRunning(false);
+      }
   };
 
   const handleComplete = async () => {
@@ -293,17 +301,21 @@ export const TimerProvider = ({ children }) => {
 
       const nextIsLong = cycleCount + 1 >= (selectedTemplate?.cycles || 4);
       if (nextIsLong) {
-        switchMode("long");
+        switchMode("long", true); // Auto-start break
         setCycleCount(0);
       } else {
-        switchMode("short");
+        switchMode("short", true); // Auto-start break
       }
     } else {
-      switchMode("work");
+      switchMode("work", false); // Manual start for work
     }
     
-    if (mode !== "work" && "Notification" in window && Notification.permission === "granted") {
-      new Notification("Pomodoro Timer", { body: "Back to work!" });
+    if (mode === "work") {
+       if("Notification" in window && Notification.permission === "granted") 
+          new Notification("Break Time!", { body: "Take a well-deserved break. ☕" });
+    } else {
+       if("Notification" in window && Notification.permission === "granted")
+          new Notification("Back to Work!", { body: "Ready to focus again? 🚀" });
     }
   };
 
