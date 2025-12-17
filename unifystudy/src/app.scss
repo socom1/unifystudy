@@ -92,6 +92,18 @@ html, body {
     overflow: hidden;
     position: relative;
     background: var(--bg-1);
+    
+    /* Layout Fix for Fixed Sidebar */
+    margin-left: 280px; 
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &.collapsed {
+        margin-left: 85px;
+    }
+    
+    @media (max-width: 768px) {
+        margin-left: 0 !important;
+    }
   }
 }
 

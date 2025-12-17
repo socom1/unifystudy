@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "public_leaderboard": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "global_chat": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "channels": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "achievements": {
+      ".read": "auth != null",
+      ".write": false
+    }
+  }
+}

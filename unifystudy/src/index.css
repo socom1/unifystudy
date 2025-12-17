@@ -1,10 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import "./styles/design-system.css";
+@import "./styles/themes.css";
+
 * {
   padding: 0;
   margin: 0;
-  font-family: "Fira Code", monospace;
+  font-family: var(--font-family-mono);
   box-sizing: border-box;
 }
 
@@ -31,127 +34,12 @@ li {
   position: relative;
 }
 
-:root {
-  --color-primary: #4b6c82;
-  --color-primary-rgb: 75, 108, 130; /* Added for rgba() support */
-  --color-secondary: #afd4ed;
-  --color-bg: #1e1e1e;
-  --color-text: #f2f2f2;
-  --color-danger: #bf4040;
-  --color-success: #40bf46;
-  --color-muted: #888;
-  --color-bg-dark: #131313;
-  --bg-1: #2a2a2a;
-  --bg-2: #333333;
-  --glass-border: rgba(255,255,255,0.1);
-  --bg-image: none;
-}
-
-
 .full-size {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-/* Tokyo Night */
-[data-theme='tokyo'] {
-  --bg-image: none;
-  --color-bg: #1a1b26;
-  --color-text: #a9b1d6;
-  --bg-1: #24283b;
-  --bg-2: #1f2335;
-  --color-primary: #bb9af7;
-  --color-primary-rgb: 187, 154, 247;
-  --color-secondary: #7aa2f7;
-  --glass-border: #2f334d; /* Solid border */
-  --color-muted: #565f89;
-}
-
-/* Cute / Hello Kitty Style */
-[data-theme='cute'] {
-  --bg-image: none;
-  --color-bg: #fff0f5; /* LavenderBlush */
-  --color-text: #884973;
-  --bg-1: #ffffff;
-  --bg-2: #ffe4e1; /* MistyRose */
-  --color-primary: #ff85c1;
-  --color-primary-rgb: 255, 133, 193;
-  --color-secondary: #ffb7d6;
-  --glass-border: #ffcce6;
-  --color-muted: #cd8da7;
-}
-
-/* Lofi Coffee */
-[data-theme='lofi'] {
-  --bg-image: none;
-  --color-bg: #2f2724;
-  --color-text: #e6dace;
-  --bg-1: #3e3330;
-  --bg-2: #4d403c;
-  --color-primary: #c29878;
-  --color-primary-rgb: 194, 152, 120;
-  --color-secondary: #d6bda8;
-  --glass-border: #594a42;
-  --color-muted: #9c8474;
-}
-
-/* Nature */
-[data-theme='nature'] {
-  --bg-image: none;
-  --color-bg: #152219;
-  --color-text: #d8e6d8;
-  --bg-1: #1d2e24;
-  --bg-2: #283d31;
-  --color-primary: #52b788;
-  --color-primary-rgb: 82, 183, 136;
-  --color-secondary: #b7e4c7;
-  --glass-border: #2a4034;
-  --color-muted: #74927f;
-}
-
-/* Beach Vaporwave */
-[data-theme='beach'] {
-  --bg-image: none;
-  --color-bg: #221829;
-  --color-text: #ffddee;
-  --bg-1: #31223b;
-  --bg-2: #422d4f;
-  --color-primary: #f72585;
-  --color-primary-rgb: 247, 37, 133;
-  --color-secondary: #4cc9f0;
-  --glass-border: #4a3052;
-  --color-muted: #a67593;
-}
-
-/* Modern City */
-[data-theme='city'] {
-  --bg-image: none;
-  --color-bg: #121212;
-  --color-text: #ffffff;
-  --bg-1: #1e1e1e;
-  --bg-2: #252525;
-  --color-primary: #ffffff;
-  --color-primary-rgb: 255, 255, 255;
-  --color-secondary: #aaaaaa;
-  --glass-border: #333333;
-  --color-muted: #888888;
-}
-
-/* Cozy / Study Room */
-[data-theme='cozy'] {
-  --bg-image: none;
-  --color-bg: #242226;
-  --color-text: #e6dfd5;
-  --bg-1: #2e2b30;
-  --bg-2: #38343b;
-  --color-primary: #ffb347;
-  --color-primary-rgb: 255, 179, 71;
-  --color-secondary: #ffcc5c;
-  --glass-border: #3e3942;
-  --color-muted: #a09080;
 }
 
 html {
@@ -169,3 +57,4 @@ html {
 .muted-text {
   color: var(--color-muted);
 }
+
