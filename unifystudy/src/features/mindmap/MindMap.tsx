@@ -17,6 +17,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import "./MindMap.scss";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 
 // -------------------
 // Custom Node Component
@@ -71,9 +72,10 @@ const GlassNode = ({ data, selected }) => {
 };
 
 // -------------------
-// Storage utilities
+// Storage utilities (Firebase)
 // -------------------
-const STORAGE_KEY = "unifystudy_mindmaps_v3";
+import { db, auth } from "@/services/firebaseConfig";
+import { ref, onValue, set } from "firebase/database";
 
 const defaultData = {
   folders: [
@@ -106,25 +108,6 @@ const defaultData = {
     },
   ],
 };
-
-function loadStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultData;
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error("Failed to load mindmap storage", err);
-    return defaultData;
-  }
-}
-
-function saveStorage(obj) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
-  } catch (err) {
-    console.error("Failed to save mindmap storage", err);
-  }
-}
 
 // -------------------
 // Folder + Map Sidebar
@@ -297,13 +280,12 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 // Main App
 // -------------------
 const MindMapApp = () => {
-  const [store, setStore] = useState(() => loadStorage());
-  const [activeFolderId, setActiveFolderId] = useState(
-    () => store.folders[0]?.id || "inbox"
-  );
-  const [activeMapId, setActiveMapId] = useState(
-    () => store.folders[0]?.maps[0]?.id || null
-  );
+  const [userId, setUserId] = useState(null);
+  const [store, setStore] = useState(defaultData);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const [activeFolderId, setActiveFolderId] = useState("inbox");
+  const [activeMapId, setActiveMapId] = useState(null);
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -316,14 +298,79 @@ const MindMapApp = () => {
   const [modalFontSize, setModalFontSize] = useState("md"); 
   const [targetId, setTargetId] = useState(null); 
 
-  useEffect(() => {
-    const f = store.folders.find((x) => x.id === activeFolderId) || store.folders[0];
-    if (!f) setActiveFolderId(store.folders[0]?.id);
-    const m = f?.maps?.find((mm) => mm.id === activeMapId) || f?.maps?.[0];
-    if (m && m.id !== activeMapId) setActiveMapId(m.id);
-  }, [store, activeFolderId, activeMapId]);
+  // Debounce Ref
+  const saveTimeoutRef = useRef(null);
 
-  useEffect(() => saveStorage(store), [store]);
+  // 1. Auth & Initial Load
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged((u) => {
+        setUserId(u ? u.uid : null);
+        if (!u) {
+            setStore(defaultData);
+            setIsLoading(false);
+        }
+    });
+    return () => unsub();
+  }, []);
+
+  // 2. Firebase Sync Down
+  useEffect(() => {
+    if (!userId) return;
+    
+    const mapsRef = ref(db, `users/${userId}/mindmaps`);
+    const unsub = onValue(mapsRef, (snap) => {
+        const data = snap.val();
+        if (data) {
+            setStore(data);
+        } else {
+            // First time: save default
+            set(mapsRef, defaultData);
+            setStore(defaultData);
+        }
+        setIsLoading(false);
+    });
+    
+    return () => unsub();
+  }, [userId]);
+
+  // 3. Selection Logic (Derived from Store)
+  useEffect(() => {
+    if (isLoading) return;
+    
+    // Ensure active IDs are valid
+    const f = store.folders.find((x) => x.id === activeFolderId) || store.folders[0];
+    if (!f && store.folders.length > 0) {
+        setActiveFolderId(store.folders[0].id);
+        return;
+    }
+    
+    if (f) {
+        // If current map is invalid for this folder
+        const m = f.maps.find((mm) => mm.id === activeMapId);
+        if (!m && f.maps.length > 0) {
+            setActiveMapId(f.maps[0].id);
+        } else if (!m && f.maps.length === 0) {
+             setActiveMapId(null);
+        }
+    }
+  }, [store, activeFolderId, activeMapId, isLoading]);
+
+  // 4. Save (Debounced)
+  const handleStoreUpdate = (newStore) => {
+      setStore(newStore); // Optimistic update
+      
+      if (!userId) return;
+      
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      
+      saveTimeoutRef.current = setTimeout(() => {
+          const mapsRef = ref(db, `users/${userId}/mindmaps`);
+          set(mapsRef, newStore).catch(err => {
+              console.error("Failed to save to Firebase", err);
+              toast.error("Save failed");
+          });
+      }, 1000); // 1s debounce
+  };
 
   const openModal = (type, initialValue = "", id = null, initialColor = "", initialType = "default", initialDesc = "", initialSize = "md", initialTextColor = "") => {
     setModalType(type);
@@ -341,10 +388,14 @@ const MindMapApp = () => {
     e.preventDefault();
     if (!modalInput.trim() && modalType !== "createNode" && modalType !== "editNode") return; 
 
+    let newStore = { ...store };
+    let newActiveFolderId = activeFolderId;
+    let newActiveMapId = activeMapId;
+
     if (modalType === "createFolder") {
       const folder = { id: uuidv4(), name: modalInput, maps: [] };
-      setStore((s) => ({ ...s, folders: [...s.folders, folder] }));
-      setActiveFolderId(folder.id);
+      newStore.folders = [...newStore.folders, folder];
+      newActiveFolderId = folder.id;
     } else if (modalType === "createMap") {
       const map = {
         id: uuidv4(),
@@ -359,17 +410,13 @@ const MindMapApp = () => {
         ],
         edges: [],
       };
-      setStore((s) => ({
-        ...s,
-        folders: s.folders.map((f) =>
+      
+      newStore.folders = newStore.folders.map((f) =>
           f.id === activeFolderId ? { ...f, maps: [...f.maps, map] } : f
-        ),
-      }));
-      setActiveMapId(map.id);
+      );
+      newActiveMapId = map.id;
     } else if (modalType === "renameMap") {
-      setStore((s) => ({
-        ...s,
-        folders: s.folders.map((f) =>
+       newStore.folders = newStore.folders.map((f) =>
           f.id === activeFolderId
             ? {
                 ...f,
@@ -378,8 +425,7 @@ const MindMapApp = () => {
                 ),
               }
             : f
-        ),
-      }));
+        );
     } else if (modalType === "createNode") {
         const newNode = {
             id: uuidv4(),
@@ -396,9 +442,7 @@ const MindMapApp = () => {
             type: "glass",
         };
         
-        setStore((s) => ({
-            ...s,
-            folders: s.folders.map((f) => ({
+        newStore.folders = newStore.folders.map((f) => ({
               ...f,
               maps: f.maps.map((m) => {
                 if (m.id === activeMapId) {
@@ -409,12 +453,9 @@ const MindMapApp = () => {
                 }
                 return m;
               })
-            }))
         }));
     } else if (modalType === "editNode") {
-      setStore((s) => ({
-        ...s,
-        folders: s.folders.map((f) => ({
+       newStore.folders = newStore.folders.map((f) => ({
           ...f,
           maps: f.maps.map((m) => {
             if (m.id === activeMapId) {
@@ -429,9 +470,13 @@ const MindMapApp = () => {
             }
             return m;
           })
-        }))
-      }));
+        }));
     }
+    
+    if (modalType === "createFolder") setActiveFolderId(newActiveFolderId);
+    if (modalType === "createMap") setActiveMapId(newActiveMapId);
+    
+    handleStoreUpdate(newStore);
 
     setModalOpen(false);
     setModalInput("");
@@ -462,15 +507,16 @@ const MindMapApp = () => {
 
   const deleteMap = (folderId, mapId) => {
     if (!window.confirm("Delete this map?")) return;
-    setStore((s) => ({
-      ...s,
-      folders: s.folders.map((f) =>
-        f.id === folderId
-          ? { ...f, maps: f.maps.filter((m) => m.id !== mapId) }
-          : f
-      ),
-    }));
-    setActiveMapId(null);
+    const newStore = {
+        ...store,
+        folders: store.folders.map((f) =>
+            f.id === folderId
+              ? { ...f, maps: f.maps.filter((m) => m.id !== mapId) }
+              : f
+        )
+    };
+    handleStoreUpdate(newStore);
+    if (activeMapId === mapId) setActiveMapId(null);
   };
 
   const renameMap = (folderId, mapId) => {
@@ -481,9 +527,9 @@ const MindMapApp = () => {
 
   const updateActiveMapData = (payload) => {
     // payload: { nodes, edges }
-    setStore((s) => ({
-      ...s,
-      folders: s.folders.map((f) => ({
+    const newStore = {
+      ...store,
+      folders: store.folders.map((f) => ({
         ...f,
         maps: f.maps.map((m) =>
           m.id === activeMapId
@@ -491,13 +537,17 @@ const MindMapApp = () => {
             : m
         ),
       })),
-    }));
+    };
+    handleStoreUpdate(newStore);
   };
 
   const exportMap = () => {
     const f = store.folders.find((x) => x.id === activeFolderId);
     const m = f?.maps?.find((mm) => mm.id === activeMapId);
-    if (!m) return alert("No map selected");
+    if (!m) {
+      toast.error("No map selected");
+      return;
+    }
     const data = JSON.stringify(m, null, 2);
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -524,23 +574,40 @@ const MindMapApp = () => {
         id: uuidv4(),
         name: json.name || "Imported Map",
         nodes: json.nodes || [],
-        edges: json.edges || [], // Renamed from connections
+        edges: json.edges || [], 
       };
-      setStore((s) => ({
-        ...s,
-        folders: s.folders.map((f) =>
+      
+      const newStore = {
+        ...store,
+        folders: store.folders.map((f) =>
           f.id === activeFolderId ? { ...f, maps: [...f.maps, map] } : f
         ),
-      }));
+      };
+      
+      handleStoreUpdate(newStore);
       setActiveMapId(map.id);
     } catch (err) {
-      alert("Invalid JSON");
+      toast.error("Invalid JSON");
     }
+  };
+  
+  const resetStorage = () => {
+      if(!confirm("This will erase your cloud data. Are you sure?")) return;
+      handleStoreUpdate(defaultData);
+      window.location.reload();
   };
 
   const folders = store.folders;
   const activeFolder = folders.find((f) => f.id === activeFolderId) || folders[0];
   const activeMap = activeFolder?.maps?.find((m) => m.id === activeMapId) || activeFolder?.maps?.[0] || null;
+
+  if (isLoading) {
+      return (
+          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%'}}>
+              <p>Loading Mind Maps...</p>
+          </div>
+      );
+  }
 
   return (
     <div className="mm-app">
@@ -574,13 +641,8 @@ const MindMapApp = () => {
               Export
             </button>
             <button onClick={importMap}>Import</button>
-            <button
-              onClick={() => {
-                localStorage.removeItem(STORAGE_KEY);
-                setStore(defaultData);
-              }}
-            >
-              Reset Storage
+            <button onClick={resetStorage} style={{color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)'}}>
+              Reset Data
             </button>
           </div>
         </div>

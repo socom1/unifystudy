@@ -1,43 +1,32 @@
-// @ts-nocheck
 import React, { useEffect, useRef } from 'react';
-import { getDatabase, ref, query, orderByChild, get } from 'firebase/database';
+import { ref, get } from 'firebase/database';
+import { db } from '@/services/firebaseConfig';
+import { User } from '@/types';
 
-const NotificationManager = ({ user }) => {
+interface NotificationManagerProps {
+  user: User;
+}
+
+const NotificationManager: React.FC<NotificationManagerProps> = ({ user }) => {
   const lastBreakTime = useRef(Date.now());
   const hasShownDailyDigest = useRef(false);
 
   useEffect(() => {
     if (!user) return;
 
-    const db = getDatabase();
-
-    // 1. Break Reminders (Every 50 minutes)
-    // NOTE: Disabled - should be tied to Pomodoro timer usage, not automatic
-    // const breakInterval = setInterval(() => {
-    //   const now = Date.now();
-    //   if (now - lastBreakTime.current > 50 * 60 * 1000) {
-    //     new Notification("Time for a Break!", {
-    //       body: "You've been studying for 50 minutes. Take a 5-minute stretch!",
-    //       icon: '/favicon.ico'
-    //     });
-    //     lastBreakTime.current = now;
-    //   }
-    // }, 60 * 1000); // Check every minute
-
+    // 1. Break Reminders (Every 50 minutes) - Disabled
+    
     // 2. Daily Digest (On Mount/Login)
     const checkDailyDigest = async () => {
       const today = new Date().toDateString();
       const lastDigestDate = localStorage.getItem(`daily_digest_${user.uid}`);
 
       if (lastDigestDate !== today && !hasShownDailyDigest.current) {
-        // Fetch pending tasks count (mock logic or real if structure known)
-        // Assuming tasks are at `users/${user.uid}/todos`
         try {
           const todosRef = ref(db, `users/${user.uid}/todos`);
           const snapshot = await get(todosRef);
           let taskCount = 0;
           if (snapshot.exists()) {
-            // Count incomplete tasks
             snapshot.forEach(child => {
               if (!child.val().completed) taskCount++;
             });
@@ -81,11 +70,7 @@ const NotificationManager = ({ user }) => {
               const dueDate = new Date(task.dueDate).getTime();
               const timeDiff = dueDate - now;
               
-              // Notify if due within 24 hours and hasn't been notified recently (simplified)
               if (timeDiff > 0 && timeDiff < oneDay) {
-                // In a real app, we'd track "notified" state to avoid spam
-                // For now, just a simple check or we rely on the interval being long (e.g. 4 hours)
-                // Let's just log it for now to avoid browser spam in dev
                 console.log(`Task due soon: ${task.title}`);
               }
             }
@@ -97,12 +82,11 @@ const NotificationManager = ({ user }) => {
     }, 60 * 60 * 1000); // Check every hour
 
     return () => {
-      // clearInterval(breakInterval); // Disabled
       clearInterval(deadlineInterval);
     };
   }, [user]);
 
-  return null; // This component doesn't render anything visible
+  return null;
 };
 
 export default NotificationManager;

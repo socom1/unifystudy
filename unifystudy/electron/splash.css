@@ -1,7 +1,15 @@
+:root {
+  --bg-color: #0c0c0e;
+  --accent-color: #4f46e5;
+  --accent-gradient: linear-gradient(90deg, #4f46e5, #9333ea);
+  --text-color: #ffffff;
+  --text-muted: #a1a1aa;
+}
+
 body {
-  background-color: #0c0c0c;
-  color: #e0e0e0;
-  font-family: 'Courier New', 'Fira Code', monospace;
+  background-color: transparent; /* Allows window transparency to work */
+  color: var(--text-color);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
   height: 100vh;
@@ -12,102 +20,109 @@ body {
   user-select: none;
 }
 
-.container {
-  width: 90%;
-  height: 90%;
-  max-width: 600px;
-}
-
-.terminal {
-  background: #1e1e1e;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  border: 1px solid #333;
+.splash-container {
+  width: 100%;
   height: 100%;
+  background-color: var(--bg-color);
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  /* Slight border/shadow for depth */
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
-.header {
-  background: #252526;
-  padding: 10px 15px;
+/* Background ambient glow */
+.splash-container::before {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: var(--accent-color);
+  filter: blur(120px);
+  opacity: 0.15;
+  border-radius: 50%;
+  top: -50px;
+  left: -50px;
+  z-index: 0;
+}
+
+.logo-area {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+  animation: float 6s ease-in-out infinite;
+}
+
+.logo-circle {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #333;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.red { background-color: #ff5f56; }
-.yellow { background-color: #ffbd2e; }
-.green { background-color: #27c93f; }
-
-.title {
-  margin-left: 10px;
-  font-size: 12px;
-  color: #888;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--accent-color);
+  
+  /* Text Styles for >_ */
+  color: var(--accent-color);
+  font-family: 'Fira Code', monospace; /* Ensure monospaced font for the logo */
   font-weight: bold;
+  font-size: 2.5rem;
+  letter-spacing: -2px; /* Tighten the gap between > and _ */
 }
 
-.content {
-  padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-  font-size: 14px;
-  line-height: 1.5;
+.app-name {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin: 0;
+  background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.line {
-  margin-bottom: 5px;
-  opacity: 0;
-  animation: fadeIn 0.1s forwards;
+.loader-area {
+  z-index: 1;
+  width: 240px;
 }
 
-.success {
-  color: #4caf50;
-  font-weight: bold;
-}
-
-.prompt {
-  color: #4f46e5;
-  margin-right: 8px;
-}
-
-.cursor {
-  display: inline-block;
-  width: 8px;
-  height: 16px;
-  background-color: #e0e0e0;
-  animation: blink 1s infinite;
-  vertical-align: middle;
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #1e1e1e;
-}
-::-webkit-scrollbar-thumb {
-  background: #333;
+.progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #444;
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent-gradient);
+  border-radius: 4px;
+  box-shadow: 0 0 15px rgba(79, 70, 229, 0.5);
+  transition: width 0.1s linear;
+}
+
+.status-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 500;
+  min-height: 18px; /* prevents jump */
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }

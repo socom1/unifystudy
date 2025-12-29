@@ -32,13 +32,12 @@ import {
   BarChart2,
   Activity
 } from "lucide-react";
-import { db, auth } from "@/services/firebaseConfig";
-import { ref, onValue, runTransaction, query, limitToLast, onChildAdded, DataSnapshot, Unsubscribe } from "firebase/database";
 import "./Sidebar.scss";
 import { User } from "@/types";
 
 import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
+import { useNotification } from "@/context/NotificationContext";
 
 /* 
 // Props Removed - using Context
@@ -53,8 +52,22 @@ interface SidebarProps {
 }
 */
 
-// Extracted NavItem component to avoid re-creation
-const NavItem = ({ item, location, isCollapsed, isMobile }: any) => {
+interface NavItemConfig {
+  icon?: React.ElementType;
+  iconElement?: React.ReactNode;
+  label: string;
+  to: string;
+  badge?: number;
+}
+
+interface NavItemProps {
+  item: NavItemConfig;
+  location: { pathname: string };
+  isCollapsed: boolean;
+  isMobile: boolean;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ item, location, isCollapsed, isMobile }) => {
   const Icon = item.icon;
   const isActive = location.pathname === item.to;
   return (
@@ -74,8 +87,18 @@ const NavItem = ({ item, location, isCollapsed, isMobile }: any) => {
   );
 };
 
-// Extracted SidebarContent to prevent re-renders causing scroll reset
-const SidebarContent = React.memo(({ 
+interface SidebarContentProps {
+  user: User | null;
+  isCollapsed: boolean;
+  isMobile: boolean;
+  location: { pathname: string };
+  unreadCount: number;
+  isFocusMode: boolean;
+  onFocusToggle: () => void;
+  onSignOut: () => Promise<void>;
+}
+
+const SidebarContent = React.memo<SidebarContentProps>(({ 
   user, 
   isCollapsed, 
   isMobile, 
@@ -84,9 +107,9 @@ const SidebarContent = React.memo(({
   isFocusMode, 
   onFocusToggle, 
   onSignOut 
-}: any) => {
+}) => {
   
-  const renderNavItem = (item: any) => (
+  const renderNavItem = (item: NavItemConfig) => (
     <NavItem 
       key={item.to} 
       item={item} 
@@ -150,7 +173,7 @@ const SidebarContent = React.memo(({
               isMobile={isMobile}
            />
            <NavItem 
-              item={{ iconElement: <GraduationCap size={22} />, label: "Find Study Buddy", to: "/study-buddy" }}
+              item={{ iconElement: <GraduationCap size={22} />, label: "Find Study Buddy", to: "/buddy" }}
               location={location}
               isCollapsed={isCollapsed}
               isMobile={isMobile}
@@ -265,7 +288,7 @@ export default function Sidebar() {
 
   const location = useLocation();
   // const [isCollapsed, setIsCollapsed] = useState(false); // REMOVED: Controlled by Context
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { unreadCount } = useNotification();
 
 
   // Mobile Detection
@@ -302,105 +325,7 @@ export default function Sidebar() {
     { icon: MessageSquare, label: "Chat", to: "/chat", badge: unreadCount },
   ];
 
-  // Track unread messages
-  useEffect(() => {
-    if (!user) {
-      setUnreadCount(0);
-      return;
-    }
 
-    // Listen to user's unread count
-    const unreadRef = ref(db, `users/${user.uid}/unreadMessages`);
-    const unsubscribe = onValue(unreadRef, (snapshot) => {
-      const count = snapshot.val() || 0;
-      setUnreadCount(count);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  // Handle Notifications & Background Listening
-  useEffect(() => {
-    if (!user) return;
-
-    // Don't auto-request permission, only when sending notifications
-    const listeners = [];
-    const mountTime = Date.now();
-    // Track channel subscriptions to avoid duplicates
-    const channelSubs: Record<string, Unsubscribe> = {};
-
-    // Helper to handle new messages
-    const handleNewMessage = (snapshot: DataSnapshot) => {
-      const msg = snapshot.val();
-      if (!msg || !msg.timestamp) return;
-
-      // Ignore messages older than mount time (prevent flood on reload)
-      if (msg.timestamp < mountTime) return;
-
-      // Ignore own messages
-      if (msg.uid === user.uid) return;
-
-      const isChatOpen = window.location.pathname === '/chat';
-      const isHidden = document.hidden;
-
-      if (!isChatOpen || isHidden) {
-        // Increment unread count
-        const unreadRef = ref(db, `users/${user.uid}/unreadMessages`);
-        runTransaction(unreadRef, (count) => (count || 0) + 1);
-
-        // System Notification
-        if (Notification.permission === "granted") {
-          new Notification(`New message from ${msg.displayName}`, {
-            body: msg.text || (msg.type === 'image' ? 'Sent an image' : 'Sent a file'),
-            icon: '/favicon.ico'
-          });
-        }
-      }
-    };
-
-    // 1. Listen to Global Chat
-    const globalChatRef = query(ref(db, "global_chat"), limitToLast(1));
-    const unsubGlobal = onChildAdded(globalChatRef, handleNewMessage);
-
-    // 2. Listen to User's Channels (Private & Subjects)
-    const userChannelsRef = ref(db, `users/${user.uid}/channels`);
-    const unsubChannels = onValue(userChannelsRef, (snapshot) => {
-      const channels = snapshot.val() || {};
-      const currentIds = Object.keys(channels);
-
-      // Subscribe to new channels
-      currentIds.forEach(channelId => {
-        if (!channelSubs[channelId]) {
-          const isSubject = ['math', 'science', 'history', 'cs'].includes(channelId);
-          const msgPath = isSubject ? `channels/${channelId}` : `channels/${channelId}/messages`;
-          const channelMsgRef = query(ref(db, msgPath), limitToLast(1));
-
-          // Store unsubscribe function
-          // onChildAdded returns Unsubscribe in modular SDK
-          channelSubs[channelId] = onChildAdded(channelMsgRef, handleNewMessage);
-        }
-      });
-
-      // Unsubscribe removed channels (if any)
-      Object.keys(channelSubs).forEach(id => {
-        if (!channels[id]) {
-          if (typeof channelSubs[id] === 'function') channelSubs[id]();
-          delete channelSubs[id];
-        }
-      });
-    });
-
-
-
-    return () => {
-      unsubGlobal();
-      unsubChannels();
-      // Cleanup all channel subs
-      Object.values(channelSubs).forEach(unsub => {
-        if (typeof unsub === 'function') unsub();
-      });
-    };
-  }, [user]);
 
   if (isMobile) {
     return (
@@ -413,9 +338,9 @@ export default function Sidebar() {
           </div>
           <button
             className="mobile-menu-btn"
-            onClick={() => setIsMobileMenuOpen(true)}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            <Menu size={24} />
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
@@ -461,12 +386,7 @@ export default function Sidebar() {
                     </div>
                   )}
                   
-                  <button
-                    className="close-drawer-btn"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <X size={24} />
-                  </button>
+                  {/* Internal Close Button Removed - handled by Top Bar Toggle */}
                 </div>
 
                 <SidebarContent 
@@ -480,16 +400,7 @@ export default function Sidebar() {
                   onSignOut={onSignOut}
                 />
 
-                {/* Upgrade to Pro Card */}
-                <div className="pro-card">
-                  <div className="pro-icon">
-                    <img src="https://images.unsplash.com/photo-1633409361618-c73427e4e206?q=80&w=2080&auto=format&fit=crop" alt="Pro" />
-                  </div>
-                  <div className="pro-content">
-                    <h3>Upgrade to PRO</h3>
-                    <p>One year support, monthly updates for up to 5 team members.</p>
-                  </div>
-                </div>
+                
               </motion.div>
             </>
           )}

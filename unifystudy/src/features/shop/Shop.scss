@@ -3,7 +3,7 @@
   padding: 2rem;
   background: var(--bg-1);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden; /* Allow vertical flow for scrolling */
 
   // Ambient background glow
   &::before {

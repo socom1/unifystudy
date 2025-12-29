@@ -7,6 +7,7 @@ import { ref, onValue, push, remove, set } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import './ResourceLibrary.scss';
 import Modal from "@/components/common/Modal";
+import { toast } from "sonner";
 
 const ResourceLibrary = ({ user }) => {
   const [currentFolder, setCurrentFolder] = useState(null); // null = root
@@ -122,7 +123,7 @@ const ResourceLibrary = ({ user }) => {
         });
     } catch (error) {
         console.error("Upload failed", error);
-        alert("Upload failed!");
+        toast.error("Upload failed!");
     } finally {
         setIsUploading(false);
     }

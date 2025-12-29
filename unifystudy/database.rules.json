@@ -3,24 +3,53 @@
     "users": {
       "$uid": {
         ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
+        ".write": "$uid === auth.uid",
+        "invitations": {
+          ".write": "auth != null"
+        },
+        "notifications": {
+          ".write": "auth != null"
+        }
       }
     },
     "public_leaderboard": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null",
+      ".indexOn": ["username", "email"]
     },
     "global_chat": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["timestamp"]
+    },
+    "global_chat_typing": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
     "channels": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      "$channel_id": {
+        ".read": "root.child('projects').child($channel_id).child('members').child(auth.uid).exists()",
+        ".write": "root.child('projects').child($channel_id).child('members').child(auth.uid).exists()",
+        ".indexOn": ["timestamp"],
+        "messages": {
+           ".indexOn": ["timestamp"]
+        }
+      }
     },
     "achievements": {
       ".read": "auth != null",
       ".write": false
+    },
+    "projects": {
+      "$project_id": {
+        ".read": "data.child('members').child(auth.uid).exists()",
+        ".write": "data.child('members').child(auth.uid).exists() || !data.exists()",
+        ".indexOn": ["members"]
+      }
+    },
+    "workspaces": {
+      ".read": "auth != null",
+      ".write": "auth != null"
     }
   }
 }

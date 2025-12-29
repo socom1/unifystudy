@@ -1,7 +1,10 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, X, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { db, auth } from '@/services/firebaseConfig';
+import { ref, onValue } from 'firebase/database';
 import './YearlyCalendar.scss';
 
 const YearlyCalendar = () => {
@@ -16,6 +19,38 @@ const YearlyCalendar = () => {
   const [eventEndDate, setEventEndDate] = useState({ month: 0, day: 1 });
   const [isDateRange, setIsDateRange] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
+  // Subject Integration
+  const [userId, setUserId] = useState(null);
+  const [subjects, setSubjects] = useState([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState('');
+  
+  // Handle navigation from Grades
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.autoOpenModal && location.state?.initialEventSubject) {
+        // Wait for subjects to load? Or just set it?
+        // Let's set it after a small delay or check subjects length
+        // Actually, we can just set it and let the modal handle it
+        setTimeout(() => {
+             setEventType('exam');
+             setSelectedSubjectId(location.state.initialEventSubject);
+             
+             // Try to find subject name for auto-fill
+             // Note: subjects might not be loaded yet. 
+             // Ideally we should wait for subjects, but for now we can rely on user selecting or just passing name too?
+             // Simpler: Just open modal in exam mode
+             openEventModal('exam');
+             setSelectedSubjectId(location.state.initialEventSubject);
+        }, 500);
+        
+        // Clear state to prevent reopening on refresh? 
+        // React Router state persists on refresh usually, but good to consume it.
+        window.history.replaceState({}, document.title);
+    }
+  }, [location, subjects]); // Depend on subjects? Maybe.
+
+
+
   
   // Day details panel
   const [selectedDayForDetails, setSelectedDayForDetails] = useState(null);
@@ -71,7 +106,35 @@ const YearlyCalendar = () => {
     checkSync();
     window.addEventListener('storage', checkSync); // Listen for changes
     return () => window.removeEventListener('storage', checkSync);
+    checkSync();
+    window.addEventListener('storage', checkSync); // Listen for changes
+    return () => window.removeEventListener('storage', checkSync);
   }, []);
+
+  // Fetch User ID
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged((u) => setUserId(u ? u.uid : null));
+    return () => unsub();
+  }, []);
+
+  // Fetch Subjects
+  useEffect(() => {
+    if (!userId) return;
+    const gradesRef = ref(db, `users/${userId}/grades`);
+    const unsub = onValue(gradesRef, (snap) => {
+      const data = snap.val();
+      if (data) {
+        const arr = Object.entries(data).map(([id, val]) => ({
+          id,
+          name: val.name
+        }));
+        setSubjects(arr);
+      } else {
+        setSubjects([]);
+      }
+    });
+    return () => unsub();
+  }, [userId]);
 
   const handlePrev = () => {
     setDirection(-1);
@@ -119,6 +182,7 @@ const YearlyCalendar = () => {
       setEventName('');
       setEventTime('');
       setEditingEventId(null);
+      setSelectedSubjectId('');
     }
     setShowEventModal(true);
   };
@@ -129,6 +193,7 @@ const YearlyCalendar = () => {
     setEventTime('');
     setEditingEventId(null);
     setIsDateRange(false);
+    setSelectedSubjectId('');
   };
 
   const saveEvent = () => {
@@ -141,6 +206,7 @@ const YearlyCalendar = () => {
       month: selectedDate.month,
       day: selectedDate.day,
       time: eventTime,
+      subjectId: selectedSubjectId, // Save linked subject
     };
 
     if (isDateRange && (eventEndDate.month !== selectedDate.month || eventEndDate.day !== selectedDate.day)) {
@@ -317,6 +383,29 @@ const YearlyCalendar = () => {
                   autoFocus
                 />
               </div>
+
+              {/* Subject Selection (for syncing with Grades) */}
+              {subjects.length > 0 && (
+                  <div className="form-group">
+                    <label>Link Subject (Optional)</label>
+                    <select 
+                        value={selectedSubjectId} 
+                        onChange={(e) => {
+                            setSelectedSubjectId(e.target.value);
+                            // Auto-fill name if empty
+                            const sub = subjects.find(s => s.id === e.target.value);
+                            if (sub && !eventName) {
+                                setEventName(`${sub.name} Exam`);
+                            }
+                        }}
+                    >
+                        <option value="">-- None --</option>
+                        {subjects.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                    </select>
+                  </div>
+              )}
 
               {eventType === 'exam' && (
                 <div className="form-group">

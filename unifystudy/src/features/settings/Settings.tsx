@@ -1,18 +1,21 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useState, startTransition } from 'react';
 import { motion } from 'framer-motion';
-import { User, Moon, Sun, Monitor, Trash2, LogOut, Save, Zap, Heart, Coffee, Leaf, Umbrella, Building2, ShoppingBag, Check } from 'lucide-react';
+import { User, Moon, Sun, Monitor, Trash2, LogOut, Save, Zap, Heart, Coffee, Leaf, Umbrella, Building2, ShoppingBag, Check, Crown } from 'lucide-react';
 import './Settings.scss';
 
 import { db } from "@/services/firebaseConfig";
 import { ref, onValue, update } from "firebase/database";
+import PricingModal from './PricingModal';
 
 export default function Settings({ user, onSignOut }) {
+  console.log("Settings rendering..."); // Debugging visibility
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [accentColor, setAccentColor] = useState(localStorage.getItem('accent') || '#4b6c82');
   const [secondaryEmail, setSecondaryEmail] = useState("");
   const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [disableMusic, setDisableMusic] = useState(localStorage.getItem('disableFocusMusic') === 'true');
+  const [showPricing, setShowPricing] = useState(false);
 
   // Initialize theme on mount
   React.useEffect(() => {
@@ -169,6 +172,40 @@ export default function Settings({ user, onSignOut }) {
                   </div>
               </div>
           </motion.div>
+
+          <motion.div 
+             className="settings-card subscription-card"
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.15 }}
+          >
+              <div className="card-header">
+                  <Crown size={20} color="#ffd700" fill="#ffd700" />
+                  <h2>Subscription</h2>
+              </div>
+              <div className="card-content">
+                  <div className="plan-status">
+                      <div className="current-plan">
+                          <span className="label">Current Plan</span>
+                          <span className="value">Free Student</span>
+                      </div>
+                      <div className="status-badge" style={{background: 'rgba(255, 255, 255, 0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem'}}>
+                          Active
+                      </div>
+                  </div>
+                  <p style={{fontSize: '0.9rem', color: 'var(--color-muted)'}}>
+                      Upgrade to unlock unlimited tasks, cloud sync, and premium themes.
+                  </p>
+                  <button className="btn-primary-large" onClick={() => startTransition(() => setShowPricing(true))}>
+                      Upgrade to Pro
+                      <Zap size={16} fill="currentColor" />
+                  </button>
+              </div>
+          </motion.div>
+
+          {/* Pricing Modal */}
+          <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
+
           <motion.div 
              className="settings-card"
              initial={{ opacity: 0, y: 20 }}

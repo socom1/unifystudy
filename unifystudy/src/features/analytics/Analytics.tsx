@@ -186,7 +186,7 @@ export default function Analytics() {
                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={subjectPerformanceData}>
                                     <PolarGrid stroke="var(--glass-border)" />
                                     <PolarAngleAxis dataKey="subject" tick={{fill: 'var(--color-muted)', fontSize: 12}} />
-                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                     <Radar name="Score" dataKey="score" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
                                     <Tooltip contentStyle={{backgroundColor: 'var(--bg-2)', borderColor: 'var(--glass-border)', borderRadius: '8px'}} />
                                 </RadarChart>

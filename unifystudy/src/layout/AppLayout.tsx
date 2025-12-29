@@ -2,13 +2,14 @@ import React, { useState, useEffect, Suspense } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { User } from "@/types";
+import InvitationModal from "@/features/collaboration/InvitationModal";
 
 const LandingPage = React.lazy(() => import("@/features/landing/LandingPage"));
 const Dashboard = React.lazy(() => import("@/features/dashboard/Dashboard"));
 const SignUp = React.lazy(() => import("@/features/auth/signUp/SignUp"));
 const Profile = React.lazy(() => import("@/features/profile/profile"));
 const ResetPassword = React.lazy(() => import("@/features/auth/passwordreset/ResetPassword"));
-const TdlOVERALL = React.lazy(() => import("@/features/todo/TdlOVERALL"));
+const TdlOVERALL = React.lazy(() => import("@/features/todo/tdlF"));
 const Pomodoro = React.lazy(() => import("@/features/pomodoro/Pomdoro"));
 const MyTimetable = React.lazy(() => import("@/features/calendar/MyTimetable"));
 const GlobalPlayer = React.lazy(() => import("@/components/global/GlobalPlayer"));
@@ -25,7 +26,8 @@ const Chat = React.lazy(() => import("@/features/chat/Chat"));
 const Flashcards = React.lazy(() => import("@/features/flashcards/Flashcards"));
 const Analytics = React.lazy(() => import("@/features/analytics/Analytics"));
 const HabitTracker = React.lazy(() => import("@/features/habits/HabitTracker"));
-const NotificationManager = React.lazy(() => import("@/features/notifications/NotificationManager"));
+const SettingsPage = React.lazy(() => import("@/features/settings/SettingsPage"));
+
 const FocusMode = React.lazy(() => import("@/features/focus/FocusMode"));
 const DailyStandup = React.lazy(() => import("@/features/standup/DailyStandup"));
 const OfflineIndicator = React.lazy(() => import("@/components/offline/OfflineIndicator"));
@@ -33,9 +35,10 @@ const UpdateNotification = React.lazy(() => import("@/features/update/UpdateNoti
 import { TimerProvider } from "@/features/pomodoro/TimerContext";
 import TimerWidget from "@/features/pomodoro/TimerWidget";
 import CommandPalette from "@/components/navigation/CommandPalette";
-import Settings from "@/features/settings/Settings";
 import Sidebar from "@/layout/Sidebar";
 import AuthWrapper from "@/features/auth/signUp/AuthWrapper"; 
+import PageLoader from "@/components/ui/PageLoader";
+import NotificationManager from "@/features/notifications/NotificationManager"; 
 
 import { auth, db } from "@/services/firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -88,7 +91,7 @@ const AppLayout = () => {
   }, [showCommandPalette, setShowCommandPalette]);
 
   if (loading) {
-    return <div className="loading-screen" style={{height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#121212', color:'#e0e0e0'}}>Loading UnifyStudy...</div>;
+    return <PageLoader message="Initializing UnifyStudy..." />;
   }
 
   // Auth Routes Wrapper
@@ -107,17 +110,18 @@ const AppLayout = () => {
   return (
     <TimerProvider>
       <div className="app-layout">
+        <InvitationModal />
         <Sidebar />
 
         <div className={`main-content ${isNavCollapsed ? 'collapsed' : ''}`}>
           <AnimatePresence mode="wait">
-            <Suspense fallback={<div className="loading-screen" style={{height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#121212', color:'#e0e0e0'}}>Loading...</div>}>
+            <Suspense fallback={<PageLoader message="Loading content..." />}>
             <Routes location={location} key={location.pathname}>
               
               <Route path="/" element={ <Navigate to="/dashboard" replace /> } />
               
               <Route path="/dashboard" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size scrollable">
                   <Dashboard user={user} />
                 </motion.div>
               } />
@@ -166,7 +170,7 @@ const AppLayout = () => {
               } />
 
               <Route path="/shop" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size scrollable">
                   <Shop />
                 </motion.div>
               } />
@@ -215,7 +219,7 @@ const AppLayout = () => {
 
               <Route path="/buddy" element={
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <StudyBuddy user={user} />
+                  <StudyBuddy />
                 </motion.div>
               } />
 
@@ -225,7 +229,11 @@ const AppLayout = () => {
                 </motion.div>
               } />
 
-              <Route path="/settings" element={<Navigate to="/profile" replace />} />
+              <Route path="/settings" element={
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                  <SettingsPage />
+                </motion.div>
+              } />
 
               {/* Catch all for authenticated users */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
@@ -245,11 +253,13 @@ const AppLayout = () => {
           
           <AnimatePresence>
             {focusModeActive && (
-              <FocusMode 
-                 key="focus-mode-overlay"
-                 isActive={true} 
-                 onClose={() => setFocusModeActive(false)} 
-              />
+              <Suspense fallback={<div className="focus-loader" />}>
+                <FocusMode 
+                   key="focus-mode-overlay"
+                   isActive={true} 
+                   onClose={() => setFocusModeActive(false)} 
+                />
+              </Suspense>
             )}
           </AnimatePresence>
           

@@ -4,6 +4,7 @@ import { db, auth } from "@/services/firebaseConfig";
 import { ref, onValue, push, set, remove, update } from 'firebase/database';
 import { Plus, Trash2, Check, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useGamification } from '@/context/GamificationContext';
 import './HabitTracker.scss';
 
 export default function HabitTracker() {
@@ -13,6 +14,7 @@ export default function HabitTracker() {
   const [newHabitName, setNewHabitName] = useState('');
   const [selectedColor, setSelectedColor] = useState('#10b981');
   const [daysCount, setDaysCount] = useState(7);
+  const { addXP } = useGamification();
 
   // Days to show (dynamic)
   const days = Array.from({length: daysCount}, (_, i) => {
@@ -84,6 +86,10 @@ export default function HabitTracker() {
       await update(ref(db, `users/${userId}/habits/${habitId}/history`), {
           [dateKey]: !currentStatus
       });
+
+      if (!currentStatus) {
+         addXP(10, "Habit Completed");
+      }
   };
 
   const getStreak = (habit) => {
@@ -91,7 +97,7 @@ export default function HabitTracker() {
        const today = new Date().toISOString().split('T')[0];
        
        let streak = 0;
-       let d = new Date();
+       const d = new Date();
        
        // If done today, start from today. If not, check yesterday.
        const todayKey = d.toISOString().split('T')[0];

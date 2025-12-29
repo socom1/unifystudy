@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useMemo, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/services/firebaseConfig";
-import { ref, onValue, push, set, remove } from "firebase/database";
-import { Plus, Bell, BellOff, X, Trash2, Save } from "lucide-react";
+import { ref, onValue, push, set, remove, update } from "firebase/database";
+import { Plus, Bell, BellOff, X, Trash2, Save, Wand2, Calendar as CalendarIcon } from "lucide-react";
 import Modal from "@/components/common/Modal"; 
+import { toast } from "sonner";
+import { connectGoogleCalendar, fetchUpcomingEvents } from "@/services/googleCalendar";
 import "./MyTimetable.scss";
 import { User, CalendarEvent } from "@/types";
 
-console.log("MyTimetable Component Loaded"); 
+ 
 
 const colors = [
   "var(--color-primary)",
@@ -24,9 +26,9 @@ const days = [
   "Saturday",
   "Sunday",
 ];
-const hours = Array.from({ length: 14 }, (_, i) => i + 8); // 8 → 21 (8am - 9pm)
+const hours = Array.from({ length: 24 }, (_, i) => i); // 0 → 23 (24h)
 const ROW_HEIGHT = 100;
-const START_HOUR = 8;
+const START_HOUR = 0;
 
 interface WeeklyCalendarProps {
   user: User | null;
@@ -44,6 +46,14 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
     color: colors[0],
   });
   
+  // Magic Fill State
+  const [isMagicFillOpen, setIsMagicFillOpen] = useState(false);
+  const [magicFillInput, setMagicFillInput] = useState("");
+
+  // Google Calendar State
+  const [googleEvents, setGoogleEvents] = useState<CalendarEvent[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+
   // Derived from prop
   const userId = user ? user.uid : null;
   const userEmail = user ? user.email : null;
@@ -72,17 +82,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
     return () => unsubscribe();
   }, [userId]);
 
-  // Memoize events grouped by day to avoid re-filtering on every render
-  const eventsByDay = useMemo(() => {
-    const grouped: Record<string, CalendarEvent[]> = {};
-    days.forEach((day) => (grouped[day] = []));
-    events.forEach((ev) => {
-      if (grouped[ev.day]) {
-        grouped[ev.day].push(ev);
-      }
-    });
-    return grouped;
-  }, [events]);
+  // eventsByDay is now handled after allEvents definition
 
   // Add or update event
   const addEvent = (e: React.FormEvent) => {
@@ -146,6 +146,169 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
     setIsFormOpen(true);
   }, []);
 
+  const handleMagicFill = async () => {
+      if (!userId || !magicFillInput.trim()) return;
+      
+      const rawTasks = magicFillInput.split(',').map(t => t.trim()).filter(Boolean);
+      if (rawTasks.length === 0) return;
+
+      const workDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+      const weekendDays = ["Saturday", "Sunday"];
+      const allDays = [...workDays, ...weekendDays];
+
+      // Parse tasks for duration (e.g., "Math 2h") and Day (e.g. "on Friday")
+      const tasksToSchedule = rawTasks.map(text => {
+          let cleanTitle = text;
+          let duration = 1;
+          let allowedDays = workDays; // Default to Mon-Fri
+
+          // 1. Parse Duration
+          const durationMatch = cleanTitle.match(/(?:for\s+)?(\d+(?:\.\d+)?)\s*(?:hours?|h|hrs?)/i);
+          if (durationMatch) {
+              const val = parseFloat(durationMatch[1]);
+              if (!isNaN(val) && val > 0) {
+                  duration = Math.ceil(val);
+              }
+              cleanTitle = cleanTitle.replace(durationMatch[0], '');
+          }
+
+          // 2. Parse Day Constraints
+          // Check for "Weekend"
+          if (/on\s+weekend|this\s+weekend|weekend/i.test(cleanTitle)) {
+              allowedDays = weekendDays;
+              cleanTitle = cleanTitle.replace(/(?:on\s+|this\s+)?weekend/i, '');
+          } 
+          // Check for "Weekday"
+          else if (/on\s+weekday|weekday/i.test(cleanTitle)) {
+              allowedDays = workDays;
+              cleanTitle = cleanTitle.replace(/(?:on\s+)?weekday/i, '');
+          }
+          // Check for specific days (Mon-Sun)
+          else {
+              const dayMatch = cleanTitle.match(/(?:on\s+)?\b(mon|tue|wed|thu|fri|sat|sun)(?:day|nes|sday|urs|urday)?\b/i);
+              if (dayMatch) {
+                  const dayNameMap: Record<string, string> = {
+                      mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday",
+                      sat: "Saturday", sun: "Sunday"
+                  };
+                  const key = dayMatch[1].toLowerCase();
+                  if (dayNameMap[key]) {
+                      allowedDays = [dayNameMap[key]];
+                  }
+                  cleanTitle = cleanTitle.replace(dayMatch[0], '');
+              }
+          }
+
+          // Cleanup title
+          cleanTitle = cleanTitle.trim().replace(/^[\s,.-]+|[\s,.-]+$/g, '');
+          if (!cleanTitle) cleanTitle = "Task";
+
+          return { title: cleanTitle, duration, allowedDays, original: text };
+      });
+
+      // Sort by duration descending (fit Big Rocks first)
+      tasksToSchedule.sort((a, b) => b.duration - a.duration);
+
+      const newEvents: Omit<CalendarEvent, "id">[] = [];
+      const usedSlots = new Set<string>(); // key: "Day-Hour"
+
+      // 1. Map existing usage
+      events.forEach(ev => {
+          for (let h = ev.start; h < ev.end; h++) {
+              usedSlots.add(`${ev.day}-${h}`);
+          }
+      });
+      
+      const startHour = 0;
+      const endHour = 23;
+
+      // 2. Assign tasks
+      let scheduledCount = 0;
+
+      for (const task of tasksToSchedule) {
+          // Find all valid slots for this task duration on ALLOWED days
+          const validSlots: { day: string; start: number }[] = [];
+          
+          task.allowedDays.forEach(day => {
+               // We need a block of 'task.duration' free hours
+               for (let h = startHour; h <= endHour - task.duration; h++) {
+                   let isFree = true;
+                   for (let t = 0; t < task.duration; t++) {
+                       if (usedSlots.has(`${day}-${h + t}`)) {
+                           isFree = false;
+                           break;
+                       }
+                   }
+                   if (isFree) {
+                       validSlots.push({ day, start: h });
+                   }
+               }
+          });
+
+          if (validSlots.length === 0) {
+              const dayStr = task.allowedDays.length > 2 ? "Weekdays" : task.allowedDays.join("/");
+              toast.error(`No ${task.duration}h slot found for "${task.title}" on ${dayStr}`);
+              continue;
+          }
+
+          // Pick random valid slot
+          const slot = validSlots[Math.floor(Math.random() * validSlots.length)];
+          
+          newEvents.push({
+              title: task.title,
+              description: `Auto-Scheduled (${task.duration}h) - "${task.original}"`,
+              day: slot.day,
+              start: slot.start,
+              end: slot.start + task.duration,
+              color: colors[Math.floor(Math.random() * colors.length)]
+          });
+
+          // Mark slots as used
+          for (let t = 0; t < task.duration; t++) {
+              usedSlots.add(`${slot.day}-${slot.start + t}`);
+          }
+          scheduledCount++;
+      }
+
+      if (newEvents.length === 0) {
+          if (scheduledCount === 0) toast.error("Could not schedule any tasks.");
+          return;
+      }
+
+      // 3. Save to Firebase
+      const eventsRef = ref(db, `users/${userId}/events`);
+      const safeUpdates: Record<string, any> = {};
+      
+      newEvents.forEach(ev => {
+          const newRef = push(eventsRef);
+          if (newRef.key) {
+             safeUpdates[newRef.key] = ev;
+          }
+      });
+      
+      await update(eventsRef, safeUpdates);
+
+      toast.success(`Scheduled ${scheduledCount} tasks!`);
+      setMagicFillInput("");
+      setIsMagicFillOpen(false);
+  };
+
+
+
+  const allEvents = [...events, ...googleEvents];
+
+  // Memoize events grouped by day to avoid re-filtering on every render
+  const eventsByDay = useMemo(() => {
+    const grouped: Record<string, CalendarEvent[]> = {};
+    days.forEach((day) => (grouped[day] = []));
+    allEvents.forEach((ev) => {
+      if (grouped[ev.day]) {
+        grouped[ev.day].push(ev);
+      }
+    });
+    return grouped;
+  }, [allEvents]);
+
   return (
     <div className="calendar-container">
       <NotificationManager events={events} userId={userId} />
@@ -167,6 +330,24 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
               </button>
             )}
           <div className="header-actions">
+
+            <button 
+                className="magic-btn" 
+                onClick={() => setIsMagicFillOpen(true)}
+                title="Auto-fill empty slots"
+                style={{ 
+                    background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', 
+                    color: 'var(--bg-body)',
+                    fontWeight: 'bold',
+                    marginRight: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                }}
+            >
+                <Wand2 size={18} />
+                Magic Fill
+            </button>
             <button className="add-btn" onClick={() => {
               setForm({
                 title: "",
@@ -185,6 +366,54 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
           </div>
         </div>
       </div>
+
+      {/* Magic Fill Modal */}
+      <Modal
+        isOpen={isMagicFillOpen}
+        onClose={() => setIsMagicFillOpen(false)}
+        title="✨ Magic Fill Schedule"
+        footer={(
+             <div style={{ display: 'flex', gap: '1rem', width: '100%', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setIsMagicFillOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                    type="button" 
+                    className="btn-primary" 
+                    onClick={() => handleMagicFill()}
+                    style={{ background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', color: 'var(--bg-body)', fontWeight: 600 }}
+                >
+                  Auto-Schedule
+                </button>
+              </div>
+        )}
+      >
+        <div style={{ padding: '0.5rem' }}>
+            <p style={{ color: 'var(--color-muted)', marginBottom: '1rem' }}>
+                Enter a list of tasks (comma separated). You can specify <b>duration</b> and <b>day</b>!
+                <br/>
+                Examples: <i>"Math 2h on Mon, Gym Weekend, Physics 90m on Friday"</i> (Default: 1h, Weekdays)
+            </p>
+            <textarea
+                value={magicFillInput}
+                onChange={(e) => setMagicFillInput(e.target.value)}
+                placeholder="e.g. Math 2h on Mon, Gym Weekend, Physics 1.5h..."
+                style={{
+                    width: '100%',
+                    height: '150px',
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--glass-border)',
+                    background: 'var(--bg-1)', 
+                    color: 'white'
+                }}
+            />
+        </div>
+      </Modal>
 
       <Modal
         isOpen={isFormOpen}
@@ -486,7 +715,7 @@ const DayCurrentTimeLine = ({ day }: { day: string }) => {
 
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
-  const startHour = 8;
+  const startHour = 0;
   const endHour = 24; // Extended to midnight so line shows late at night
 
   if (currentHour < startHour || currentHour >= endHour) return null;
@@ -573,7 +802,7 @@ const GlobalCurrentTimeLine = () => {
 
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
-  const startHour = 8;
+  const startHour = 0;
   const endHour = 24; // Extended to midnight so line shows late at night
 
   if (currentHour < startHour || currentHour >= endHour) return null;

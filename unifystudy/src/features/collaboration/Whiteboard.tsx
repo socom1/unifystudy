@@ -2,7 +2,7 @@
 // Whiteboard.jsx
 import React, { useRef, useState, useEffect } from 'react';
 import { ref, onChildAdded, push, set, remove } from 'firebase/database';
-import { db } from '../firebase'; // Adjust path
+import { db } from '@/services/firebaseConfig'; // Adjust path
 import { Eraser, Pen, Trash2, Download } from 'lucide-react';
 import './Whiteboard.scss';
 

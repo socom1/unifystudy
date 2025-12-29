@@ -794,10 +794,42 @@
           top: 10px;
           z-index: 50;
           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          margin-bottom: 10px;
+          margin-bottom: 20px; /* Space for toolbar */
+          
+          .workspace-page {
+              background: white;
+              width: 100%;
+              max-width: 850px; /* A4 width approx */
+              min-height: 1100px; /* A4 height approx */
+              padding: 50px;
+              box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+              color: #000; /* Force black text on white paper */
+              border-radius: 2px;
+              position: relative;
+              
+              .page-number {
+                  position: absolute;
+                  bottom: 20px;
+                  right: 20px;
+                  color: #888;
+                  font-size: 12px;
+                  pointer-events: none;
+              }
+
+              .rich-text-editor {
+                  min-height: 1000px;
+                  outline: none;
+                  font-size: 16px;
+                  line-height: 1.6;
+                  
+                  h1, h2, h3 { color: #000; margin-bottom: 0.5em; }
+                  p { margin-bottom: 1em; }
+                  ul, ol { margin-left: 20px; margin-bottom: 1em; }
+              }
+          }
 
           button {
-            background: transparent;
+             /* ... existing toolbar styles ... */
             border: none;
             color: var(--color-text);
             padding: 6px;

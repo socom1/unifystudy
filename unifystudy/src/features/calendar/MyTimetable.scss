@@ -61,6 +61,12 @@
       opacity: 0.9;
     }
   }
+
+  .header-actions {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
 }
 
 .calendar-wrapper {
@@ -303,9 +309,10 @@
   position: absolute;
   left: 0;
   right: 0;
-  height: 2px;
-  background: #ff4d4d !important; 
-  z-index: 50; 
+  height: 0;
+  border-top: 2px dashed #ff4d4d !important;
+  background: transparent !important; 
+  z-index: 40; 
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -342,8 +349,8 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: red;
-  z-index: 20;
+  background: #ff4d4d;
+  z-index: 60;
   pointer-events: none;
 
   .time-dot {
@@ -388,6 +395,7 @@
       button {
         width: 100%;
         justify-content: center;
+        margin-right: 0 !important; /* Override inline styles if any */
       }
     }
   }

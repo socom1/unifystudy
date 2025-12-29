@@ -4,7 +4,8 @@
 */
 
 .profile-root {
-  min-height: 100vh;
+  height: 100%; /* Changed from min-height: 100vh to ensure container fits parent */
+  overflow-y: auto; /* Enable scrolling within the profile view */
   padding: 2rem;
   background: var(--bg-1);
   color: var(--color-text, #c9d1d9);
@@ -12,6 +13,52 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+}
+
+/* ... existing styles ... */
+
+.tag-option {
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+
+  input[type="checkbox"] {
+      display: none; /* Hide the default checkbox */
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &.selected {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--color-primary-rgb), 0.2),
+      rgba(var(--color-secondary-rgb), 0.2)
+    );
+    color: var(--color-text);
+    border-color: var(--color-secondary);
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(var(--color-primary-rgb), 0.2);
+    
+    &::before {
+        content: '✓';
+        font-weight: bold;
+        color: var(--color-secondary);
+    }
+  }
 }
 
 .profile-grid {

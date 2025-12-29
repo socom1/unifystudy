@@ -15,7 +15,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { auth, db } from "@/services/firebaseConfig";
+import { auth, db, storage } from "@/services/firebaseConfig";
 import {
   updateProfile as fbUpdateProfile,
   sendEmailVerification,
@@ -35,10 +35,13 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
-import CalendarSync from "@/features/calendar/CalendarSync";
+
 import "./profile.scss"; // companion SCSS (below)
 import { THEMES } from "@/constants/themes";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Calendar as CalendarIcon, Loader2, Crown, Zap } from "lucide-react";
+import { toast } from "sonner";
+import { connectGoogleCalendar, fetchUpcomingEvents } from "@/services/googleCalendar";
+import PricingModal from "../settings/PricingModal";
 
 export default function ProfilePage() {
   const user = auth.currentUser;
@@ -77,6 +80,16 @@ export default function ProfilePage() {
   const [selectedBanner, setSelectedBanner] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("default");
   const [avatarColor, setAvatarColor] = useState("#1f6feb");
+  
+  // Additional Emails State
+  const [additionalEmails, setAdditionalEmails] = useState([]);
+  const [newEmailInput, setNewEmailInput] = useState("");
+  const [isAddingEmail, setIsAddingEmail] = useState(false);
+
+  
+  // Google Sync State
+  const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
 
   const presetBanners = [
     {
@@ -176,11 +189,18 @@ export default function ProfilePage() {
       setSelectedTheme(data?.theme || "default");
       setAvatarColor(data?.avatarColor || "#1f6feb");
     });
+    
+    // Fetch additional emails
+    const emailsRef = dbRef(db, `users/${uid}/settings/additionalEmails`);
+    const unsubEmails = onValue(emailsRef, (snap) => {
+        setAdditionalEmails(snap.val() || []);
+    });
 
     return () => {
       unsubTags();
       unsubThemes();
       unsubCustom();
+      unsubEmails();
     };
   }, [uid]);
 
@@ -411,9 +431,7 @@ export default function ProfilePage() {
         theme: selectedTheme,
         avatarColor: avatarColor,
       });
-      // Apply theme immediately
-      document.documentElement.setAttribute('data-theme', selectedTheme);
-      document.body.className = `theme-${selectedTheme}`;
+      // Theme is applied by ThemeToggle component or AppLayout
       setTempStatus("Customization saved!");
     } catch (err) {
       setErrorMsg("Failed to save customization");
@@ -431,19 +449,37 @@ export default function ProfilePage() {
 
   // Phone Auth Functions
   const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: () => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-          },
-        }
-      );
+    // Clear any existing verifier to prevent "reCAPTCHA has already been rendered in this element"
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+      window.recaptchaVerifier = null;
     }
+
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container",
+      {
+        size: "invisible", // or 'normal'
+        callback: () => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+        },
+        "expired-callback": () => {
+             // Response expired. Ask user to solve reCAPTCHA again.
+             // window.recaptchaVerifier.reset();
+        }
+      }
+    );
   };
+  
+  // Cleanup reCAPTCHA on unmount
+  useEffect(() => {
+      return () => {
+          if (window.recaptchaVerifier) {
+              window.recaptchaVerifier.clear();
+              window.recaptchaVerifier = null;
+          }
+      }
+  }, []);
 
   const handleSendPhoneCode = async () => {
     setPhoneError("");
@@ -520,6 +556,51 @@ export default function ProfilePage() {
       setPhoneError(err.message || "Invalid code");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddEmail = async () => {
+      if(!newEmailInput.trim() || !newEmailInput.includes('@')) return;
+      setIsAddingEmail(true);
+      try {
+          const updated = [...additionalEmails, newEmailInput.trim()];
+          await dbUpdate(dbRef(db, `users/${uid}/settings`), {
+              additionalEmails: updated
+          });
+          setNewEmailInput("");
+          setTempStatus("Email added successfully");
+      } catch(err) {
+          setErrorMsg("Failed to add email");
+      } finally {
+          setIsAddingEmail(false);
+      }
+  };
+
+  const handleRemoveEmail = async (emailToRemove) => {
+      try {
+          const updated = additionalEmails.filter(e => e !== emailToRemove);
+           await dbUpdate(dbRef(db, `users/${uid}/settings`), {
+              additionalEmails: updated
+          });
+          setTempStatus("Email removed");
+      } catch(err) {
+           setErrorMsg("Failed to remove email");
+      }
+  };
+
+  const handleSyncGoogle = async () => {
+    try {
+      setIsSyncingCalendar(true);
+      const token = await connectGoogleCalendar();
+      await fetchUpcomingEvents(token);
+      // Note: In a real app we might want to refetch the events in the calendar component, 
+      // but since they share the same Firebase path, it should auto-update live.
+      toast.success("Synced with Google Calendar!");
+    } catch (err) {
+      toast.error("Failed to sync Google Calendar");
+      console.error(err);
+    } finally {
+      setIsSyncingCalendar(false);
     }
   };
 
@@ -601,6 +682,8 @@ export default function ProfilePage() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  name="avatarUpload"
+                  id="avatarUpload"
                   style={{ display: "none" }}
                   onChange={(e) => handleAvatarPick(e.target.files?.[0])}
                 />
@@ -636,6 +719,8 @@ export default function ProfilePage() {
               >
                 <input
                   className="field-input"
+                  name="displayName"
+                  id="displayName"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   style={{ flex: 1, marginBottom: 0 }}
@@ -674,10 +759,34 @@ export default function ProfilePage() {
               <label className="field-label">Email</label>
               <input
                 className="field-input"
+                name="email"
+                id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled
+
               />
+              
+              <label className="field-label">Additional Emails</label>
+               <div style={{marginBottom: '1rem'}}>
+                  {additionalEmails.map((email) => (
+                      <div key={email} style={{display:'flex', justifyContent:'space-between', alignItems:'center', background:'rgba(255,255,255,0.05)', padding:'0.5rem', borderRadius:'6px', marginBottom:'0.5rem'}}>
+                          <span style={{fontSize:'0.9rem', color: 'var(--color-text)'}}>{email}</span>
+                          <button onClick={() => handleRemoveEmail(email)} style={{background:'transparent', border:'none', color:'#ef4444', cursor:'pointer'}}>x</button>
+                      </div>
+                  ))}
+                  <div style={{display:'flex', gap:'0.5rem'}}>
+                       <input 
+                          className="field-input" 
+                          placeholder="Add secondary email..."
+                          value={newEmailInput}
+                          onChange={(e) => setNewEmailInput(e.target.value)}
+                          style={{marginBottom: 0}}
+                       />
+                       <button className="btn primary" onClick={handleAddEmail} disabled={isAddingEmail}>Add</button>
+                  </div>
+               </div>
+
               <label className="field-label">Connected providers</label>
               <div className="providers">
                 {user?.providerData?.map((p) => (
@@ -685,6 +794,22 @@ export default function ProfilePage() {
                     {p.providerId.replace(".com", "")}
                   </div>
                 )) || <div className="provider-chip">email</div>}
+              </div>
+
+              <label className="field-label">Integrations</label>
+              <div style={{ marginBottom: '1.5rem' }}>
+                  <button 
+                    className="btn secondary"
+                    onClick={handleSyncGoogle}
+                    disabled={isSyncingCalendar}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center' }}
+                  >
+                     {isSyncingCalendar ? <Loader2 className="animate-spin" size={18} /> : <CalendarIcon size={18} />}
+                     {isSyncingCalendar ? "Syncing..." : "Sync Google Calendar"}
+                  </button>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--color-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
+                      Import your upcoming events from Google Calendar into your timetable.
+                  </p>
               </div>
 
               <div
@@ -793,15 +918,7 @@ export default function ProfilePage() {
                         whileHover={{ scale: canSelect ? 1.05 : 1 }}
                         whileTap={{ scale: canSelect ? 0.95 : 1 }}
                       >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          readOnly
-                          style={{
-                            marginRight: "0.5rem",
-                            pointerEvents: "none",
-                          }}
-                        />
+                        {/* Checkbox hidden via CSS, styling handled by parent class */}
                         {tag}
                       </motion.div>
                     );
@@ -854,11 +971,6 @@ export default function ProfilePage() {
                   </motion.div>
                 ))}
               </div>
-              {ownedThemes.length === 1 && (
-                 <p className="muted-text" style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}>
-                   Visit the <a href="/shop" style={{ color: "var(--color-primary)" }}>Shop</a> to unlock premium themes!
-                 </p>
-              )}
             </div>
 
             {/* Default Avatar Customization */}
@@ -909,7 +1021,77 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Right column: verification, security, account */}
+            {/* Subscription Card */}
+            <motion.div
+              className="profile-card"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              style={{
+                border: '1px solid rgba(255, 215, 0, 0.3)',
+                background: 'linear-gradient(145deg, var(--bg-secondary), rgba(255, 215, 0, 0.05))',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+               {/* Gold top border line */}
+               <div style={{
+                   position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+                   background: 'linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent)'
+               }} />
+
+               <div style={{ padding: '1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem', color: '#ffd700' }}>
+                     <Crown size={20} fill="#ffd700" />
+                     <h2 style={{ fontSize: '1.2rem', fontWeight: 500, color: 'var(--color-text)' }}>Subscription</h2>
+                  </div>
+                  
+                  <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      background: 'rgba(0,0,0,0.2)', 
+                      padding: '1rem', 
+                      borderRadius: '8px', 
+                      border: '1px solid var(--border-color)',
+                      marginBottom: '1rem' 
+                  }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)', textTransform: 'uppercase' }}>Current Plan</span>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>Free Student</span>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+                          Active
+                      </div>
+                  </div>
+
+                  <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom: '1rem' }}>
+                      Upgrade to unlock unlimited tasks, cloud sync, and premium themes.
+                  </p>
+
+                  <button 
+                    onClick={() => React.startTransition(() => setShowPricing(true))}
+                    style={{
+                        width: '100%',
+                        padding: '0.8rem',
+                        background: 'var(--color-primary)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                    }}
+                  >
+                      Upgrade to Pro <Zap size={16} fill="currentColor" />
+                  </button>
+               </div>
+            </motion.div>
+
+         {/* Right column: settings/customization, security, account */}
         <div className="side-column">
           <motion.div
             className="panel"
@@ -957,7 +1139,10 @@ export default function ProfilePage() {
                   </div>
                   <div
                     id="recaptcha-container"
-                    style={{ visibility: "hidden", position: "absolute" }}
+                    // IMPORTANT: Do NOT hide this. Invisible reCAPTCHA still needs a container 
+                    // that CAN display the challenge if the score is low.
+                    // If you hide it, the user can't click the images.
+                    style={{ marginTop: '10px' }}
                   ></div>
                   {phoneError && (
                     <div
@@ -983,6 +1168,8 @@ export default function ProfilePage() {
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <input
                         className="field-input"
+                        name="phoneNumber"
+                        id="phoneNumber"
                         placeholder="+1 555 555 5555"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
@@ -1000,6 +1187,8 @@ export default function ProfilePage() {
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <input
                         className="field-input"
+                        name="verificationCode"
+                        id="verificationCode"
                         placeholder="123456"
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value)}
@@ -1038,6 +1227,8 @@ export default function ProfilePage() {
                 <input
                   className="field-input"
                   type="password"
+                  name="currentPassword"
+                  id="currentPassword"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password to re-auth"
@@ -1046,6 +1237,8 @@ export default function ProfilePage() {
                 <input
                   className="field-input"
                   type="password"
+                  name="newPassword"
+                  id="newPassword"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="New password"
@@ -1078,36 +1271,8 @@ export default function ProfilePage() {
             </div>
           </motion.div>
 
-          {/* Integrations Panel */}
-          <motion.div
-            className="panel"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.09 }}
-          >
-            <div className="section-title">// integrations</div>
-            <div className="panel-body">
-              <div
-                className="integration-row"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div>
-                  <div className="verify-status">Calendar Sync</div>
-                  <div className="verify-desc">
-                    Sync your Google or Outlook calendar with UnifyStudy.
-                  </div>
-                </div>
-                <CalendarSync
-                  onSync={(provider) => console.log(`Synced with ${provider}`)}
-                  userEmail={email}
-                />
-              </div>
-            </div>
-          </motion.div>
+
+
 
           {/* Settings Panel */}
           <motion.div
@@ -1150,6 +1315,8 @@ export default function ProfilePage() {
                 >
                   <input
                     type="checkbox"
+                    name="toggleNotifications"
+                    id="toggleNotifications"
                     checked={notificationsEnabled}
                     onChange={toggleNotifications}
                     style={{ opacity: 0, width: 0, height: 0 }}
@@ -1221,6 +1388,8 @@ export default function ProfilePage() {
                 >
                   <input
                     type="checkbox"
+                    name="toggleAnonymous"
+                    id="toggleAnonymous"
                     checked={anonymousMode}
                     onChange={toggleAnonymousMode}
                     style={{ opacity: 0, width: 0, height: 0 }}
@@ -1299,6 +1468,7 @@ export default function ProfilePage() {
       </AnimatePresence>
 
       {errorMsg && <div className="toast error">{errorMsg}</div>}
+      <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "@/services/firebaseConfig";
 import { ref, onValue, update, runTransaction } from "firebase/database";
 import { motion } from "framer-motion";
+import { useGamification } from "@/context/GamificationContext";
 import { THEMES } from "@/constants/themes";
 import "./Shop.scss";
 
@@ -44,6 +45,7 @@ const BANNERS = [
 ];
 
 export default function Shop() {
+  const { level } = useGamification();
   const [coins, setCoins] = useState(0);
   const [unlockedThemes, setUnlockedThemes] = useState(["default"]);
   const [unlockedTags, setUnlockedTags] = useState([]);
@@ -83,7 +85,7 @@ export default function Shop() {
 
   const buyItem = async (item, type) => {
     if (coins < item.price) {
-      alert("Not enough Lumens!");
+      toast.error("Not enough Lumens!");
       return;
     }
     if (!confirm(`Buy ${item.name} for ${item.price} Lumens?`)) return;
@@ -121,7 +123,7 @@ export default function Shop() {
       });
     } catch (error) {
       console.error("Purchase failed:", error);
-      alert("Purchase failed. Please try again.");
+      toast.error("Purchase failed. Please try again.");
     }
   };
 
@@ -147,6 +149,9 @@ export default function Shop() {
       <header className="shop-header">
         <h1>Shop</h1>
         <div className="coin-balance">
+          <div className="level-badge" style={{marginRight: '1rem', padding: '4px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold', border: '1px solid var(--glass-border)' }}>
+             ⭐ Level {level}
+          </div>
           <span className="icon">💡</span>
           <span className="amount">{coins}</span>
         </div>

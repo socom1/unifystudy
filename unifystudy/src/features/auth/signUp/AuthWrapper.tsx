@@ -1,11 +1,9 @@
-// @ts-nocheck
 import React from 'react';
-import LandingPage from "@/features/landing/LandingPage";
+import { Navigate } from 'react-router-dom';
 
 const AuthWrapper = ({ onSuccess }) => {
-  // AuthWrapper currently acts as the default unauthenticated view (Landing Page).
-  // The 'onSuccess' prop is available if we want to add an inline login modal later.
-  return <LandingPage />;
+  // Redirect unauthenticated users directly to Sign Up instead of Landing Page
+  return <Navigate to="/signup" replace />;
 };
 
 export default AuthWrapper;

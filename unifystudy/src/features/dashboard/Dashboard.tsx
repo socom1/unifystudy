@@ -1,16 +1,19 @@
 // @ts-nocheck
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/services/firebaseConfig";
 import { ref, onValue, push, set } from "firebase/database";
 import {
-  ACHIEVEMENTS,
   getAchievementById,
+  ACHIEVEMENTS,
 } from "@/utils/achievements";
+import { toast } from "sonner";
+import { useGamification } from "@/context/GamificationContext";
 import "./Dashboard.scss";
 
 export default function Dashboard({ user }) {
+  const { xp, level, progress } = useGamification();
   const [stats, setStats] = useState({
     tasksDue: 0,
     activeTasks: 0,
@@ -25,6 +28,7 @@ export default function Dashboard({ user }) {
   const [streak, setStreak] = useState(0);
   const [unlockedAchievements, setUnlockedAchievements] = useState([]);
   const [achievementProgress, setAchievementProgress] = useState({});
+  const [showAchievementsModal, setShowAchievementsModal] = useState(false);
   const [achievementsExpanded, setAchievementsExpanded] = useState(false);
   const [weeklyActivity, setWeeklyActivity] = useState([]);
   const [urgentTasks, setUrgentTasks] = useState([]);
@@ -289,7 +293,7 @@ export default function Dashboard({ user }) {
       
       // Remove from local suggestions to avoid dupes
       setScheduleSuggestions(prev => prev.filter(s => s !== suggestion));
-      alert("Added to Timetable!");
+      toast.success("Added to Timetable!");
   };
 
   return (
@@ -361,20 +365,37 @@ export default function Dashboard({ user }) {
               <div className="stat-chart-mini"></div>
             </motion.div>
 
-            {/* Stat 3: Rank */}
+            {/* Stat 3: Level (Gamification) */}
             <motion.div
               className="stat-card"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="stat-icon-box rank">🏆</div>
-              <div className="stat-info">
-                <span className="stat-label">Global Rank</span>
-                <span className="stat-value">{stats.rank}</span>
-                <span className="stat-change">Based on time</span>
+              <div className="stat-icon-box rank">⭐</div>
+              <div className="stat-info" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="stat-label">Level {level}</span>
+                    <span className="stat-change" style={{ fontSize: '0.75rem' }}>{Math.round(xp)} XP</span>
+                </div>
+                
+                <div className="xp-bar-container" style={{ 
+                    height: '6px', 
+                    background: 'rgba(255,255,255,0.1)', 
+                    borderRadius: '10px', 
+                    marginTop: '8px',
+                    overflow: 'hidden'
+                }}>
+                    <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        style={{ height: '100%', background: 'var(--color-primary)', borderRadius: '10px' }}
+                    />
+                </div>
+                <span className="stat-change" style={{ marginTop: '4px', fontSize: '0.7rem', opacity: 0.7 }}>
+                    {Math.round(progress)}% to Level {level + 1}
+                </span>
               </div>
-              <div className="stat-chart-mini"></div>
             </motion.div>
           </div>
         </div>
@@ -574,9 +595,13 @@ export default function Dashboard({ user }) {
         >
           <div className="widget-header">
             <h3>Recent Achievements</h3>
-            <Link to="/profile" className="link">
+            <button 
+              className="link" 
+              onClick={() => setShowAchievementsModal(true)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }}
+            >
               View All
-            </Link>
+            </button>
           </div>
           <div className="achievements-mini-list">
             {unlockedAchievements.length > 0 ? (
@@ -622,6 +647,93 @@ export default function Dashboard({ user }) {
           </div>
         </motion.div>
       </div>
+      <AnimatePresence>
+        {showAchievementsModal && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => {
+              if (e.target.className === "modal-overlay") setShowAchievementsModal(false);
+            }}
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)',
+              zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}
+          >
+            <motion.div
+              className="modal-content achievements-modal"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              style={{
+                width: '90%', maxWidth: '600px', maxHeight: '80vh',
+                background: 'var(--bg-2)', border: '1px solid var(--glass-border)',
+                borderRadius: '16px', padding: '24px', overflowY: 'auto',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+              }}
+            >
+              <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2>All Achievements</h2>
+                <button 
+                  onClick={() => setShowAchievementsModal(false)}
+                  style={{ background: 'none', border: 'none', color: 'var(--color-text)', cursor: 'pointer', fontSize: '1.5rem' }}
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="achievements-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
+                {ACHIEVEMENTS.map((achievement) => {
+                  const unlocked = unlockedAchievements.includes(achievement.id);
+                  // Ensure progress is a number (handle object case)
+                  let rawProgress = achievementProgress[achievement.id] || 0;
+                  const progress = typeof rawProgress === 'object' ? (rawProgress.current || 0) : rawProgress;
+                  
+                  return (
+                    <div 
+                      key={achievement.id} 
+                      className={`achievement-card ${unlocked ? 'unlocked' : 'locked'}`}
+                      style={{
+                        padding: '16px', borderRadius: '12px',
+                        background: unlocked ? 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05))' : 'rgba(255,255,255,0.03)',
+                        border: unlocked ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.1)',
+                        display: 'flex', flexDirection: 'column', gap: '8px',
+                        opacity: unlocked ? 1 : 0.7
+                      }}
+                    >
+                      <div className="ach-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '2rem', filter: unlocked ? 'none' : 'grayscale(1)' }}>{achievement.icon}</span>
+                        <div>
+                          <div style={{ fontWeight: 'bold' }}>{achievement.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{achievement.desc}</div>
+                        </div>
+                      </div>
+                      
+                      {unlocked ? (
+                        <div style={{ marginTop: 'auto', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                          ✓ Unlocked
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 'auto' }}>
+                          <div style={{ background: 'rgba(255,255,255,0.1)', height: '4px', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(100, (progress / achievement.target) * 100)}%`, background: 'var(--color-secondary)', height: '100%' }} />
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--color-muted)', marginTop: '4px', textAlign: 'right' }}>
+                            {progress} / {achievement.target}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

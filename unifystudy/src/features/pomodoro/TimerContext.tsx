@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useMemo 
 import { db, auth } from "@/services/firebaseConfig";
 import { ref, update, push, runTransaction, onValue } from "firebase/database";
 import { checkAchievements, getAchievementById } from "@/utils/achievements";
+import { useGamification } from "@/context/GamificationContext";
 
 const TimerContext = createContext();
 
@@ -25,6 +26,8 @@ export const TimerProvider = ({ children }) => {
   const [templateList, setTemplateList] = useState(defaultTemplates);
   const [selectedTemplateId, setSelectedTemplateId] = useState(defaultTemplates[0].id);
   
+  const { addXP } = useGamification();
+
   const selectedTemplate = useMemo(() => 
     templateList.find((t) => t.id === selectedTemplateId) || templateList[0],
   [templateList, selectedTemplateId]);
@@ -204,6 +207,9 @@ export const TimerProvider = ({ children }) => {
             type: 'pomodoro'
           });
 
+          // NEW: Award XP
+          addXP(10, "Pomodoro Session");
+
           // Increment Currency
           const currencyRef = ref(db, `users/${uid}/currency`);
           await runTransaction(currencyRef, (currentCoins) => {
@@ -289,7 +295,7 @@ export const TimerProvider = ({ children }) => {
                 return (currentCoins || 0) + totalReward;
               });
 
-              console.log(`🏆 Unlocked ${achievementsToUnlock.length} achievements! Earned ${totalReward} Lumens`);
+
               
               // Notify user about first achievement
               const firstAchievement = getAchievementById(achievementsToUnlock[0]);

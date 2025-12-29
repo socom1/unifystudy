@@ -108,7 +108,7 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
             className="wiki-link"
             onClick={(e) => {
               e.stopPropagation();
-              console.log(`Navigating to: ${linkContent}`);
+
               // Future: Implement actual navigation/search
             }}
           >

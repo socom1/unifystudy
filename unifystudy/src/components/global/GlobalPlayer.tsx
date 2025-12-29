@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/services/firebaseConfig";
 import { ref, onValue, set } from "firebase/database";
+import { toast } from "sonner";
+import { X } from "lucide-react";
 import "./GlobalPlayer.scss";
 
 export default function GlobalPlayer() {
@@ -114,13 +116,13 @@ export default function GlobalPlayer() {
       if(isSyncing) {
           setIsSyncing(false);
           setSyncSessionId("");
-          alert("Disconnected from session.");
+          toast.success("Disconnected from session.");
       } else {
           const id = prompt("Enter Session ID to join/host (e.g. 'room1'):");
           if(id) {
               setSyncSessionId(id);
               setIsSyncing(true);
-              alert(`Joined session '${id}'. Playback is now synced!`);
+              toast.success(`Joined session '${id}'. Playback is now synced!`);
           }
       }
   };
@@ -189,7 +191,7 @@ export default function GlobalPlayer() {
                 {isPlaying ? "⏸" : "▶"}
               </button>
             )}
-            <button className="close-btn" onClick={toggleOpen}>×</button>
+            {/* Close button removed (moved to floating toggle) */}
           </div>
         </div>
 
@@ -246,27 +248,26 @@ export default function GlobalPlayer() {
         </div>
       </motion.div>
 
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.div 
-            key="player-toggle"
-            className="player-toggle" 
-            onClick={toggleOpen}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
+      {/* Always visible toggle button */}
+      <motion.div 
+        key="player-toggle"
+        className="player-toggle" 
+        onClick={toggleOpen}
+        initial={false}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {isOpen ? (
+            <X size={24} color="var(--color-text)" />
+        ) : (
             <div className={`music-bars ${isPlaying ? "playing" : "paused"}`}>
               <div className="bar"></div>
               <div className="bar"></div>
               <div className="bar"></div>
             </div>
-          </motion.div>
         )}
-      </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

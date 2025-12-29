@@ -1,8 +1,11 @@
+
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { db, auth } from "@/services/firebaseConfig";
 import { ref, onValue, push, set, remove, update } from "firebase/database";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from 'react-router-dom';
+import { useUI } from "@/context/UIContext"; // Import useUI
 import { 
   GraduationCap, 
   Calendar as CalendarIcon, 
@@ -13,18 +16,22 @@ import {
   TrendingUp, 
   AlertCircle,
   Clock,
-  ArrowRight
+  ArrowRight,
+  ChevronLeft // Import ChevronLeft
 } from "lucide-react";
 import "./Grades.scss";
 
 export default function SubjectHub() {
+  const { isMobile } = useUI(); // Get isMobile
   const [userId, setUserId] = useState(null);
   const [subjects, setSubjects] = useState([]);
   const [newSubjectName, setNewSubjectName] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState(null);
+  const navigate = useNavigate();
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
 
   // Hub Data
   const [allTasks, setAllTasks] = useState([]);
+  const [foldersData, setFoldersData] = useState({}); // New: Store folders for writing
   const [calendarEvents, setCalendarEvents] = useState([]);
 
   const containerVariants = {
@@ -82,7 +89,7 @@ export default function SubjectHub() {
     const unsub = onValue(foldersRef, (snap) => {
       const data = snap.val();
       if (data) {
-        let tasks = [];
+        const tasks = [];
         Object.values(data).forEach(folder => {
           if (folder.tasks) {
             Object.values(folder.tasks).forEach(task => {
@@ -96,6 +103,7 @@ export default function SubjectHub() {
           }
         });
         setAllTasks(tasks);
+        setFoldersData(data); // Store full folders object
       }
     });
     return () => unsub();
@@ -229,8 +237,12 @@ export default function SubjectHub() {
     const lowerName = subjectName.toLowerCase();
     const now = new Date();
     return calendarEvents.filter(e => {
-        // Simple name match
-        const match = e.name && e.name.toLowerCase().includes(lowerName);
+        // Match by explicitly linked Subject ID (Best match)
+        // Or fallback to fuzzy name match
+        const isLinked = e.subjectId === (selectedSubject.id || selectedSubject.key); // handle both id formats if needed
+        const nameMatch = e.name && e.name.toLowerCase().includes(lowerName);
+        
+        const match = isLinked || nameMatch;
         
         // Filter out past events
         let isFuture = true;
@@ -256,11 +268,35 @@ export default function SubjectHub() {
     });
   };
 
+  // --- Actions ---
+  const addLinkedTask = () => {
+      navigate('/todo');
+  };
+
+  const addLinkedEvent = () => {
+      if (!selectedSubject) return;
+      navigate('/calendar', { 
+          state: { 
+              autoOpenModal: true, 
+              initialEventSubject: selectedSubject.id 
+          } 
+      });
+  };
+
   return (
     <div className="grades-root">
       <header className="grades-header">
         <div className="header-content">
-          <h1>Subject Master Hub</h1>
+            {/* Mobile Back Button in Header (Optional, or put in panel) */}
+            {isMobile && selectedSubject && (
+                <button 
+                    onClick={() => setSelectedSubject(null)}
+                    className="mobile-back-btn"
+                >
+                    <ChevronLeft size={24} />
+                </button>
+            )}
+          <h1 style={{fontSize: isMobile ? '1.4rem' : '1.8rem'}}>Subject Master Hub</h1>
           <div className="gpa-badge">
             <span className="label">GPA</span>
             <span className="value">{overallGPA()}%</span>
@@ -269,163 +305,187 @@ export default function SubjectHub() {
       </header>
 
       <div className="grades-container">
-        {/* Sidebar: Subjects List */}
-        <div className="subjects-sidebar">
-          <form onSubmit={addSubject} className="add-subject-form">
-            <input
-              value={newSubjectName}
-              onChange={(e) => setNewSubjectName(e.target.value)}
-              placeholder="New Subject..."
-            />
-            <button type="submit" className="add-subject-btn">
-              <Plus size={18} />
-            </button>
-          </form>
+        {/* Sidebar: Subjects List - Show if Desktop OR (Mobile & No Selection) */}
+        {(!isMobile || !selectedSubject) && (
+            <div className="subjects-sidebar">
+              <form onSubmit={addSubject} className="add-subject-form">
+                <input
+                  value={newSubjectName}
+                  onChange={(e) => setNewSubjectName(e.target.value)}
+                  placeholder="New Subject..."
+                />
+                <button type="submit" className="add-subject-btn">
+                  <Plus size={18} />
+                </button>
+              </form>
 
-          <motion.div className="subjects-list" variants={containerVariants} initial="hidden" animate="show">
-            {subjects.map((sub) => {
-              const avg = calculateAverage(sub.assessments);
-              return (
-                <motion.div
-                  key={sub.id}
-                  variants={itemVariants}
-                  className={`subject-card ${
-                    selectedSubject?.id === sub.id ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedSubject(sub)}
-                >
-                  <div className="sub-icon">
-                    <GraduationCap size={20} />
-                  </div>
-                  <div className="sub-info">
-                    <h3>{sub.name}</h3>
-                    <span className="sub-avg">
-                      {avg}% {getLetterGrade(avg)}
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
+              <motion.div className="subjects-list" variants={containerVariants} initial="hidden" animate="show">
+                {subjects.map((sub) => {
+                  const avg = calculateAverage(sub.assessments);
+                  return (
+                    <motion.div
+                      key={sub.id}
+                      variants={itemVariants}
+                      className={`subject-card ${
+                        selectedSubject?.id === sub.id ? "active" : ""
+                      }`}
+                      onClick={() => setSelectedSubject(sub)}
+                    >
+                      <div className="sub-icon">
+                        <GraduationCap size={20} />
+                      </div>
+                      <div className="sub-info">
+                        <h3>{sub.name}</h3>
+                        <span className="sub-avg">
+                          {avg}% {getLetterGrade(avg)}
+                        </span>
+                      </div>
+                      {/* Mobile Arrow Indicator */}
+                      {isMobile && <ArrowRight size={16} style={{marginLeft:'auto', opacity:0.5}} />}
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            </div>
+        )}
 
-        {/* Main: Dashboard */}
-        <div className="assessments-panel">
-          {selectedSubject ? (
-            <div className="subject-dashboard">
-              <header className="panel-header">
-                <div className="title-group">
-                  <h2>{selectedSubject.name}</h2>
-                  <div className="grade-pill">
-                    {calculateAverage(selectedSubject.assessments)}% ({getLetterGrade(calculateAverage(selectedSubject.assessments))})
+        {/* Main: Dashboard - Show if Desktop OR (Mobile & Selection) */}
+        {(!isMobile || selectedSubject) && (
+            <div className="assessments-panel">
+              {selectedSubject ? (
+                <div className="subject-dashboard">
+                  <header className="panel-header">
+                    <div className="title-group">
+                       {/* Mobile Back Button in Panel Header (Better placement) */}
+                       {isMobile && (
+                           <button onClick={() => setSelectedSubject(null)} className="mobile-back-btn panel-back">
+                               <ChevronLeft size={20}/>
+                           </button>
+                       )}
+                      <h2>{selectedSubject.name}</h2>
+                      <div className="grade-pill">
+                        {calculateAverage(selectedSubject.assessments)}% ({getLetterGrade(calculateAverage(selectedSubject.assessments))})
+                      </div>
+                    </div>
+                    
+                    <button className="delete-sub-btn" onClick={() => deleteSubject(selectedSubject.id)} title="Delete Subject">
+                        <Trash2 size={16} />
+                    </button>
+                  </header>
+
+                  <div className="dashboard-grid">
+                      {/* LEFT COL: Stats & Exams */}
+                      <div className="col-main">
+                          {/* Grade Details */}
+                          <section className="dashboard-card grades-card">
+                              <div className="card-header">
+                                  <h3><TrendingUp size={16} /> Performance</h3>
+                                  <span className="score-big">{calculateAverage(selectedSubject.assessments)}%</span>
+                              </div>
+                          
+                              <div className="assessments-list">
+                                  <AnimatePresence>
+                                    {selectedSubject.assessments.length === 0 && <div className="empty-msg">No grades recorded yet.</div>}
+                                    {selectedSubject.assessments.map((a) => (
+                                        <motion.div
+                                        key={a.id}
+                                        className="assessment-row"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        >
+                                            <div className="a-info">
+                                              <span className="a-name">{a.name}</span>
+                                              <span className="a-weight-tag">{a.weight}x</span>
+                                            </div>
+                                            <div className="a-score">
+                                              <span>{a.score}/{a.total}</span>
+                                              <button onClick={() => deleteAssessment(a.id)} className="a-del"><Trash2 size={12}/></button>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                  </AnimatePresence>
+                              </div>
+                                <form onSubmit={addAssessment} className="quick-add-grade">
+                                    <input placeholder="Quiz Name" value={assessName} onChange={e => setAssessName(e.target.value)} required />
+                                    <div className="score-inputs">
+                                      <input type="number" placeholder="Score" value={assessScore} onChange={e => setAssessScore(e.target.value)} required />
+                                      <span>/</span>
+                                      <input type="number" placeholder="Total" value={assessTotal} onChange={e => setAssessTotal(e.target.value)} required />
+                                    </div>
+                                    <button type="submit"><Plus size={14}/></button>
+                                </form>
+                          </section>
+    
+                           {/* Upcoming Exams */}
+                          <section className="dashboard-card exams-card">
+                              <div className="card-header">
+                                 <h3><CalendarIcon size={16} /> Upcoming Events</h3>
+                                 <button onClick={addLinkedEvent} className="icon-btn-small" title="Add Event">
+                                     <Plus size={14} />
+                                 </button>
+                              </div>
+                              <div className="linked-list">
+                                  {getLinkedEvents(selectedSubject.name).length === 0 ? (
+                                      <div className="empty-linked">
+                                          No upcoming exams found for "{selectedSubject.name}".
+                                          <button onClick={addLinkedEvent} className="link-action">Add Exam</button>
+                                      </div>
+                                  ) : (
+                                      getLinkedEvents(selectedSubject.name).map((ev, i) => (
+                                          <div key={i} className={`linked-item event ${ev.type}`}>
+                                              <div className="li-icon"><Clock size={14}/></div>
+                                              <div className="li-content">
+                                                  <span className="li-title">{ev.name}</span>
+                                                  <span className="li-meta">{ev.type} • {ev.month + 1}/{ev.day}</span>
+                                              </div>
+                                          </div>
+                                      ))
+                                  )}
+                              </div>
+                          </section>
+                      </div>
+    
+                      {/* RIGHT COL: Tasks & Resources */}
+                      <div className="col-side">
+                          {/* Linked Tasks */}
+                          <section className="dashboard-card tasks-card">
+                               <div className="card-header">
+                                <h3><CheckSquare size={16} /> Pending Tasks</h3>
+                                 <button onClick={addLinkedTask} className="icon-btn-small" title="Add Task">
+                                     <Plus size={14} />
+                                 </button>
+                              </div>
+                               <div className="linked-list">
+                                  {getLinkedTasks(selectedSubject.name).length === 0 ? (
+                                      <div className="empty-linked">
+                                          No active tasks found for "{selectedSubject.name}".
+                                          <button onClick={addLinkedTask} className="link-action">Add Task</button>
+                                      </div>
+                                  ) : (
+                                      getLinkedTasks(selectedSubject.name).map((t, i) => (
+                                          <div key={i} className="linked-item task">
+                                              <div className="li-icon"><AlertCircle size={14}/></div>
+                                               <div className="li-content">
+                                                  <span className="li-title">{t.text}</span>
+                                                  <span className="li-meta">In: {t.folderName}</span>
+                                              </div>
+                                          </div>
+                                      ))
+                                  )}
+                              </div>
+                          </section>
+                      </div>
                   </div>
                 </div>
-                
-                <button className="delete-sub-btn" onClick={() => deleteSubject(selectedSubject.id)} title="Delete Subject">
-                    <Trash2 size={16} />
-                </button>
-              </header>
-
-              <div className="dashboard-grid">
-                  {/* LEFT COL: Stats & Exams */}
-                  <div className="col-main">
-                      {/* Grade Details */}
-                      <section className="dashboard-card grades-card">
-                          <div className="card-header">
-                              <h3><TrendingUp size={16} /> Performance</h3>
-                              <span className="score-big">{calculateAverage(selectedSubject.assessments)}%</span>
-                          </div>
-                      
-                          <div className="assessments-list">
-                              <AnimatePresence>
-                                {selectedSubject.assessments.length === 0 && <div className="empty-msg">No grades recorded yet.</div>}
-                                {selectedSubject.assessments.map((a) => (
-                                    <motion.div
-                                    key={a.id}
-                                    className="assessment-row"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    >
-                                        <div className="a-info">
-                                          <span className="a-name">{a.name}</span>
-                                          <span className="a-weight-tag">{a.weight}x</span>
-                                        </div>
-                                        <div className="a-score">
-                                          <span>{a.score}/{a.total}</span>
-                                          <button onClick={() => deleteAssessment(a.id)} className="a-del"><Trash2 size={12}/></button>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                              </AnimatePresence>
-                          </div>
-                            <form onSubmit={addAssessment} className="quick-add-grade">
-                                <input placeholder="Quiz Name" value={assessName} onChange={e => setAssessName(e.target.value)} required />
-                                <div className="score-inputs">
-                                  <input type="number" placeholder="Score" value={assessScore} onChange={e => setAssessScore(e.target.value)} required />
-                                  <span>/</span>
-                                  <input type="number" placeholder="Total" value={assessTotal} onChange={e => setAssessTotal(e.target.value)} required />
-                                </div>
-                                <button type="submit"><Plus size={14}/></button>
-                            </form>
-                      </section>
-
-                       {/* Upcoming Exams */}
-                      <section className="dashboard-card exams-card">
-                          <div className="card-header">
-                            <h3><CalendarIcon size={16} /> Upcoming Events</h3>
-                          </div>
-                          <div className="linked-list">
-                              {getLinkedEvents(selectedSubject.name).length === 0 ? (
-                                  <div className="empty-linked">No upcoming exams found for "{selectedSubject.name}".</div>
-                              ) : (
-                                  getLinkedEvents(selectedSubject.name).map((ev, i) => (
-                                      <div key={i} className={`linked-item event ${ev.type}`}>
-                                          <div className="li-icon"><Clock size={14}/></div>
-                                          <div className="li-content">
-                                              <span className="li-title">{ev.name}</span>
-                                              <span className="li-meta">{ev.type} • {ev.month + 1}/{ev.day}</span>
-                                          </div>
-                                      </div>
-                                  ))
-                              )}
-                          </div>
-                      </section>
-                  </div>
-
-                  {/* RIGHT COL: Tasks & Resources */}
-                  <div className="col-side">
-                      {/* Linked Tasks */}
-                      <section className="dashboard-card tasks-card">
-                           <div className="card-header">
-                            <h3><CheckSquare size={16} /> Pending Tasks</h3>
-                          </div>
-                           <div className="linked-list">
-                              {getLinkedTasks(selectedSubject.name).length === 0 ? (
-                                  <div className="empty-linked">No active tasks found for "{selectedSubject.name}".</div>
-                              ) : (
-                                  getLinkedTasks(selectedSubject.name).map((t, i) => (
-                                      <div key={i} className="linked-item task">
-                                          <div className="li-icon"><AlertCircle size={14}/></div>
-                                           <div className="li-content">
-                                              <span className="li-title">{t.text}</span>
-                                              <span className="li-meta">In: {t.folderName}</span>
-                                          </div>
-                                      </div>
-                                  ))
-                              )}
-                          </div>
-                      </section>
-                  </div>
-              </div>
+              ) : (
+                <div className="empty-selection">
+                  <GraduationCap size={48} />
+                  <p>Select a Subject to view its Hub</p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="empty-selection">
-              <GraduationCap size={48} />
-              <p>Select a Subject to view its Hub</p>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

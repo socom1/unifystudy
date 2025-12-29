@@ -3,8 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import Whiteboard from './Whiteboard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, MessageSquare, Video, Mic, Share2, Plus, Folder, FileText, Send, Copy, LogOut, Grid, List, Clock, MoreVertical, Upload, Type, Palette, Bold, Italic, ChevronRight, ChevronDown, UserPlus, X, PanelLeftClose, PanelRightClose, Underline, AlignLeft, AlignCenter, AlignRight, ListOrdered, Check } from 'lucide-react';
-import { db, storage } from '../firebase';
-import { ref, push, onValue, set, remove, serverTimestamp, get, onDisconnect, update, query, orderByChild, equalTo, startAt, endAt, limitToFirst } from 'firebase/database';
+import { db, storage } from '@/services/firebaseConfig';
+import { toast } from "sonner";
+import { ref, push, onValue, set, remove, serverTimestamp, get, onDisconnect, update, query, orderByChild, equalTo, startAt, endAt, limitToFirst, limitToLast } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import './WorkspaceStyles.scss';
 
@@ -100,12 +101,12 @@ const Workspace = ({ user }) => {
   const [newProjectName, setNewProjectName] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [onlineMembers, setOnlineMembers] = useState({});
-  const [toast, setToast] = useState(null);
+  const [notification, setNotification] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
 
-  const showToast = (msg, type='success') => {
-      setToast({ msg, type });
-      setTimeout(() => setToast(null), 3000);
+  const showNotification = (msg, type='success') => {
+      setNotification({ msg, type });
+      setTimeout(() => setNotification(null), 3000);
   };
   
   // Drag & Drop
@@ -129,28 +130,124 @@ const Workspace = ({ user }) => {
   // const [pagesContent, setPagesContent] = useState({ 1: '' }); // This is now defined above
 
   // Update pagesContent when editor blurs
-  const handleEditorBlur = (e) => {
-    const content = e.target.innerHTML;
-    setEditorContent(content);
-    setPagesContent(prev => ({
-      ...prev,
-      [currentPage]: content
-    }));
-  };
+  // Update pagesContent when editor blurs and save to Firebase
+
+
+  // When activeFile changes, load its content into pagesContent/editor
+  useEffect(() => {
+      if (activeFile && activeFile.content) {
+          // Assuming single-page content for now, or you'd parse it if you stored pages separately
+          setPagesContent({ 1: activeFile.content });
+          setEditorContent(activeFile.content);
+          // If you stored page count, you'd load that too. For now reset to 1.
+          setCurrentPage(1);
+          setTotalPages(1);
+      } else if (activeFile) {
+           setPagesContent({ 1: '' });
+           setEditorContent('');
+           setCurrentPage(1);
+      }
+  }, [activeFile?.id]); // Only trigger when ID changes, not on every small update to the object
+
+
+
+  // Real-time Page Content Sync
+  useEffect(() => {
+    if (!workspaceId || !activeFile) return;
+    
+    // Listen to changes on the current page
+    const pageRef = ref(db, `projects/${workspaceId}/pages/${activeFile.id}/${currentPage}`);
+    const unsub = onValue(pageRef, (snap) => {
+        const val = snap.val();
+        if (val !== null) {
+             // Only update React state (and re-render DOM) if content is different from what we currently satisfy
+             // AND we are not the ones who just typed it (approximation check)
+             if (editorRef.current && editorRef.current.innerHTML !== val) {
+                 setPagesContent(prev => ({ ...prev, [currentPage]: val }));
+             } else if (!editorRef.current) {
+                 setPagesContent(prev => ({ ...prev, [currentPage]: val }));
+             }
+        }
+    });
+    return () => unsub();
+  }, [workspaceId, activeFile, currentPage]);
+
+  const saveTimeoutRef = useRef(null);
 
   const handlePageInput = (e) => {
+     // Do NOT update React state here. It causes re-renders and cursor jumps.
+     // The DOM updates itself naturally via contentEditable.
+     const newContent = e.target.innerHTML;
+     
+     // Debounced Save
+     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+     saveTimeoutRef.current = setTimeout(() => {
+         if (workspaceId && activeFile) {
+             const pageRef = ref(db, `projects/${workspaceId}/pages/${activeFile.id}/${currentPage}`);
+             set(pageRef, newContent);
+         }
+     }, 100);
+      
      // Auto-Pagination Logic
      if (e.target.scrollHeight > e.target.clientHeight) {
-         // Create new page if at end
          if (currentPage === totalPages) {
              const newPage = totalPages + 1;
              setTotalPages(newPage);
              setPagesContent(prev => ({ ...prev, [newPage]: '' }));
              setCurrentPage(newPage);
          } 
-         // Note: Moving text to next page is complex, so we just switch to new blank page for now
      }
+     
+     // Trigger local cursor update on input
+     document.dispatchEvent(new Event('selectionchange'));
   };
+
+  const handleEditorBlur = () => {
+      // Sync state on blur to be safe
+      if (editorRef.current) {
+          const content = editorRef.current.innerHTML;
+          setPagesContent(prev => ({ ...prev, [currentPage]: content }));
+          
+          if (workspaceId && activeFile) {
+             const pageRef = ref(db, `projects/${workspaceId}/pages/${activeFile.id}/${currentPage}`);
+             set(pageRef, content);
+          }
+      }
+  };
+
+  // Cursor Logic Adjustment
+   useEffect(() => {
+     if (!workspaceId || !user) return;
+
+     const handleSelection = () => {
+         const sel = window.getSelection();
+         if (sel.rangeCount > 0) {
+             const range = sel.getRangeAt(0);
+             const rect = range.getBoundingClientRect();
+             
+             // Reference: The Page Container (offset parent)
+             const container = document.querySelector('.workspace-page');
+             
+             if (container && container.contains(sel.anchorNode)) {
+                 const containerRect = container.getBoundingClientRect();
+                 const relX = rect.left - containerRect.left;
+                 const relY = rect.top - containerRect.top;
+
+                 set(ref(db, `projects/${workspaceId}/cursors/${user.uid}`), {
+                     x: relX,
+                     y: relY,
+                     height: rect.height,
+                     name: user.displayName || 'Anon',
+                     color: user.settings?.customization?.avatarColor || '#ff0000',
+                     timestamp: serverTimestamp()
+                 });
+             }
+         }
+     };
+
+     document.addEventListener('selectionchange', handleSelection);
+     return () => document.removeEventListener('selectionchange', handleSelection);
+  }, [workspaceId, user]);
   
   // Pagination
   const [page, setPage] = useState(1);
@@ -190,6 +287,37 @@ const Workspace = ({ user }) => {
     return () => unsub();
   }, [user]);
 
+  // Sync Legacy Projects to Chat (Self-Healing)
+  useEffect(() => {
+    if (!user || projects.length === 0) return;
+
+    projects.forEach(async (project) => {
+        const channelId = project.id;
+        const channelMetaRef = ref(db, `channels/${channelId}/metadata`);
+        const userChannelRef = ref(db, `users/${user.uid}/channels/${channelId}`);
+
+        // Check if metadata exists (light check using get() is okay for a few projects)
+        // Or simpler: Just blindly update it to ensure it's always fresh.
+        // It's low cost for < 20 projects.
+        
+        try {
+            await update(channelMetaRef, {
+                name: project.name,
+                type: 'collaboration',
+                // Don't overwrite createdBy/createdAt if they exist, but update name if changed
+            });
+
+            await update(userChannelRef, {
+                name: project.name,
+                type: 'collaboration',
+                joinedAt: project.createdAt || serverTimestamp()
+            });
+        } catch (err) {
+            console.warn("Failed to sync project to chat:", err);
+        }
+    });
+  }, [user, projects]);
+
   const handleCreateProject = async (e) => {
     e.preventDefault();
     if (!newProjectName.trim()) return;
@@ -200,14 +328,33 @@ const Workspace = ({ user }) => {
         name: newProjectName,
         createdBy: user.uid,
         createdAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
         members: { [user.uid]: true }
+      });
+
+      // CHANGED: Initialize Chat Channel Metadata
+      const channelId = newProjectRef.key;
+      await set(ref(db, `channels/${channelId}/metadata`), {
+          name: newProjectName,
+          createdBy: user.uid,
+          type: 'collaboration', // Distinct type
+          participants: { [user.uid]: true },
+          createdAt: serverTimestamp()
+      });
+      
+      // Add to creator's channel list immediately
+      await set(ref(db, `users/${user.uid}/channels/${channelId}`), {
+          type: 'collaboration',
+          name: newProjectName,
+          joinedAt: serverTimestamp()
       });
 
       setNewProjectName('');
       setShowCreateModal(false);
     } catch (error) {
       console.error("Error creating project:", error);
-      alert("Failed to create project. Please check your permissions or internet connection.");
+      // Show specific error to help user debug permissions/network
+      toast.error(`Failed to create project: ${error.code || error.message || "Unknown error"}`);
     }
   };
 
@@ -234,11 +381,22 @@ const Workspace = ({ user }) => {
 
     // Listeners
     const usersRef = ref(db, `workspaces/${workspaceId}/users`);
-    const chatRef = ref(db, `workspaces/${workspaceId}/chat`);
+    // CHANGED: Align with global Chat system
+    const chatRef = query(ref(db, `channels/${workspaceId}/messages`), limitToLast(50));
     const filesRef = ref(db, `workspaces/${workspaceId}/files`);
 
     const unsubUsers = onValue(usersRef, (snap) => setActiveUsers(snap.val() ? Object.values(snap.val()) : []));
-    const unsubChat = onValue(chatRef, (snap) => setMessages(snap.val() ? Object.values(snap.val()) : []));
+    const unsubChat = onValue(chatRef, (snap) => {
+        const val = snap.val();
+        if (val) {
+            // Convert to array and sort
+            const msgs = Object.entries(val).map(([id, data]) => ({ id, ...data }));
+            msgs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            setMessages(msgs);
+        } else {
+            setMessages([]);
+        }
+    });
     const unsubFiles = onValue(filesRef, (snap) => {
       const data = snap.val();
       if (data) {
@@ -266,18 +424,22 @@ const Workspace = ({ user }) => {
     e.preventDefault();
     if (!newMessage.trim() || !workspaceId) return;
 
-    const chatRef = ref(db, `workspaces/${workspaceId}/chat`);
+    // CHANGED: Align with global Chat system
+    const chatRef = ref(db, `channels/${workspaceId}/messages`);
     push(chatRef, {
       text: newMessage,
-      sender: user.displayName || 'Anonymous',
-      timestamp: serverTimestamp()
+      uid: user.uid, // Add UID
+      displayName: user.displayName || 'Anonymous', // Use consistent naming
+      photoURL: user.photoURL || null,
+      timestamp: serverTimestamp(),
+      type: "text"
     });
     setNewMessage('');
   };
 
   const copyInviteCode = () => {
     navigator.clipboard.writeText(workspaceId);
-    alert('Invite code copied: ' + workspaceId);
+    toast.success('Invite code copied: ' + workspaceId);
   };
 
   // File Operations
@@ -338,7 +500,7 @@ const Workspace = ({ user }) => {
       });
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Upload failed. Please try again.");
+      toast.error("Upload failed. Please try again.");
     }
   };
 
@@ -347,44 +509,176 @@ const Workspace = ({ user }) => {
     await update(fileRef, { parentId: newParentId });
   };
 
-  // User Search Effect
+  // Typing & Cursors
+  const [typingUsers, setTypingUsers] = useState([]);
+  const typingTimeoutRef = useRef(null);
+  const [remoteCursors, setRemoteCursors] = useState({});
+
+  // Chat Typing Handler
+  const handleTyping = () => {
+      if (!workspaceId || !user) return;
+      
+      const typingRef = ref(db, `projects/${workspaceId}/typing/${user.uid}`);
+      set(typingRef, user.displayName || 'Someone');
+      
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      
+      typingTimeoutRef.current = setTimeout(() => {
+          set(typingRef, null);
+      }, 3000);
+  };
+
+  // Listen for Typing & Cursors
   useEffect(() => {
-      if (showAddMemberModal && newMemberEmail.length >= 2 && !newMemberEmail.includes('@')) {
-          const timer = setTimeout(async () => {
-             try {
-                const usersRef = ref(db, 'users');
-                const q = query(usersRef, orderByChild('username'), startAt(newMemberEmail), endAt(newMemberEmail + "\uf8ff"), limitToFirst(5));
-                const snap = await get(q);
-                if (snap.exists()) {
-                    setSearchResults(Object.values(snap.val()));
-                } else {
-                    setSearchResults([]);
-                }
-             } catch(err) { 
-                 // If search fails (e.g. permission), mock it
-                 if (newMemberEmail === 'test') setSearchResults([{ username: 'test_user', name: 'Test User', photoURL: null }]);
-                 else setSearchResults([]);
-             }
-          }, 300);
-          return () => clearTimeout(timer);
-      } else {
-          setSearchResults([]);
+      if (!workspaceId) return;
+
+      // Typing
+      const typingRef = ref(db, `projects/${workspaceId}/typing`);
+      const unsubTyping = onValue(typingRef, (snap) => {
+          const data = snap.val() || {};
+          const users = Object.entries(data)
+              .filter(([uid]) => uid !== user?.uid)
+              .map(([_, name]) => name);
+          setTypingUsers(users);
+      });
+
+      // Cursors (Listen)
+      const cursorsRef = ref(db, `projects/${workspaceId}/cursors`);
+      const unsubCursors = onValue(cursorsRef, (snap) => {
+          if (snap.exists()) {
+              const data = snap.val();
+              // Remove own cursor
+              if (user?.uid) delete data[user.uid];
+              setRemoteCursors(data);
+          } else {
+              setRemoteCursors({});
+          }
+      });
+
+      return () => {
+          unsubTyping();
+          unsubCursors();
+      };
+  }, [workspaceId, user]);
+
+ // Old cursor effect removed in favor of new one above
+
+ // User Search Effect
+  useEffect(() => {
+      if (showAddMemberModal) {
+          if (newMemberEmail === 'debug_users') {
+              get(ref(db, 'public_leaderboard')).then(snap => {
+                  console.log("DEBUG: public_leaderboard raw:", snap.val());
+                  toast.success("Debug data logged to console");
+              });
+          }
+
+          if (newMemberEmail.length >= 1) {
+              const timer = setTimeout(async () => {
+                 try {
+                    const usersRef = ref(db, 'public_leaderboard');
+                    let snap = await get(usersRef);
+                    let allUsers = [];
+
+                    if (snap.exists()) {
+                        allUsers = Object.entries(snap.val()).map(([uid, data]) => ({ uid, ...data }));
+                    } 
+
+                    const term = newMemberEmail.toLowerCase();
+                    const filtered = allUsers.filter(u => 
+                        (u.username && u.username.toLowerCase().includes(term)) ||
+                        (u.displayName && u.displayName.toLowerCase().includes(term)) ||
+                        (String(u.name || '').toLowerCase().includes(term))
+                    ).slice(0, 5);
+                    
+                    setSearchResults(filtered);
+                 } catch(err) { 
+                     console.error("Search failed:", err);
+                     setSearchResults([]);
+                 }
+              }, 300);
+              return () => clearTimeout(timer);
+          } else {
+              setSearchResults([]);
+          }
       }
   }, [newMemberEmail, showAddMemberModal]);
 
   // Member Management
   const handleAddMember = async (e) => {
     if (e) e.preventDefault();
-    const input = newMemberEmail.trim();
-    if (!input) return;
+   
+    let targetUser = null;
     
-    showToast(`Invite sent to ${input} 🚀`, 'success');
+    // Check for exact match (case-insensitive)
+    const lowerInput = newMemberEmail.toLowerCase().trim();
+    targetUser = searchResults.find(u => 
+        (u.username && u.username.toLowerCase() === lowerInput) || 
+        (u.name && u.name.toLowerCase() === lowerInput) ||
+        (u.displayName && u.displayName.toLowerCase() === lowerInput)
+    );
+
+    if (!targetUser && searchResults.length > 0) {
+        targetUser = searchResults[0];
+    }
+
+    if (!targetUser) {
+         toast.error(`User "${newMemberEmail}" not found. Try selecting from the dropdown.`);
+         return;
+    }
     
-    setShowAddMemberModal(false);
-    setMemberInput(''); // Helper to clear
-    setNewMemberEmail('');
-    setSearchResults([]);
+    try {
+        if (!workspaceId) throw new Error("No active workspace");
+
+        // CHANGED: Send Invitation instead of direct add
+        const inviteRef = push(ref(db, `users/${targetUser.uid}/invitations`));
+        await set(inviteRef, {
+            projectId: workspaceId,
+            projectName: projects.find(p => p.id === workspaceId)?.name || workspaceId,
+            inviterId: user.uid,
+            inviterName: user.displayName || 'A classmate',
+            timestamp: serverTimestamp(),
+            status: 'pending'
+        });
+
+        // Optional: Also send a notification
+        const notifRef = push(ref(db, `users/${targetUser.uid}/notifications`));
+        await set(notifRef, {
+            type: 'project_invite',
+            title: 'New Project Invitation',
+            message: `${user.displayName || 'Someone'} invited you to join "${projects.find(p => p.id === workspaceId)?.name}"`,
+            // link: '/workspace', // No direct link, they need to accept first
+            timestamp: serverTimestamp(),
+            read: false
+        });
+
+        showNotification(`Invitation sent to ${targetUser.username || targetUser.displayName}!`, 'success');
+        setShowAddMemberModal(false);
+        setNewMemberEmail('');
+        setSearchResults([]);
+    } catch (err) {
+        console.error("Invite failed:", err);
+        toast.error("Failed to send invite: " + err.message);
+    }
   };
+  
+  // Removed old direct add logic to prevent confusion
+  /*
+        await update(ref(db, `projects/${workspaceId}/members`), {
+            [targetUser.uid]: true
+        });
+
+        // Link to User's Channels for easy access
+        await update(ref(db, `users/${targetUser.uid}/channels`), {
+            [workspaceId]: {
+                name: workspaceId,
+                type: 'collaboration',
+                joinedAt: serverTimestamp()
+            }
+        });
+  */
+
+
 
   const setMemberInput = (val) => setNewMemberEmail(val);
 
@@ -637,6 +931,21 @@ const Workspace = ({ user }) => {
                   <div className="v-divider" style={{width:1, height:20, background:'rgba(255,255,255,0.1)', margin:'0 4px'}} />
                   <button onClick={() => execCommand('insertUnorderedList')} title="Bullet List"><List size={16} /></button>
                   <button onClick={() => execCommand('insertOrderedList')} title="Numbered List"><ListOrdered size={16} /></button>
+                  <div className="v-divider" style={{width:1, height:20, background:'rgba(255,255,255,0.1)', margin:'0 4px'}} />
+                  <select 
+                      onChange={(e) => execCommand('fontSize', e.target.value)}
+                      style={{
+                          background: 'transparent', color: 'var(--color-text)', border: 'none', 
+                          outline: 'none', cursor: 'pointer', fontSize: '14px', padding: '0 4px',
+                          fontFamily: 'inherit'
+                      }}
+                      defaultValue="3"
+                  >
+                      <option value="1">Small</option>
+                      <option value="3">Normal</option>
+                      <option value="5">Large</option>
+                      <option value="7">Title</option>
+                  </select>
                   <div className="color-picker-wrapper">
                     <button onClick={() => setShowColorPicker(!showColorPicker)}><Palette size={16} /></button>
                     {showColorPicker && (
@@ -686,16 +995,43 @@ const Workspace = ({ user }) => {
                     </button>
                   </div>
                   
-                  <div className="workspace-page">
+                  <div className="workspace-page" style={{position:'relative'}}>
+                    {/* Remote Cursors */}
+                    {Object.entries(remoteCursors).map(([uid, cursor]) => (
+                         <div key={uid} style={{
+                            position: 'absolute',
+                            left: cursor.x,
+                            top: cursor.y,
+                            pointerEvents: 'none',
+                            zIndex: 100,
+                            transition: 'all 0.1s ease-out'
+                        }}>
+                             <div style={{
+                                 width: 2, height: cursor.height || 20, background: cursor.color || 'red',
+                                 boxShadow: '0 0 4px rgba(0,0,0,0.3)'
+                             }} />
+                             <div style={{
+                                 background: cursor.color || 'red',
+                                 color: 'white',
+                                 fontSize: 10, padding: '2px 4px',
+                                 borderRadius: 4, whiteSpace: 'nowrap',
+                                 position: 'absolute', top: -16, left: 0
+                             }}>
+                                 {cursor.name}
+                             </div>
+                        </div>
+                    ))}
+                    
                     <div className="page-number">Page {currentPage}</div>
                     <div 
-                      key={currentPage} // Force re-render on page change
+                      key={currentPage} 
+                      ref={editorRef}
                       className="rich-text-editor"
                       contentEditable
                       suppressContentEditableWarning
                       onBlur={handleEditorBlur}
                       onInput={handlePageInput}
-                      style={{ maxHeight: '900px', overflowY: 'hidden' }} // A4 content limit
+                      style={{ maxHeight: '900px', overflowY: 'hidden' }}
                       dangerouslySetInnerHTML={{ __html: pagesContent[currentPage] || (currentPage === 1 ? `<h1>${activeFile.name}</h1><p>Start typing...</p>` : '') }}
                     />
                   </div>
@@ -729,6 +1065,12 @@ const Workspace = ({ user }) => {
                   <p>{msg.text}</p>
                 </div>
               ))}
+              {/* Typing Indicator */}
+              {typingUsers.length > 0 && (
+                  <div className="typing-indicator" style={{padding: '8px 16px', fontSize: 12, color: '#888', fontStyle: 'italic'}}>
+                      {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                  </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
             <form className="chat-input" onSubmit={sendMessage}>
@@ -736,7 +1078,10 @@ const Workspace = ({ user }) => {
                 type="text" 
                 placeholder="Type a message..." 
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    handleTyping();
+                }}
               />
               <button type="submit"><Send size={16} /></button>
             </form>
@@ -798,32 +1143,40 @@ const Workspace = ({ user }) => {
                           outline: 'none'
                       }}
                     />
-                    {searchResults.length > 0 && (
+                    {newMemberEmail.length > 0 && (
                         <div className="search-dropdown" style={{
                             position: 'absolute', top: '100%', left: 0, right: 0,
                             background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '12px', marginTop: 8, zIndex: 50,
+                            borderRadius: '12px', marginTop: 8, zIndex: 9999,
                             maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
                         }}>
-                           {searchResults.map((u, i) => (
-                               <div key={i} onClick={() => setNewMemberEmail(u.username || u.name)} style={{
-                                   padding: '12px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                   display: 'flex', alignItems: 'center', gap: 12, transition: 'background 0.2s'
-                               }}
-                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                               >
-                                    <div style={{width: 32, height: 32, borderRadius:'50%', background: '#333', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#fff'}}>
-                                        {u.photoURL ? <img src={u.photoURL} alt="" style={{width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover'}} /> : (u.username?.[0] || 'U').toUpperCase()}
-                                    </div>
-                                    <div style={{display:'flex', flexDirection:'column'}}>
-                                        <span style={{fontSize: '0.9rem', color: '#fff'}}>{u.username || 'User'}</span>
-                                        {u.name && <span style={{fontSize: '0.75rem', color: '#888'}}>{u.name}</span>}
-                                    </div>
-                               </div>
-                           ))}
-                        </div>
+                    {searchResults.length > 0 ? (
+                       searchResults.map((u, i) => (
+                           <div key={i} onClick={() => setNewMemberEmail(u.username || u.name || u.displayName)} style={{
+                               padding: '12px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)',
+                               display: 'flex', alignItems: 'center', gap: 12, transition: 'background 0.2s'
+                           }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                           >
+                                <div style={{width: 32, height: 32, borderRadius:'50%', background: '#333', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#fff'}}>
+                                    {u.photoURL ? <img src={u.photoURL} alt="" style={{width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover'}} /> : (u.username?.[0] || 'U').toUpperCase()}
+                                </div>
+                                <div style={{display:'flex', flexDirection:'column'}}>
+                                    <span style={{fontSize: '0.9rem', color: '#fff'}}>{u.username || u.displayName || 'User'}</span>
+                                    {u.name && <span style={{fontSize: '0.75rem', color: '#888'}}>{u.name}</span>}
+                                </div>
+                           </div>
+                       ))
+                    ) : (
+                        newMemberEmail.length >= 1 && (
+                            <div style={{padding: '12px', color: '#888', fontStyle: 'italic', textAlign: 'center'}}>
+                                No users found
+                            </div>
+                        )
                     )}
+                    </div>
+                )}
                 </div>
                 <div className="modal-actions" style={{ display: 'flex', gap: 12, width: '100%' }}>
                   <button type="button" onClick={() => setShowAddMemberModal(false)} style={{ 

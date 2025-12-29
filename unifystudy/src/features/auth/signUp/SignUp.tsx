@@ -24,15 +24,10 @@ import "./signup.css";
 export default function SignUp({ onLoginSuccess }) {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const [showGoogleUsernameModal, setShowGoogleUsernameModal] = useState(false);
   const [googleUser, setGoogleUser] = useState(null);
@@ -40,22 +35,18 @@ export default function SignUp({ onLoginSuccess }) {
 
   const [showEmailVerificationModal, setShowEmailVerificationModal] =
     useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   const [isBlockingUI, setIsBlockingUI] = useState(false);
 
-  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validatePassword = (password) => password.length >= 6;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // HANDLER FOR REACT-HOOK-FORM
+  const handleSubmit = async (data) => {
+    // e.preventDefault(); // handled by hook form
     setError("");
     setSuccess("");
+    setIsBlockingUI(true);
 
-    if (!validateEmail(email)) return setError("Invalid email format.");
-    if (!validatePassword(password))
-      return setError("Password must be at least 6 characters.");
-    if (!isLogin && !username.trim())
-      return setError("Please enter a username.");
+    const { email, password, username } = data;
 
     try {
       if (isLogin) {
@@ -69,8 +60,10 @@ export default function SignUp({ onLoginSuccess }) {
         );
         const user = userCredential.user;
 
-        if (!user.emailVerified)
+        if (!user.emailVerified) {
+          setIsBlockingUI(false);
           return setError("Please verify your email before logging in.");
+        }
 
         setSuccess("Logged in successfully!");
         if (onLoginSuccess) onLoginSuccess(user);
@@ -88,13 +81,16 @@ export default function SignUp({ onLoginSuccess }) {
         await updateProfile(user, { displayName: username });
 
         await sendEmailVerification(user, {
-          url: "http://localhost:3000/login",
+          url: window.location.origin + "/login",
           handleCodeInApp: true,
         });
 
+        setUserEmail(email);
+        setIsBlockingUI(false);
         setShowEmailVerificationModal(true);
       }
     } catch (err) {
+      setIsBlockingUI(false);
       setError(err.message);
     }
   };
@@ -113,15 +109,12 @@ export default function SignUp({ onLoginSuccess }) {
         (p) => p.providerId === "google.com"
       );
 
-      if (isGoogle) setName(googleFullName);
-
       // If no username set yet → open modal
       if (!user.displayName) {
         setGoogleUser(user);
         setShowGoogleUsernameModal(true);
         setIsBlockingUI(true);
       } else {
-        setUsername(user.displayName);
         if (onLoginSuccess) onLoginSuccess(user);
         navigate("/profile");
       }
@@ -137,7 +130,6 @@ export default function SignUp({ onLoginSuccess }) {
       await updateProfile(googleUser, { displayName: googleUsername });
 
       setShowGoogleUsernameModal(false);
-      setUsername(googleUsername);
       setGoogleUser(null);
       setGoogleUsername("");
       setIsBlockingUI(false);
@@ -172,16 +164,13 @@ export default function SignUp({ onLoginSuccess }) {
       );
 
       if (isGoogle) {
-        const fullName = user.displayName || "";
-        setName(fullName);
-
         // If Google login but no username assigned yet
         if (!user.displayName) {
           setGoogleUser(user);
           setShowGoogleUsernameModal(true);
           setIsBlockingUI(true);
         } else {
-          setUsername(user.displayName);
+             // User has display name, no action needed here
         }
       }
 
@@ -209,21 +198,11 @@ export default function SignUp({ onLoginSuccess }) {
 
             <SignUpForm
               isLogin={isLogin}
-              email={email}
-              setEmail={setEmail}
-              password={password}
-              setPassword={setPassword}
-              name={name}
-              setName={setName}
-              username={username}
-              setUsername={setUsername}
-              showPassword={showPassword}
-              setShowPassword={setShowPassword}
-              handleSubmit={handleSubmit}
+              onSubmit={handleSubmit}
               handleGoogleSignIn={handleGoogleSignIn}
               toggleLoginMode={toggleLoginMode}
-              error={error}
-              success={success}
+              serverError={error}
+              isLoading={isBlockingUI} // Reusing blocking state for loading indicator
               keepLoggedIn={keepLoggedIn}
               setKeepLoggedIn={setKeepLoggedIn}
             />
@@ -246,7 +225,7 @@ export default function SignUp({ onLoginSuccess }) {
         <EmailVerificationModal
           isOpen={showEmailVerificationModal}
           onClose={() => setShowEmailVerificationModal(false)}
-          email={email}
+          email={userEmail}
         />
       )}
     </div>

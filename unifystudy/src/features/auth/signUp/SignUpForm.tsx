@@ -1,122 +1,169 @@
-// @ts-nocheck
-import React from "react";
-import "./signup.scss";
 
-export default function SignUpForm({
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { motion } from "framer-motion";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+
+// Validation Schemas
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const signupSchema = loginSchema.extend({
+  username: z.string().min(3, "Username must be at least 3 characters").optional(),
+});
+
+type SignUpFormValues = z.infer<typeof signupSchema>;
+
+interface SignUpFormProps {
+    isLogin: boolean;
+    onSubmit: (data: SignUpFormValues) => void;
+    handleGoogleSignIn: () => void;
+    toggleLoginMode: () => void;
+    serverError: string;
+    isLoading: boolean;
+    keepLoggedIn: boolean;
+    setKeepLoggedIn: (value: boolean) => void;
+}
+
+const SignUpForm: React.FC<SignUpFormProps> = ({
   isLogin,
-  email,
-  setEmail,
-  password,
-  setPassword,
-  username,
-  setUsername,
-  showPassword,
-  setShowPassword,
-  handleSubmit,
+  onSubmit, // Handler passed from parent
   handleGoogleSignIn,
   toggleLoginMode,
-  error,
-  success,
+  serverError,
+  isLoading,
   keepLoggedIn,
-  setKeepLoggedIn,
-}) {
+  setKeepLoggedIn
+}) => {
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  // Form Hooks
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignUpFormValues>({
+    resolver: zodResolver(isLogin ? loginSchema : signupSchema),
+    mode: "onBlur"
+  });
+
   return (
-    <form className="signup-form" onSubmit={handleSubmit}>
+    <form className="signup-form" onSubmit={handleSubmit(onSubmit)}>
+      {serverError && (
+        <div className="error-message" role="alert">
+          {serverError}
+        </div>
+      )}
+
+      {/* Username Field (Sign Up Only) */}
       {!isLogin && (
         <div className="form-group">
           <label>Username</label>
-          <input
-            type="text"
-            placeholder="Enter a username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+          <div className="input-icon-wrapper">
+            <User className="input-icon" size={20} />
+            <input
+              type="text"
+              placeholder="Display Name"
+              {...register("username")}
+              className={errors.username ? "input-error" : ""}
+            />
+          </div>
+          {errors.username && <span className="field-error">{errors.username.message}</span>}
         </div>
       )}
 
+      {/* Email Field */}
       <div className="form-group">
         <label>Email</label>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <div className="input-icon-wrapper">
+          <Mail className="input-icon" size={20} />
+          <input
+            type="email"
+            placeholder="you@university.ie"
+            {...register("email")}
+            className={errors.email ? "input-error" : ""}
+          />
+        </div>
+        {errors.email && <span className="field-error">{errors.email.message}</span>}
       </div>
 
-      <div className="form-group password-group">
+      {/* Password Field */}
+      <div className="form-group">
         <label>Password</label>
-        <div className="password-wrapper">
+        <div className="input-icon-wrapper">
+          <Lock className="input-icon" size={20} />
           <input
             type={showPassword ? "text" : "password"}
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            placeholder="••••••••"
+            {...register("password")}
+            className={errors.password ? "input-error" : ""}
           />
           <button
             type="button"
-            className="toggle-password"
+            className="password-toggle"
             onClick={() => setShowPassword(!showPassword)}
+            tabIndex={-1}
           >
-            {showPassword ? "Hide" : "Show"}
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
+        {errors.password && <span className="field-error">{errors.password.message}</span>}
       </div>
 
       {isLogin && (
-        <div
-          className="form-group checkbox-group"
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: "0.5rem",
-            marginTop: "0.5rem",
-          }}
-        >
-          <input
-            type="checkbox"
-            id="keepLoggedIn"
-            checked={keepLoggedIn}
-            onChange={(e) => setKeepLoggedIn(e.target.checked)}
-            style={{ width: "auto", margin: 0 }}
-          />
-          <label
-            htmlFor="keepLoggedIn"
-            style={{ margin: 0, fontSize: "0.9rem", cursor: "pointer" }}
-          >
-            Keep me logged in
-          </label>
+        <div className="form-options">
+            <label className="checkbox-label">
+                <input 
+                    type="checkbox" 
+                    checked={keepLoggedIn} 
+                    onChange={(e) => setKeepLoggedIn(e.target.checked)} 
+                />
+                Keep me logged in
+            </label>
+            <button type="button" className="forgot-password" onClick={() => window.location.href='/reset-password'}>
+                Forgot Password?
+            </button>
         </div>
       )}
 
-      <button type="submit" className="btn-primary">
-        {isLogin ? "Log In" : "Sign Up"}
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="submit-btn"
+        disabled={isLoading}
+      >
+        {isLoading ? "Processing..." : isLogin ? "Log In" : "Sign Up"}
+      </motion.button>
+
+      <div className="divider">
+        <span>OR</span>
+      </div>
+
+      <button
+        type="button"
+        className="google-btn"
+        onClick={handleGoogleSignIn}
+        disabled={isLoading}
+      >
+        <img
+          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+          alt="Google"
+        />
+        <span>Continue with Google</span>
       </button>
 
-      <div className="divider"></div>
-      <h1>OR</h1>
-
-      <button className="btn-google" onClick={handleGoogleSignIn}>
-        {/* <img
-          src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
-          alt="Google logo"
-          className="google-logo"
-        /> */}
-        <span>{isLogin ? "Log in with Google" : "Sign up with Google"}</span>
-      </button>
-
-      <p className="toggle-text">
+      <p className="toggle-mode">
         {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-        <span className="toggle-btn" onClick={toggleLoginMode}>
+        <button type="button" onClick={toggleLoginMode}>
           {isLogin ? "Sign Up" : "Log In"}
-        </span>
+        </button>
       </p>
-
-      {error && <p className="error-msg">{error}</p>}
-      {success && <p className="success-msg">{success}</p>}
     </form>
   );
-}
+};
+
+export default SignUpForm;

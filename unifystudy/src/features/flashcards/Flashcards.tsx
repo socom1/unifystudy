@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { db, auth } from '@/services/firebaseConfig';
 import { ref, onValue, push, set, remove, update } from 'firebase/database';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ArrowLeft, Layers, Zap, MoreVertical, Edit2, Play } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Layers, Zap, MoreVertical, Edit2, Play, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import './Flashcards.scss';
 
 export default function Flashcards() {
@@ -15,6 +16,10 @@ export default function Flashcards() {
   // Creation State
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newDeckName, setNewDeckName] = useState('');
+
+  // Smart Gen State
+  const [showSmartGenModal, setShowSmartGenModal] = useState(false);
+  const [smartGenInput, setSmartGenInput] = useState('');
 
   // Study State
   const [studyQueue, setStudyQueue] = useState([]);
@@ -258,6 +263,67 @@ export default function Flashcards() {
       }
   };
 
+  const handleSmartGen = async () => {
+    if (!activeDeck || !smartGenInput.trim()) return;
+    
+    const lines = smartGenInput.split('\n').filter(l => l.trim());
+    const newCards = [];
+    const now = Date.now();
+    
+    // Heuristic 1: "Q: Question... A: Answer..." (Multi-line or Single-line)
+    // Heuristic 2: "Term - Definition" or "Term: Definition"
+    
+    // Simple Line Parser
+    lines.forEach(line => {
+        // Hyphen or Colon separation
+        if (line.includes(' - ') || line.includes(': ')) {
+            const separator = line.includes(' - ') ? ' - ' : ': ';
+            const parts = line.split(separator);
+            if (parts.length >= 2) {
+                const front = parts[0].trim();
+                const back = parts.slice(1).join(separator).trim();
+                
+                // Skip if looks like a header (too short, all caps weirdness?) - Nah, allow it
+                if (front && back) {
+                    newCards.push({
+                        front,
+                        back,
+                        dueDate: now,
+                        state: 'new',
+                        step: 0,
+                        interval: 0,
+                        ease: 2.5,
+                        repetitions: 0
+                    });
+                }
+            }
+        }
+    });
+
+    // TODO: Add block text parser if lines don't match (e.g. Q:\n A: blocks)
+    // For now, this is "MVP Smart Gen"
+
+    if (newCards.length === 0) {
+        toast.error("No valid patterns found. Try 'Term: Definition' format.");
+        return;
+    }
+
+    // Batch add to Firebase
+    // Using simple loop as there's no bulk push for unique IDs in one go easily without key gen
+    // Using update for batch
+    const updates = {};
+    newCards.forEach(card => {
+        const newKey = push(ref(db, `users/${userId}/flashcards/${activeDeck.id}/cards`)).key;
+        updates[`users/${userId}/flashcards/${activeDeck.id}/cards/${newKey}`] = card;
+    });
+
+    await update(ref(db), updates);
+    
+    toast.success(`Generated ${newCards.length} cards!`);
+    setSmartGenInput('');
+    setShowSmartGenModal(false);
+  };
+
   return (
     <div className="flashcards-root">
        {/* Global Header (only in list view) */}
@@ -415,6 +481,26 @@ export default function Flashcards() {
                     </div>
                 ) : (
                     <div className="edit-container">
+                        <div style={{display: 'flex', gap: '1rem', marginBottom: '1rem', justifyContent: 'flex-end'}}>
+                             <button 
+                                onClick={() => setShowSmartGenModal(true)}
+                                style={{
+                                    background: 'rgba(255, 215, 0, 0.1)',
+                                    border: '1px solid #FFD700',
+                                    color: '#FFD700',
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    fontWeight: '500'
+                                }}
+                             >
+                                <Sparkles size={16} /> Auto-Generate
+                             </button>
+                        </div>
+
                         <form onSubmit={addCard} className="add-card-form" style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
                             <input placeholder="Front (Question)" value={newFront} onChange={e => setNewFront(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-2)', color: 'white', flex: 1 }} autoFocus />
                             <input placeholder="Back (Answer)" value={newBack} onChange={e => setNewBack(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-2)', color: 'white', flex: 1 }} />
@@ -465,6 +551,69 @@ export default function Flashcards() {
                                 <button type="submit" style={{ background: 'var(--color-primary)', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>Create</button>
                             </div>
                         </form>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* Smart Gen Modal */}
+            {showSmartGenModal && (
+                <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowSmartGenModal(false)}>
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="modal-content"
+                        style={{ background: 'var(--bg-2)', padding: '2rem', borderRadius: '16px', width: '600px', border: '1px solid var(--glass-border)', maxHeight: '80vh', overflowY: 'auto' }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <h2 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Zap size={24} color="#FFD700" /> 
+                            Smart Generate
+                        </h2>
+                        <p style={{ color: 'var(--color-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                            Paste your notes below. We'll look for patterns like:
+                            <br/>• <b>Term - Definition</b>
+                            <br/>• <b>Term: Definition</b>
+                            <br/>• <b>Q: Question... A: Answer...</b>
+                        </p>
+                        
+                        <textarea 
+                            placeholder="Paste text here..." 
+                            value={smartGenInput}
+                            onChange={(e) => setSmartGenInput(e.target.value)}
+                            style={{ 
+                                width: '100%', 
+                                height: '300px', 
+                                padding: '1rem', 
+                                marginBottom: '1rem', 
+                                borderRadius: '8px', 
+                                border: '1px solid var(--glass-border)', 
+                                background: 'var(--bg-1)', 
+                                color: 'white',
+                                fontFamily: 'monospace',
+                                resize: 'vertical'
+                            }}
+                        />
+                        
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button type="button" onClick={() => setShowSmartGenModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer' }}>Cancel</button>
+                            <button 
+                                onClick={handleSmartGen} 
+                                style={{ 
+                                    background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', 
+                                    border: 'none', 
+                                    padding: '0.6rem 2rem', 
+                                    borderRadius: '8px', 
+                                    color: 'var(--bg-body)', 
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                }}
+                            >
+                                <Zap size={16} fill="var(--bg-body)"/> Generate Cards
+                            </button>
+                        </div>
                     </motion.div>
                 </div>
             )}

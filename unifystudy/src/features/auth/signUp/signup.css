@@ -997,6 +997,167 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* Input icon wrapper for positioned icons */
+.signup-form .input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.signup-form .input-icon-wrapper .input-icon {
+  position: absolute;
+  left: 1rem;
+  color: #9fb1bb;
+  pointer-events: none;
+}
+.signup-form .input-icon-wrapper input {
+  padding-left: 3rem;
+  width: 100%;
+}
+.signup-form .input-icon-wrapper .password-toggle {
+  position: absolute;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: #9fb1bb;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+.signup-form .input-icon-wrapper .password-toggle:hover {
+  color: #8fd2ff;
+  transform: none;
+}
+
+/* Form options (remember me, forgot password) */
+.signup-form .form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -0.5rem;
+}
+.signup-form .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #9fb1bb;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.signup-form .checkbox-label input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}
+.signup-form .forgot-password {
+  background: transparent;
+  color: #8fd2ff;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.signup-form .forgot-password:hover {
+  color: #fff;
+  text-decoration: underline;
+  transform: none;
+}
+
+/* Submit button */
+.signup-form .submit-btn {
+  background: linear-gradient(90deg, #4b6c82, #8fd2ff);
+  color: #000;
+  font-weight: 700;
+  border: none;
+  padding: 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+.signup-form .submit-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 8px 20px rgba(143, 210, 255, 0.3);
+}
+.signup-form .submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Divider */
+.signup-form .divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0 1rem;
+}
+.signup-form .divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.signup-form .divider span {
+  position: relative;
+  background: rgba(12, 18, 20, 0.85);
+  padding: 0 1rem;
+  color: #9fb1bb;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Toggle mode */
+.signup-form .toggle-mode {
+  text-align: center;
+  color: #9fb1bb;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+.signup-form .toggle-mode button {
+  background: transparent;
+  color: #8fd2ff;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  margin-left: 0.4rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.signup-form .toggle-mode button:hover {
+  color: #fff;
+  text-decoration: underline;
+  transform: none;
+}
+
+/* Error messages */
+.signup-form .field-error {
+  color: #ff7b7b;
+  font-size: 0.8rem;
+  margin-top: -0.25rem;
+}
+.signup-form .error-message {
+  background: rgba(255, 77, 77, 0.15);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  color: #ff7b7b;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+}
 .signup-form .form-group input {
   background: rgba(0, 0, 0, 0.2);
   color: #fff;
@@ -1051,6 +1212,30 @@ h1 {
   color: #fff;
 }
 .signup-form .btn-google img.google-logo {
+  width: 20px;
+  height: 20px;
+}
+
+/* Google button - matches btn-google styling */
+.signup-form .google-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  padding: 0.8rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 0.5rem;
+}
+.signup-form .google-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  color: #fff;
+}
+.signup-form .google-btn img {
   width: 20px;
   height: 20px;
 }

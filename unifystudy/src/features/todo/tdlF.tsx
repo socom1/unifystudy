@@ -4,7 +4,7 @@
 // Keep your firebase setup (db, auth). Uses Realtime DB paths:
 // users/{uid}/folders/{folderId} and users/{uid}/folders/{folderId}/tasks/{taskId}
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "@/services/firebaseConfig";
 import {
@@ -15,8 +15,10 @@ import {
   onValue,
   update,
 } from "firebase/database";
-import { Menu, ArrowLeft, Check, X, Trash2, Folder, ChevronRight, ChevronDown, Plus } from "lucide-react";
+import { Menu, ArrowLeft, Check, X, Trash2, Folder, ChevronRight, ChevronDown, Plus, FilePlus, FolderPlus, FileText } from "lucide-react";
 import Modal from "@/components/common/Modal";
+import { toast } from "sonner";
+import { useGamification } from "@/context/GamificationContext";
 import "./tdlF.scss";
 
 // Add this style block or ensure it's in tdlF.scss
@@ -41,13 +43,13 @@ const randomTagColor = () =>
   SAMPLE_TAG_COLORS[Math.floor(Math.random() * SAMPLE_TAG_COLORS.length)];
 const L_TAG_FILTER = "tdl_tagFilter_v1";
 
-/* FolderNode - recursive renderer w/ drag/drop support */
-function FolderNode({
-  folder,
-  depth = 0,
-  childrenMap,
-  currentFolderId,
-  setCurrentFolderId,
+/* TodoTreeItem - 1:1 Match of FileTreeItem structure */
+function TodoTreeItem({ 
+  folder, 
+  depth = 0, 
+  childrenMap, 
+  currentFolderId, 
+  setCurrentFolderId, 
   addSubfolderUI,
   creatingUnder,
   setCreatingUnder,
@@ -55,110 +57,121 @@ function FolderNode({
   setNewFolderInput,
   createFolderUnder,
   deleteFolder,
-  setShowFolderDetailMobile,
-  isMobile,
+  // Drag props
   onFolderDragStart,
   onFolderDragOver,
   onFolderDrop,
   dragOverFolderId,
+  creationType,
+  setCreationType,
+  setActiveView,
+  expandedFolders,
+  toggleFolder
 }) {
+  // Logic from FolderNode adapted to FileTreeItem structure
   const children = childrenMap[folder.id] || [];
-  const isOpen = currentFolderId === folder.id;
-  // Workspace-style folder toggle needs local state or reuse currentFolderId logic
-  // Here we use isOpen to imply "expanded" but for file tree we might want separate expand state vs selection
-  // For now, let's stick to the current logic: clicking toggles "Open/Selected" 
+  const isOpen = expandedFolders?.has(folder.id);
+  // Strict check: Only explicitly defined lists are lists. Undefined/legacy defaults to folder.
+  const isList = folder.type === 'list';
   
+  // Replicate toggle logic from Workspace: Folders open/close, Lists select
+  const handleClick = (e) => {
+    e.stopPropagation();
+    
+    if (isList) {
+        // Just select
+        setActiveView("folder");
+        setCurrentFolderId(folder.id);
+    } else {
+        // Toggle expansion
+        toggleFolder(folder.id);
+        // Optionally select it too? Workspace usually just expands.
+        // But in Todo, maybe we want to select it to show empty details?
+        // Let's stick to expansion only for folder click, unless it has no children?
+        // User complained "folder instantly closes". If we just expand, it's safer.
+        // But if they want to view the folder's "content" (empty in Generic view), they might need to select it separately?
+        // Let's emulate Workspace: Click on folder expands/collapses.
+    }
+  };
+
   return (
-    <li
-      className={`folderNode ${dragOverFolderId === folder.id ? "dropTarget" : ""}`}
-      draggable
-      onDragStart={(e) => onFolderDragStart(e, folder)}
-      onDragOver={(e) => onFolderDragOver(e, folder)}
-      onDrop={(e) => onFolderDrop(e, folder)}
-    >
-      <div
-        className={`folderRow ${isOpen ? "active" : ""}`}
-        style={{ paddingLeft: `${depth * 12 + 12}px` }}
-        onClick={(e) => {
-          e.stopPropagation();
-          setCurrentFolderId((p) => (p === folder.id ? null : folder.id));
-        }}
-        role="button"
+    <div className="file-tree-item">
+      <div 
+        className={`file-row ${currentFolderId === folder.id ? 'active' : ''} ${dragOverFolderId === folder.id ? "dropTarget" : ""}`}
+        style={{ paddingLeft: `${depth * 12 + 8}px` }} // Match FileTreeItem padding
+        onClick={handleClick}
+        draggable={true}
+        onDragStart={(e) => onFolderDragStart(e, folder)}
+        onDragOver={(e) => onFolderDragOver(e, folder)}
+        onDrop={(e) => onFolderDrop(e, folder)}
       >
         <span className="chevron">
-           {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />} 
+           {!isList && (children.length > 0) ? (
+               isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+           ) : <span style={{width: 14}} />} 
         </span>
 
-        <span className="folderIcon">
-          <Folder size={16} />
+        <span className="icon">
+          {isList ? (
+             <FileText size={16} color="var(--color-text)" />
+          ) : (
+             <Folder size={16} fill={isOpen ? "var(--color-secondary)" : "none"} color={isOpen ? "var(--color-secondary)" : "var(--color-muted)"} />
+          )}
         </span>
 
-        <span className="folderName">{folder.text}</span>
+        <span className="name">{folder.text}</span>
 
-        <div className="folderActions">
-           <button
-            title="Add subfolder"
-            onClick={(e) => {
-              e.stopPropagation();
-              addSubfolderUI(folder.id);
-            }}
-          >
-            <Plus size={14} />
-          </button>
-          
+        {/* Actions - Workspace doesn't have inline actions usually, but Todo might need them. 
+            However, user asked for 1:1 match. Workspace currently HAS inline actions? 
+            Checking Workspace code... No, Workspace has context menu or top actions. 
+            But FolderNode had them. Let's keep them subtle or check if user wants them removed.
+            User said "complete rework... copy exact 1:1". 
+            Workspace FileTreeItem DOES NOT have inline specific actions usually visible. 
+            But let's keep Delete for functionality, but style it invisible unless hover, like Workspace might if it had them.
+            Actually, let's keep the .folderActions logic but rename class if needed, or just insert it.
+        */}
+        <div className="folderActions" style={{marginLeft: 'auto', display: 'flex', gap: 4}}>
+           {!isList && (
+               <>
+                   <button
+                    title="New List"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addSubfolderUI(folder.id, 'list');
+                    }}
+                  >
+                    <FilePlus size={14} />
+                  </button>
+                   <button
+                    title="New Folder"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addSubfolderUI(folder.id, 'folder');
+                    }}
+                  >
+                    <FolderPlus size={14} />
+                  </button>
+              </>
+           )}
           <button
-            title="Delete folder"
+            title="Delete"
             onClick={(e) => {
               e.stopPropagation();
               deleteFolder(folder.id, e);
             }}
           >
-            <X size={14} />
+            <Trash2 size={14} />
           </button>
         </div>
       </div>
 
-      {creatingUnder === folder.id && (
-        <div className="subfolderInline">
-          <input
-            value={newFolderInput}
-            placeholder="New subfolder name..."
-            onChange={(e) => setNewFolderInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                createFolderUnder(folder.id);
-              } else if (e.key === "Escape") {
-                setCreatingUnder(null);
-                setNewFolderInput("");
-              }
-            }}
-            autoFocus
-          />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              createFolderUnder(folder.id);
-            }}
-          >
-            Create
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setCreatingUnder(null);
-              setNewFolderInput("");
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
+      {/* Inline Subfolder Creation REMOVED - using Modal */}{" "}
 
-      {children.length > 0 && (
-        <ul className="folderChildren">
+      {/* Children */}
+      {children.length > 0 && isOpen && (
+        <div className="file-children">
           {children.map((c) => (
-            <FolderNode
+            <TodoTreeItem
               key={c.id}
               folder={c}
               depth={depth + 1}
@@ -172,17 +185,19 @@ function FolderNode({
               setNewFolderInput={setNewFolderInput}
               createFolderUnder={createFolderUnder}
               deleteFolder={deleteFolder}
-              setShowFolderDetailMobile={setShowFolderDetailMobile}
-              isMobile={isMobile}
               onFolderDragStart={onFolderDragStart}
-              onFolderDragOver={onFolderDragOver}
               onFolderDrop={onFolderDrop}
               dragOverFolderId={dragOverFolderId}
+              creationType={creationType}
+              setCreationType={setCreationType}
+              setActiveView={setActiveView}
+              expandedFolders={expandedFolders}
+              toggleFolder={toggleFolder}
             />
           ))}
-        </ul>
+        </div>
       )}
-    </li>
+    </div>
   );
 }
 
@@ -194,6 +209,8 @@ export default function TdlF() {
     return () => unsub();
   }, []);
 
+
+
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 900 : true
   );
@@ -201,7 +218,9 @@ export default function TdlF() {
     typeof window !== "undefined" ? window.innerWidth >= 1000 : false
   );
   
+  
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { addXP } = useGamification();
   
   // Resizable state
   const [sidebarWidth, setSidebarWidth] = useState(260);
@@ -281,6 +300,7 @@ export default function TdlF() {
   /* --- UI states --- */
   const [newFolderInput, setNewFolderInput] = useState("");
   const [creatingUnder, setCreatingUnder] = useState(null);
+  const [creationType, setCreationType] = useState("list"); // 'folder' | 'list'
   const [taskInput, setTaskInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState(null);
@@ -297,10 +317,68 @@ export default function TdlF() {
   const [tagInput, setTagInput] = useState("");
   const [activeTagTaskId, setActiveTagTaskId] = useState(null);
 
-  // Clear expanded folders when changing folders
-  useEffect(() => {
-    setExpandedFolders(new Set());
-  }, [currentFolderId]);
+  // Create Modal State
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createModalInput, setCreateModalInput] = useState("");
+
+  /* --- Derived State --- */
+  const availableTags = useMemo(() => {
+    const tagSet = new Set();
+    foldersFlat.forEach(f => {
+       if (f.tasks) {
+           Object.values(f.tasks).forEach(t => {
+               if (t.tags) t.tags.forEach(tag => tagSet.add(tag.label));
+           });
+       }
+    });
+    return Array.from(tagSet).sort();
+  }, [foldersFlat]);
+
+  const quickAddTagFromRow = (taskId) => {
+      setActiveTagTaskId(taskId);
+      setTagInput("");
+      setShowTagModal(true);
+  };
+
+  const handleSaveTag = async (e) => {
+      e?.preventDefault();
+      if (!tagInput.trim() || !activeTagTaskId) return;
+      
+      const newTag = { label: tagInput.trim(), color: randomTagColor() };
+      
+      // Need to find the task first to get its current tags
+      // This is inefficient but functional for now: find task in tasks or folders
+      let task = tasks.find(t => t.id === activeTagTaskId);
+      
+      if (!task) {
+          // Search in all folders
+          for (const f of foldersFlat) {
+              if (f.tasks && f.tasks[activeTagTaskId]) {
+                  task = f.tasks[activeTagTaskId];
+                  break;
+              }
+          }
+      }
+      
+      if (task) {
+          const currentTags = task.tags || [];
+          const updatedTags = [...currentTags, newTag];
+          await updateTask(activeTagTaskId, { tags: updatedTags });
+          toast.success("Tag added!");
+      }
+      
+      setShowTagModal(false);
+  };
+
+  // Expanded Folders implementation (Lifted from TodoTreeItem)
+  const toggleFolder = (id) => {
+    setExpandedFolders(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+    });
+  };
 
   // persist tagFilter in localStorage
   useEffect(() => {
@@ -341,6 +419,7 @@ export default function TdlF() {
         notes: val.notes,
         order: val.order ?? 0,
         createdAt: val.createdAt ?? 0,
+        type: val.type, // Fix: capture type from DB
         tasks: val.tasks || {}, // Include tasks for global views
       }));
       arr.sort((a, b) => {
@@ -416,18 +495,48 @@ export default function TdlF() {
     return () => clearInterval(interval);
   }, [foldersFlat]);
 
+  /* --- MIGRATION: Fix Legacy Types --- */
+  useEffect(() => {
+    if (!userId || foldersFlat.length === 0) return;
+
+    const updates = {};
+    let hasUpdates = false;
+
+    foldersFlat.forEach(f => {
+      // If type is missing, infer it.
+      if (!f.type) {
+        // If it has tasks, it's definitely a list.
+        // If it looks like a "List" (no children, maybe empty), we default to folder?
+        // User complained "folder is a file" (when default was List).
+        // User complained "list is a folder" (when default was Folder).
+        // Safest: Use task presence. Default empty to 'folder' to be safe standard container.
+        // Users can recreate empty lists easily.
+        const hasTasks = f.tasks && Object.keys(f.tasks).length > 0;
+        updates[`users/${userId}/folders/${f.id}/type`] = hasTasks ? 'list' : 'folder';
+        hasUpdates = true;
+      }
+    });
+
+    if (hasUpdates) {
+      console.log("[TdlF] Migrating legacy folder types...", updates);
+      update(databaseRef(db, "/"), updates).catch(err => {
+          console.error("Migration failed:", err);
+      });
+    }
+  }, [foldersFlat, userId]);
+
   /* --- helpers for tasks --- */
   const requestNotificationPermission = () => {
     if (!("Notification" in window)) {
-      alert("This browser does not support desktop notifications");
+      toast.error("This browser does not support desktop notifications");
       return;
     }
     Notification.requestPermission().then((permission) => {
       if (permission === "granted") {
         new Notification("Notifications enabled!");
-        alert("Notifications enabled successfully! ✅");
+        toast.success("Notifications enabled successfully! ✅");
       } else {
-        alert(
+        toast.error(
           "Permission denied. Please enable notifications in your browser settings."
         );
       }
@@ -466,30 +575,54 @@ export default function TdlF() {
 
   /* --- folder ops --- */
 
-  const createFolderUnder = async (parentId = null) => {
-    if (!userId || !newFolderInput.trim()) return;
+  const createFolderUnder = async (parentId = null, type = 'list') => {
+    console.log(`[TdlF] createFolderUnder called. Parent: ${parentId}, Type: ${type}`);
+    if (!userId) {
+        // addDebugLog("Error: No userId (not logged in)", 'error');
+        return;
+    }
+    // Use createModalInput if available (modal flow), else newFolderInput (inline legacy - though removing legacy)
+    const textToUse = createModalInput || newFolderInput; 
+    if (!textToUse.trim()) {
+        // addDebugLog("Error: Folder name is empty", 'warn');
+        return;
+    }
+
     const folderObj = {
-      text: newFolderInput.trim(),
+      text: textToUse.trim(),
       emoji: null, // Removed emoji
       color: "var(--color-primary)",
       notes: "",
+      type, // 'folder' (container) or 'list' (holds tasks)
       order: Date.now(),
       parentId: parentId ?? null,
       createdAt: Date.now(),
     };
-    const foldersRef = databaseRef(db, `users/${userId}/folders`);
-    const newRef = push(foldersRef);
-    await set(newRef, folderObj);
-    setNewFolderInput("");
-    setCreatingUnder(null);
-    // Set as current folder to show in details panel
-    setCurrentFolderId(newRef.key);
+    
+    try {
+        const foldersRef = databaseRef(db, `users/${userId}/folders`);
+        const newRef = push(foldersRef);
+        await set(newRef, folderObj);
+        // addDebugLog(`Created folder: ${newRef.key}`, 'success');
+        
+        setNewFolderInput("");
+        setCreateModalInput(""); // Clear modal input
+        setCreatingUnder(null);
+        // Set as current folder to show in details panel
+        setCurrentFolderId(newRef.key);
+    } catch (err) {
+        console.error(err);
+        // addDebugLog(`Failed to create folder: ${err.message}`, 'error');
+        toast.error("Failed to create folder");
+    }
   };
 
-  const addSubfolderUI = (parentId) => {
+  const addSubfolderUI = (parentId, type = 'list') => {
     setCreatingUnder(parentId);
-    setNewFolderInput("");
-    setCurrentFolderId(parentId);
+    setCreationType(type);
+    setCreateModalInput("");
+    setShowCreateModal(true); // Open modal instead of inline
+    setIsAddingSubfolder(true); 
   };
 
   // recursive delete helper: collect all descendant folder ids (including self)
@@ -558,30 +691,79 @@ export default function TdlF() {
     });
   };
 
-  /* --- tasks CRUD --- */
   const addTask = async (e) => {
     e?.preventDefault();
-    if (!taskInput.trim() || !userId) return;
+    // addDebugLog(`addTask called. Input: "${taskInput}"`, 'info');
+    
+    if (!userId) {
+        // addDebugLog("Error: No userId found (not logged in?)", 'error');
+        return;
+    }
+    if (!taskInput.trim()) {
+        // addDebugLog("Error: Task input is empty", 'warn');
+        return;
+    }
 
     // Use current folder, or fallback to first available folder, or create a default "Inbox" if totally empty
     let targetFolderId = currentFolderId;
+    // addDebugLog(`Initial targetFolderId: ${targetFolderId}`, 'info');
+    
     if (!targetFolderId) {
        // If in a special view like "Today" or "Upcoming", we still need a physical folder to store the task.
        // Try to find an "Inbox" folder or use the first one.
        const inbox = foldersFlat.find(f => f.text === "Inbox");
-       if (inbox) targetFolderId = inbox.id;
-       else if (foldersFlat.length > 0) targetFolderId = foldersFlat[0].id;
+       if (inbox) {
+           targetFolderId = inbox.id;
+           // addDebugLog(`Using Inbox: ${targetFolderId}`, 'info');
+       }
+       else if (foldersFlat.length > 0) {
+           targetFolderId = foldersFlat[0].id;
+           // addDebugLog(`Using first available folder: ${targetFolderId}`, 'info');
+       }
        else {
-          // No folders at all, create one? For now just return or alert.
-          alert("Please create a folder first to store tasks!");
-          return;
+          // addDebugLog("No folders found. Attempting to auto-create 'General'...", 'warn');
+          // No folders at all? Auto-create "General" folder
+          try {
+             const foldersRef = databaseRef(db, `users/${userId}/folders`);
+             const newFolderRef = push(foldersRef);
+             const newFid = newFolderRef.key;
+             // addDebugLog(`Created new folder ID: ${newFid}`, 'success');
+             
+             await set(newFolderRef, {
+                 text: "General",
+                 color: "var(--color-primary)",
+                 emoji: "📁",
+                 notes: "Default folder for tasks",
+                 order: Date.now(),
+                 createdAt: Date.now(),
+                 parentId: null // root
+             });
+             
+             targetFolderId = newFid;
+             toast.success("Created 'General' folder for you!");
+          } catch (err) {
+             console.error("Error creating default folder:", err);
+             // addDebugLog(`Failed to create default folder: ${err.message}`, 'error');
+             toast.error("Failed to create default folder.");
+             return;
+          }
        }
     }
 
-    const newTaskRef = push(
-      databaseRef(db, `users/${userId}/folders/${targetFolderId}/tasks`)
-    );
-    const newId = newTaskRef.key;
+    // Determine folder color for the task
+    const targetFolder = foldersFlat.find(f => f.id === targetFolderId);
+    
+    // STRICT CHECK: Cannot add tasks to generic folders.
+    // If targetFolder exists and is NOT a list, deny.
+    if (targetFolder && targetFolder.type === 'folder' && activeView !== "today" && activeView !== "upcoming") {
+        toast.error("You cannot add tasks to a generic Folder. Please select or create a List.", {
+            duration: 4000,
+        });
+        // addDebugLog(`Blocked adding task to generic folder: ${targetFolderId}`, 'warn');
+        return;
+    }
+
+    const folderColor = targetFolder?.color || "var(--color-primary)";
 
     // Auto-set due date if in Today view
     let initialDueDate = "";
@@ -596,11 +778,25 @@ export default function TdlF() {
       description: "",
       color: folderColor,
       tags: [],
-      dueDate:
-        activeView === "today" ? new Date().toLocaleDateString("en-CA") : "",
+      dueDate: initialDueDate,
     };
-    await safePushTask(targetFolderId, taskObj);
-    setTaskInput("");
+    
+    // addDebugLog(`Pushing task to folder ${targetFolderId}`, 'info');
+    
+    try {
+        await safePushTask(targetFolderId, newTask);
+        // addDebugLog("Task pushed successfully!", 'success');
+        setTaskInput("");
+        
+        // If we are in folder view and didn't have a folder selected, select the one we used
+        if (activeView === "folder" && !currentFolderId) {
+            // addDebugLog(`Switching view to new folder: ${targetFolderId}`, 'info');
+            setCurrentFolderId(targetFolderId);
+        }
+    } catch (pushErr) {
+        // addDebugLog(`Error pushing task: ${pushErr.message}`, 'error');
+        toast.error("Failed to add task");
+    }
   };
 
   const updateTask = async (taskId, payload) => {
@@ -620,6 +816,8 @@ export default function TdlF() {
 
   const toggleTask = async (taskId, currentState, folderId = null) => {
     if (!userId) return;
+    
+    // OPTIMISTIC UPDATE
     if (activeView === "folder") {
       setTasks((prev) =>
         prev.map((t) =>
@@ -635,10 +833,28 @@ export default function TdlF() {
     }
     if (!fid) return;
 
-    await update(
-      databaseRef(db, `users/${userId}/folders/${fid}/tasks/${taskId}`),
-      { isActive: !currentState }
-    );
+    try {
+        await update(
+          databaseRef(db, `users/${userId}/folders/${fid}/tasks/${taskId}`),
+          { isActive: !currentState }
+        );
+
+        // Award XP if completing (isActive becoming true)
+        if (!currentState) {
+            addXP(5, "Task Completed");
+        }
+    } catch (err) {
+        console.error(err);
+        toast.error("Failed to update task status");
+        // ROLLBACK
+        if (activeView === "folder") {
+            setTasks((prev) =>
+              prev.map((t) =>
+                t.id === taskId ? { ...t, isActive: currentState } : t // revert to currentState
+              )
+            );
+        }
+    }
   };
 
   const deleteTask = async (taskId, e) => {
@@ -685,7 +901,7 @@ export default function TdlF() {
       const { folderId, data } = recentlyDeleted;
       await safePushTask(folderId, data);
     } else if (type === "folder-delete") {
-      alert(
+      toast.warning(
         "Recursive folder delete can't be fully restored automatically. Consider exporting data or re-creating."
       );
     } else if (type === "folder-move") {
@@ -703,35 +919,7 @@ export default function TdlF() {
     // ... (implementation depends on finding task, simplified for now)
   };
 
-  const quickAddTagFromRow = (taskId) => {
-    setActiveTagTaskId(taskId);
-    setTagInput("");
-    setShowTagModal(true);
-  };
 
-  const handleSaveTag = async (e) => {
-    e?.preventDefault();
-    if (!activeTagTaskId || !tagInput.trim()) return;
-
-    let task = tasks.find((t) => t.id === activeTagTaskId);
-    if (!task) {
-      for (const f of foldersFlat) {
-        if (f.tasks && f.tasks[activeTagTaskId]) {
-          task = { id: activeTagTaskId, ...f.tasks[activeTagTaskId] };
-          break;
-        }
-      }
-    }
-    if (task) {
-      const newTag = { label: tagInput.trim(), color: randomTagColor() };
-      const newTags = [...(task.tags || []), newTag];
-      await updateTask(activeTagTaskId, { tags: newTags });
-    }
-
-    setShowTagModal(false);
-    setTagInput("");
-    setActiveTagTaskId(null);
-  };
 
   /* --- task drag helpers --- (same as before) */
   const onDragStart = (e, idx) => {
@@ -810,17 +998,7 @@ export default function TdlF() {
     return filtered;
   }, [tasks, foldersFlat, activeView, searchQuery, tagFilter]);
 
-  const availableTags = React.useMemo(() => {
-    const all = new Set();
-    foldersFlat.forEach((f) => {
-      if (f.tasks) {
-        Object.values(f.tasks).forEach((t) => {
-          if (t.tags) t.tags.forEach((tg) => all.add(tg.label));
-        });
-      }
-    });
-    return Array.from(all);
-  }, [foldersFlat]);
+
 
   const total = tasks.length;
   const completed = tasks.filter((t) => t.isActive).length;
@@ -903,8 +1081,22 @@ export default function TdlF() {
       setTagsList(copy);
     };
 
+    const [subjects, setSubjects] = useState([]);
+    
+    // Fetch Subjects for linking
+    useEffect(() => {
+        if (!userId) return;
+        const gradesRef = databaseRef(db, `users/${userId}/grades`);
+        onValue(gradesRef, (snap) => {
+            const data = snap.val();
+            if (data) {
+                setSubjects(Object.values(data));
+            }
+        });
+    }, [userId]);
+
     return (
-      <div className="panel-inner">
+      <div className="panel-inner detailWrap">
         <div className="detail-header">
           <h3>Task Details</h3>
           <div className="actions">
@@ -933,10 +1125,43 @@ export default function TdlF() {
           <div className="field-group">
             <label>Task Name</label>
             <input
+              name="taskName"
+              id="taskName"
               value={title}
+              aria-label="Task name"
               onChange={(e) => setTitle(e.target.value)}
               onBlur={save}
             />
+          </div>
+
+          <div className="field-group">
+            <label>Link Subject</label>
+            <select
+                style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid var(--glass-border)',
+                    color: 'var(--color-text)'
+                }}
+                onChange={(e) => {
+                    const subName = e.target.value;
+                    if (!subName) return;
+                    if (!tagsList.some(t => t.label === subName)) {
+                        setTagsList([...tagsList, { label: subName, color: '#ffd700' }]);
+                    }
+                }}
+                value=""
+            >
+                <option value="" disabled>Select a subject to tag...</option>
+                {subjects.map((s, i) => (
+                    <option key={i} value={s.name}>{s.name}</option>
+                ))}
+            </select>
+            <p style={{fontSize: '0.8rem', color: 'var(--color-muted)', marginTop: '4px'}}>
+                Selecting a subject adds a special tag that links this task to your Grades Hub.
+            </p>
           </div>
 
           <div className="field-group">
@@ -1007,7 +1232,10 @@ export default function TdlF() {
               </div>
               <div className="tag-input-row">
                 <input
+                  name="newTagInput"
+                  id="newTagInput"
                   value={tagDraft}
+                  aria-label="New tag name"
                   onChange={(e) => setTagDraft(e.target.value)}
                   placeholder="New tag..."
                   onKeyDown={(e) => e.key === "Enter" && addTag()}
@@ -1020,6 +1248,9 @@ export default function TdlF() {
           <div className="field-group">
             <label>Description</label>
             <textarea
+              name="taskDescription"
+              id="taskDescription"
+              aria-label="Task description"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               placeholder="Add details / notes..."
@@ -1031,6 +1262,9 @@ export default function TdlF() {
             <label>Due Date</label>
             <input
               type="date"
+              name="taskDueDate"
+              id="taskDueDate"
+              aria-label="Task due date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               onBlur={save}
@@ -1076,24 +1310,17 @@ export default function TdlF() {
            </button>
         </div>
 
-        <div className="folderNameInline">
-          <div
-            className="folderIconPreview"
-            style={{ background: fColor }}
-          >
-            {folder.emoji || "📁"}
-          </div>
-          <div className="folderNameText">{fName}</div>
-        </div>
-
         <div className="detail-body">
           <div className="field-group">
             <label>Folder Name</label>
-            <input
-               value={fName} 
-               onChange={(e) => setFName(e.target.value)} 
-               onBlur={saveFolder}
-            />
+             <input
+                name="folderName"
+                id="folderName"
+                value={fName} 
+                aria-label="Folder name"
+                onChange={(e) => setFName(e.target.value)} 
+                onBlur={saveFolder}
+             />
           </div>
           <div className="field-group">
             <label>Color</label>
@@ -1129,6 +1356,9 @@ export default function TdlF() {
           <div className="field-group">
             <label>Notes</label>
             <textarea
+              name="folderNotes"
+              id="folderNotes"
+              aria-label="Folder notes"
               value={fNotes}
               onChange={(e) => setFNotes(e.target.value)}
               onBlur={saveFolder}
@@ -1151,6 +1381,48 @@ export default function TdlF() {
       </div>
     );
   }
+
+  /* --- Drag & Drop Handlers for Folders --- */
+  const onFolderDragStart = (e, folder) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(folder));
+  };
+
+  const onFolderDragOver = (e, folder) => {
+    e.preventDefault();
+    setDragOverFolderId(folder.id);
+  };
+
+  const onFolderDrop = async (e, targetFolder) => {
+    e.preventDefault();
+    setDragOverFolderId(null);
+    const data = e.dataTransfer.getData("application/json");
+    if (!data) return;
+    
+    let draggedFolder;
+    try {
+        draggedFolder = JSON.parse(data);
+    } catch (err) { return; }
+
+    if (draggedFolder.id === targetFolder.id) return;
+
+    // Prevent circular parent reference if moving parent into child
+    const descendants = collectDescendants(draggedFolder.id, foldersFlat);
+    if (descendants.includes(targetFolder.id)) {
+      toast.error("Cannot move a folder into its own subfolder.");
+      return;
+    }
+
+    setRecentlyDeleted({
+      type: "folder-move",
+      id: draggedFolder.id,
+      previousParent: draggedFolder.parentId,
+    });
+
+    // Update parentId in firebase
+    await update(databaseRef(db, `users/${userId}/folders/${draggedFolder.id}`), {
+      parentId: targetFolder.id
+    });
+  };
 
   /* --- ghost drag image --- */
   return (
@@ -1196,32 +1468,18 @@ export default function TdlF() {
 
       {/* --- SIDEBAR --- */}
       <AnimatePresence>
-        {(sidebarOpen || !isMobile || isLargeScreen) && (
+        {/* Mobile: Show sidebar if NO folder selected. Desktop: Show if sidebarOpen exists/true. */}
+        {((isLargeScreen && sidebarOpen) || (!isLargeScreen && !currentFolderId)) && (
           <motion.div
-            className={`sidebar ${isMobile && !isLargeScreen ? "drawer" : ""}`}
-            style={isLargeScreen ? { width: sidebarWidth } : {}}
-            initial={isMobile && !isLargeScreen ? { x: -300 } : false}
+            className={`sidebar ${!isLargeScreen ? "mobile-stack" : ""}`}
+            style={isLargeScreen ? { width: sidebarWidth } : { width: "100%" }}
+            initial={!isLargeScreen ? { x: -20 } : false}
             animate={{ x: 0 }}
-            exit={{ x: -300 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            exit={{ x: -20 }}
+            transition={{ duration: 0.2 }}
           >
-            {isMobile && !isLargeScreen && (
-              <div
-                className="drawer-backdrop"
-                onClick={() => setSidebarOpen(false)}
-              />
-            )}
-
             <div className="sidebar-header">
-              <h2>My Lists</h2>
-              {isMobile && !isLargeScreen && (
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  style={{ background: "none", border: "none", color: "white" }}
-                >
-                  <ArrowLeft size={18} />
-                </button>
-              )}
+              <h3>Lists</h3>
             </div>
 
             <div className="sidebar-content">
@@ -1252,125 +1510,61 @@ export default function TdlF() {
                 </ul>
               </div>
 
-              {/* Folders Tree */}
-              <div className="sidebar-section" style={{ flex: 1 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  <div className="section-title">FOLDERS</div>
-                  <button
-                    onClick={() => addSubfolderUI(null)}
-                    title="New Root Folder"
-                    style={{
-                      background: "rgba(255,255,255,0.1)",
-                      padding: "2px 6px",
-                      borderRadius: "4px",
-                    }}
-                  >
-                    +
-                  </button>
+              <div className="sidebar-section" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '0 8px 8px 8px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-muted)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                     <span>MY COLLECTIONS</span>
+                     <div style={{ display: 'flex', gap: '4px' }}>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); addSubfolderUI(null, 'folder'); }} 
+                            title="New Folder"
+                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: '2px' }}
+                        >
+                            <FolderPlus size={14} />
+                        </button>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); addSubfolderUI(null, 'list'); }} 
+                            title="New List"
+                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', padding: '2px' }}
+                        >
+                            <FilePlus size={14} />
+                        </button>
+                     </div>
                 </div>
-
-                {isAddingSubfolder && creatingUnder === null && (
-                  <div className="subfolderInline">
-                    <input
-                      value={newFolderInput}
-                      autoFocus
-                      placeholder="New Folder..."
-                      onChange={(e) => setNewFolderInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") createFolderUnder(null);
-                        else if (e.key === "Escape") setCreatingUnder(null);
-                      }}
-                    />
-                    <button onClick={() => createFolderUnder(null)}>Add</button>
-                    <button onClick={() => setCreatingUnder(null)}>X</button>
-                  </div>
-                )}
-
-                <ul className="folder-tree">
-                  {rootFolders.map((f) => (
-                    <FolderNode
-                      key={f.id}
-                      folder={f}
-                      childrenMap={childrenMap}
-                      currentFolderId={currentFolderId}
-                      setCurrentFolderId={setCurrentFolderId}
-                      addSubfolderUI={addSubfolderUI}
-                      creatingUnder={creatingUnder}
-                      setCreatingUnder={setCreatingUnder}
-                      newFolderInput={newFolderInput}
-                      setNewFolderInput={setNewFolderInput}
-                      createFolderUnder={createFolderUnder}
-                      deleteFolder={deleteFolder}
-                      setShowFolderDetailMobile={setShowFolderDetailMobile}
-                      isMobile={isMobile}
-                      // Folder DND logic
-                      onFolderDragStart={(e, folder) => {
-                        e.dataTransfer.setData("application/json", JSON.stringify(folder));
-                      }}
-                      onFolderDragOver={(e, folder) => {
-                         e.preventDefault();
-                         setDragOverFolderId(folder.id);
-                      }}
-                      onFolderDrop={async (e, targetFolder) => {
-                         e.preventDefault();
-                         setDragOverFolderId(null);
-                         const data = e.dataTransfer.getData("application/json");
-                         if (!data) return;
-                         const draggedFolder = JSON.parse(data);
-                         if (draggedFolder.id === targetFolder.id) return;
-                         
-                         // Prevent circular parent reference if moving parent into child
-                         const descendants = collectDescendants(draggedFolder.id, foldersFlat);
-                         if (descendants.includes(targetFolder.id)) {
-                           alert("Cannot move a folder into its own subfolder.");
-                           return;
-                         }
-
-                         setRecentlyDeleted({
-                           type: "folder-move",
-                           id: draggedFolder.id,
-                           previousParent: draggedFolder.parentId,
-                         });
-                         
-                         // Update parentId in firebase
-                         await update(databaseRef(db, `users/${userId}/folders/${draggedFolder.id}`), {
-                            parentId: targetFolder.id
-                         });
-                      }}
-                      dragOverFolderId={dragOverFolderId}
-                    />
-                  ))}
-                  {rootFolders.length === 0 && (
-                    <li
-                      style={{
-                        padding: "1rem",
-                        color: "var(--color-muted)",
-                        fontStyle: "italic",
-                        fontSize: "0.85rem",
-                        textAlign: "center",
-                      }}
-                    >
-                      No folders yet.
-                    </li>
-                  )}
-                </ul>
+                
+                <div className="file-list" style={{flex:1, overflowY:'auto'}}>
+                    {rootFolders.map((f) => (
+                      <TodoTreeItem
+                        key={f.id}
+                        folder={f}
+                        childrenMap={childrenMap}
+                        currentFolderId={currentFolderId}
+                        setCurrentFolderId={setCurrentFolderId}
+                        addSubfolderUI={addSubfolderUI}
+                        creatingUnder={creatingUnder}
+                        setCreatingUnder={setCreatingUnder}
+                        newFolderInput={newFolderInput}
+                        setNewFolderInput={setNewFolderInput}
+                        createFolderUnder={createFolderUnder}
+                        deleteFolder={deleteFolder}
+                        onFolderDragStart={onFolderDragStart}
+                        onFolderDragOver={onFolderDragOver}
+                        onFolderDrop={onFolderDrop}
+                        dragOverFolderId={dragOverFolderId}
+                        creationType={creationType}
+                        setCreationType={setCreationType}
+                        setActiveView={setActiveView}
+                        expandedFolders={expandedFolders}
+                        toggleFolder={toggleFolder}
+                      />
+                    ))}
+                    
+                    {/* Inline creation for Root REMOVED - using Modal */}{" "}
+                </div>
               </div>
             </div>
 
             <div className="sidebar-footer">
-              <button 
-                 onClick={requestNotificationPermission}
-                 style={{ display: "flex", gap: "0.5rem", alignItems: "center"}}
-              >
-                 <span>🔔</span> Enable Notifications
-              </button>
+              {/* Notifications removed per request */}{" "}
               {recentlyDeleted && (
                 <button
                   onClick={undoDelete}
@@ -1396,19 +1590,44 @@ export default function TdlF() {
       )}
 
       {/* --- MAIN AREA --- */}
-      <div className="main-content">
+      <div 
+        className="main-content" 
+        style={{ 
+            position: 'relative', 
+            display: (!isLargeScreen && !currentFolderId) ? 'none' : 'flex',
+            width: (!isLargeScreen) ? '100%' : 'auto'
+        }}
+      >
+         {/* DEBUG CONSOLE OVERLAY */}
+
         <header>
           <h1>
+            {!isLargeScreen && (
+                <button 
+                    onClick={() => setCurrentFolderId(null)}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-text)',
+                        marginRight: '8px',
+                        display: 'flex', alignItems: 'center'
+                    }}
+                >
+                    <ArrowLeft size={20} />
+                </button>
+            )}
             {activeView === "folder"
-              ? foldersFlat.find((f) => f.id === currentFolderId)?.text ||
-                "Select a Folder"
+              ? (foldersFlat.find((f) => f.id === currentFolderId)?.type === "list" ? foldersFlat.find((f) => f.id === currentFolderId)?.text || "Loading..." : null)
               : activeView.charAt(0).toUpperCase() + activeView.slice(1)}
           </h1>
           <div style={{ display: "flex", gap: "1rem" }}>
             {/* Tag Filter Dropdown */}
             {availableTags.length > 0 && (
-              <select
-                value={tagFilter || ""}
+                <select
+                  name="tagFilter"
+                  id="tagFilter"
+                  aria-label="Filter by tag"
+                  value={tagFilter || ""}
                 onChange={(e) => setTagFilter(e.target.value || null)}
                 style={{
                   background: "rgba(255,255,255,0.1)",
@@ -1433,12 +1652,17 @@ export default function TdlF() {
         {/* New Task Input (Top) */}
         <div className="tasks-area">
           <div className="task-input-wrapper">
-            <input
-              value={taskInput}
-              onChange={(e) => setTaskInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addTask(e)}
-              placeholder="Add a new task..."
-            />
+            {activeView === "folder" && foldersFlat.find(f => f.id === currentFolderId)?.type === "list" && (
+                <input
+                  name="newTaskInput"
+                  id="newTaskInput"
+                  aria-label="New task input"
+                  value={taskInput}
+                  onChange={(e) => setTaskInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addTask(e)}
+                  placeholder="Add a new task..."
+                />
+            )}
           </div>
 
           <div
@@ -1658,6 +1882,38 @@ export default function TdlF() {
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               placeholder="e.g. Important, School, Work"
+              autoFocus
+            />
+          </div>
+        </form>
+      </Modal>
+
+      {/* Create List/Folder Modal */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title={`New ${creationType === 'list' ? 'List' : 'Folder'}`}
+        footer={(
+          <>
+            <button className="btn-secondary" onClick={() => setShowCreateModal(false)}>Cancel</button>
+            <button className="btn-primary" onClick={() => {
+                createFolderUnder(creatingUnder, creationType);
+                setShowCreateModal(false);
+            }}>Create</button>
+          </>
+        )}
+      >
+        <form onSubmit={(e) => {
+            e.preventDefault();
+            createFolderUnder(creatingUnder, creationType);
+            setShowCreateModal(false);
+        }}>
+          <div className="form-group">
+            <label>Name</label>
+            <input
+              value={createModalInput}
+              onChange={(e) => setCreateModalInput(e.target.value)}
+              placeholder={`Enter ${creationType} name...`}
               autoFocus
             />
           </div>

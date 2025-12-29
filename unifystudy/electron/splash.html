@@ -2,64 +2,70 @@
 <html>
 <head>
   <link rel="stylesheet" href="splash.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <div class="terminal">
-      <div class="header">
-        <span class="dot red"></span>
-        <span class="dot yellow"></span>
-        <span class="dot green"></span>
-        <span class="title">UNIFY_BOOT_SEQUENCE</span>
+  <div class="splash-container">
+    <div class="logo-area">
+      <div class="logo-circle">
+        &gt;_
       </div>
-      <div class="content">
-        <div id="output"></div>
-        <div class="input-line">
-          <span class="prompt">></span><span class="cursor">_</span>
-        </div>
+      <h1 class="app-name">UnifyStudy</h1>
+    </div>
+    
+    <div class="loader-area">
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progress"></div>
       </div>
+      <div class="status-text" id="status">Initializing...</div>
     </div>
   </div>
+
   <script>
-    const output = document.getElementById('output');
-    const lines = [
-      "Initializing UnifyStudy Core v1.0.0...",
-      "Loading kernel modules...",
-      "[OK] Neural network interface connected",
-      "[OK] Quantum study algorithms optimized",
-      "Decrypting user data...",
-      "Establishing secure connection to server...",
-      "Syncing with cloud database...",
-      "Compiling UI components...",
-      "System ready."
-    ];
+    const statusEl = document.getElementById('status');
+    const barEl = document.getElementById('progress');
     
-    let i = 0;
-    function typeLine() {
-      if (i < lines.length) {
-        const line = document.createElement('div');
-        line.className = 'line';
-        
-        // Add color to specific parts
-        let text = lines[i];
-        if (text.includes("[OK]")) {
-          line.innerHTML = text.replace("[OK]", "<span class='success'>[OK]</span>");
-        } else {
-          line.textContent = `> ${text}`;
-        }
-        
-        output.appendChild(line);
-        
-        // Auto scroll
-        window.scrollTo(0, document.body.scrollHeight);
-        
-        i++;
-        // Random typing speed
-        setTimeout(typeLine, Math.random() * 200 + 100);
+    // Simulate loading steps detailed
+    const steps = [
+      { msg: "Connecting to secure server...", time: 200 },
+      { msg: "Verifying user credentials...", time: 800 },
+      { msg: "Syncing study materials...", time: 1500 },
+      { msg: "Loading interface...", time: 2400 },
+      { msg: "Ready", time: 3200 }
+    ];
+
+    let startTime = Date.now();
+    
+    function update() {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / 3500) * 100, 100);
+      
+      barEl.style.width = `${progress}%`;
+      
+      // Find current step message
+      // Reverse find to get the latest passed step
+      const currentStep = [...steps].reverse().find(s => elapsed >= s.time);
+      if(currentStep) {
+        statusEl.textContent = currentStep.msg;
+      }
+      
+      if (typeof require !== 'undefined') {
+          // Listen for real auto-updater events if available
+          const { ipcRenderer } = require('electron');
+          ipcRenderer.on('download-progress', (event, percent) => {
+               // Override simulation with real download progress if updating
+               barEl.style.width = `${percent}%`;
+               statusEl.textContent = `Downloading update: ${Math.round(percent)}%`;
+          });
+      }
+
+      if (elapsed < 4000) {
+        requestAnimationFrame(update);
       }
     }
     
-    setTimeout(typeLine, 500);
+    requestAnimationFrame(update);
   </script>
 </body>
 </html>

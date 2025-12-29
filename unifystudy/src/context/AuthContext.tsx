@@ -17,9 +17,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser as unknown as User);
       setLoading(false);
+
+      // Sync to public_leaderboard
+      if (currentUser) {
+          try {
+              const { uid, displayName, email, photoURL } = currentUser;
+              // We only update if necessary, but for now a simple update on load is safe enough
+              // and ensures robustness.
+              const { ref, update } = await import("firebase/database");
+              const { db } = await import("@/services/firebaseConfig");
+              
+              const userRef = ref(db, `public_leaderboard/${uid}`);
+              await update(userRef, {
+                  username: displayName || email?.split('@')[0] || 'User',
+                  displayName,
+                  photoURL,
+                  email // Optional: might be sensitive, but required for search by email. 
+                        // If privacy is key, remove email and search by username only. 
+                        // User requested finding "WhyNot", implies username search.
+              });
+          } catch (e) {
+              console.error("Failed to sync to public_leaderboard", e);
+          }
+      }
     });
     return () => unsubscribe();
   }, []);

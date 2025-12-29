@@ -43,7 +43,7 @@ function ParticleCanvas({ enabled = true }) {
     let raf = null;
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
-      for (let p of parts) {
+      for (const p of parts) {
         ctx.beginPath();
         ctx.fillStyle = `rgba(143,210,255,${p.a})`; // Keeping rgba for alpha, but could map to variable if needed
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
@@ -70,7 +70,7 @@ function ParticleCanvas({ enabled = true }) {
     };
 
     const step = () => {
-      for (let p of parts) {
+      for (const p of parts) {
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < -10) p.x = width + 10;

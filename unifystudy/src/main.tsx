@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './styles/_shared.scss'; // Global styles (Modals, etc.)
 import './sentry'; // Initialize Sentry
 import App from './App'
 

@@ -43,7 +43,7 @@ const DailyStandup = ({ user, onClose }) => {
     localStorage.setItem(`standup_${user.uid}`, today);
     
     // Here you would typically save these goals to the user's todo list or a specific "Daily Goals" collection
-    console.log("Goals for today:", goals.filter(g => g.trim()));
+
     
     setCompleted(true);
     setTimeout(() => {
