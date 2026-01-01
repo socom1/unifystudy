@@ -19,15 +19,8 @@ import { auth, db, storage } from "@/services/firebaseConfig";
 import {
   updateProfile as fbUpdateProfile,
   sendEmailVerification,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updatePassword as fbUpdatePassword,
-  deleteUser as fbDeleteUser,
   signOut as fbSignOut,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  PhoneAuthProvider,
-  linkWithCredential,
+
 } from "firebase/auth";
 import { ref as dbRef, update as dbUpdate, onValue } from "firebase/database";
 import {
@@ -38,9 +31,8 @@ import {
 
 import "./profile.scss"; // companion SCSS (below)
 import { THEMES } from "@/constants/themes";
-import { ShoppingBag, Calendar as CalendarIcon, Loader2, Crown, Zap } from "lucide-react";
+import { ShoppingBag, Calendar as CalendarIcon, Loader2, Crown, Zap, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { connectGoogleCalendar, fetchUpcomingEvents } from "@/services/googleCalendar";
 import PricingModal from "../settings/PricingModal";
 
 export default function ProfilePage() {
@@ -54,42 +46,16 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [emailVerified, setEmailVerified] = useState(
-    user?.emailVerified || false
-  );
-  // Phone Auth State
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [verificationId, setVerificationId] = useState(null);
-  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
-  const [phoneError, setPhoneError] = useState("");
-
-  // Security state
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [reauthRequired, setReauthRequired] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  // Anonymous mode state
-  const [anonymousMode, setAnonymousMode] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(user?.emailVerified || false);
+  const [showPricing, setShowPricing] = useState(false);
 
   // Customization state
-  const [ownedTags, setOwnedTags] = useState([]);
-  const [ownedBanners, setOwnedBanners] = useState([]);
-  const [ownedThemes, setOwnedThemes] = useState(["default"]);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [ownedTags, setOwnedTags] = useState<string[]>([]);
+  const [ownedThemes, setOwnedThemes] = useState<string[]>(["default"]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedBanner, setSelectedBanner] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("default");
   const [avatarColor, setAvatarColor] = useState("#1f6feb");
-  
-  // Additional Emails State
-  const [additionalEmails, setAdditionalEmails] = useState([]);
-  const [newEmailInput, setNewEmailInput] = useState("");
-  const [isAddingEmail, setIsAddingEmail] = useState(false);
-
-  
-  // Google Sync State
-  const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
-  const [showPricing, setShowPricing] = useState(false);
 
   const presetBanners = [
     {
@@ -114,55 +80,7 @@ export default function ProfilePage() {
     },
   ];
 
-  // Fetch settings including anonymous mode
-  useEffect(() => {
-    if (uid) {
-      const settingsRef = dbRef(db, `users/${uid}/settings`);
-      const unsub = onValue(settingsRef, (snapshot) => {
-        const val = snapshot.val() || {};
-        setNotificationsEnabled(val.notifications !== false);
-        setAnonymousMode(val.anonymousMode === true);
-        // Also fetch theme if it's stored here, though we fetch it in customization below too.
-        // Let's rely on the customization listener for theme to be safe.
-      });
-      return () => unsub();
-    }
-  }, [uid]);
 
-  const toggleNotifications = async () => {
-    if (!uid) return;
-    const newValue = !notificationsEnabled;
-    setNotificationsEnabled(newValue); // Optimistic update
-    try {
-      await dbUpdate(dbRef(db, `users/${uid}/settings`), {
-        notifications: newValue,
-      });
-      setTempStatus(`Notifications ${newValue ? "enabled" : "disabled"}`);
-    } catch (err) {
-      console.error(err);
-      setNotificationsEnabled(!newValue); // Revert
-      setErrorMsg("Failed to update settings");
-    }
-  };
-
-  const toggleAnonymousMode = async () => {
-    if (!uid) return;
-    const newValue = !anonymousMode;
-    setAnonymousMode(newValue);
-    try {
-      await dbUpdate(dbRef(db, `users/${uid}/settings`), {
-        anonymousMode: newValue,
-      });
-      // Replicate to Public Leaderboard
-      await dbUpdate(dbRef(db, `public_leaderboard/${uid}/settings`), {
-        anonymousMode: newValue,
-      });
-      setTempStatus(`Anonymous mode ${newValue ? "enabled" : "disabled"}`);
-    } catch (err) {
-      setAnonymousMode(!newValue);
-      setErrorMsg("Failed to update settings");
-    }
-  };
 
   // Fetch owned items and current customization
   useEffect(() => {
@@ -189,18 +107,11 @@ export default function ProfilePage() {
       setSelectedTheme(data?.theme || "default");
       setAvatarColor(data?.avatarColor || "#1f6feb");
     });
-    
-    // Fetch additional emails
-    const emailsRef = dbRef(db, `users/${uid}/settings/additionalEmails`);
-    const unsubEmails = onValue(emailsRef, (snap) => {
-        setAdditionalEmails(snap.val() || []);
-    });
 
     return () => {
       unsubTags();
       unsubThemes();
       unsubCustom();
-      unsubEmails();
     };
   }, [uid]);
 
@@ -240,21 +151,22 @@ export default function ProfilePage() {
     setLoading(true);
     try {
       const updateObj = {};
-      if (displayName !== user?.displayName)
-        updateObj.displayName = displayName;
-      if (photoURL && photoURL !== user?.photoURL)
-        updateObj.photoURL = photoURL;
+      // @ts-ignore
+      if (displayName !== user?.displayName) updateObj.displayName = displayName;
+      // @ts-ignore
+      if (photoURL && photoURL !== user?.photoURL) updateObj.photoURL = photoURL;
 
       if (Object.keys(updateObj).length > 0) {
+        // @ts-ignore
         await fbUpdateProfile(auth.currentUser, updateObj);
       }
-      // Optionally mirror to Realtime DB (if you keep a users node)
+      // Optionally mirror to Realtime DB 
       if (uid) {
         await dbUpdate(dbRef(db, `users/${uid}`), {
           displayName: displayName || null,
           photoURL: photoURL || null,
         });
-        
+
         // Replicate to Public Leaderboard
         await dbUpdate(dbRef(db, `public_leaderboard/${uid}`), {
           displayName: displayName || null,
@@ -262,7 +174,7 @@ export default function ProfilePage() {
         });
       }
       setTempStatus("Profile saved");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setErrorMsg(err?.message || "Save failed");
     } finally {
@@ -278,7 +190,7 @@ export default function ProfilePage() {
       if (!auth.currentUser) throw new Error("No authenticated user");
       await sendEmailVerification(auth.currentUser);
       setTempStatus("Verification email sent — check your inbox");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setErrorMsg(err?.message || "Failed to send verification");
     } finally {
@@ -286,43 +198,9 @@ export default function ProfilePage() {
     }
   };
 
-  // Change password (requires reauth sometimes)
-  const handleChangePassword = async () => {
-    setErrorMsg("");
-    setLoading(true);
-    try {
-      if (!auth.currentUser || !auth.currentUser.email)
-        throw new Error("No authenticated user");
-      // try updatePassword directly (may require recent login)
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        currentPassword
-      );
-      try {
-        // reauthenticate and then update
-        await reauthenticateWithCredential(auth.currentUser, credential);
-      } catch (reauthError) {
-        // If reauth fails, mark required
-        setReauthRequired(true);
-        throw new Error(
-          "Reauthentication failed — please confirm your current password"
-        );
-      }
-      // now update
-      await fbUpdatePassword(auth.currentUser, newPassword);
-      setCurrentPassword("");
-      setNewPassword("");
-      setTempStatus("Password changed");
-    } catch (err) {
-      console.error(err);
-      setErrorMsg(err?.message || "Password change failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Avatar upload handler
-  const handleAvatarPick = async (file) => {
+
+  const handleAvatarPick = async (file: any) => {
     setErrorMsg("");
     setLoading(true);
     try {
@@ -351,6 +229,7 @@ export default function ProfilePage() {
             const url = await getDownloadURL(uploadTask.snapshot.ref);
             setPhotoURL(url);
             // reflect back to user profile
+            // @ts-ignore
             await fbUpdateProfile(auth.currentUser, { photoURL: url });
             // mirror to DB
             if (uid) {
@@ -366,50 +245,15 @@ export default function ProfilePage() {
         // If no storage configured, use local preview and require manual hosting
         const reader = new FileReader();
         reader.onload = () => {
-          setPhotoURL(reader.result);
+          setPhotoURL(reader.result as string);
           setTempStatus("Avatar set (local preview)");
           setLoading(false);
         };
         reader.readAsDataURL(file);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setErrorMsg(err?.message || "Avatar upload error");
-      setLoading(false);
-    }
-  };
-
-  // Delete account (reauth required)
-  const handleDeleteAccount = async () => {
-    setErrorMsg("");
-    setLoading(true);
-    try {
-      // require current password to reauthenticate
-      if (!auth.currentUser || !auth.currentUser.email)
-        throw new Error("No user");
-      const pw = prompt(
-        "To delete your account, please enter your current password:"
-      );
-      if (!pw) throw new Error("Password required for deletion");
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        pw
-      );
-      await reauthenticateWithCredential(auth.currentUser, credential);
-      // optional: remove user data in database before deletion
-      if (uid) {
-        try {
-          await dbUpdate(dbRef(db, `users/${uid}`), { deleted: true });
-        } catch (dbErr) {
-          console.warn("Failed to mark DB deleted:", dbErr);
-        }
-      }
-      await fbDeleteUser(auth.currentUser);
-      setTempStatus("Account deleted");
-    } catch (err) {
-      console.error(err);
-      setErrorMsg(err?.message || "Delete failed");
-    } finally {
       setLoading(false);
     }
   };
@@ -447,166 +291,9 @@ export default function ProfilePage() {
     }
   };
 
-  // Phone Auth Functions
-  const setupRecaptcha = () => {
-    // Clear any existing verifier to prevent "reCAPTCHA has already been rendered in this element"
-    if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-      window.recaptchaVerifier = null;
-    }
-
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      auth,
-      "recaptcha-container",
-      {
-        size: "invisible", // or 'normal'
-        callback: () => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-        },
-        "expired-callback": () => {
-             // Response expired. Ask user to solve reCAPTCHA again.
-             // window.recaptchaVerifier.reset();
-        }
-      }
-    );
-  };
-  
-  // Cleanup reCAPTCHA on unmount
-  useEffect(() => {
-      return () => {
-          if (window.recaptchaVerifier) {
-              window.recaptchaVerifier.clear();
-              window.recaptchaVerifier = null;
-          }
-      }
-  }, []);
-
-  const handleSendPhoneCode = async () => {
-    setPhoneError("");
-    if (!phoneNumber) {
-      setPhoneError("Please enter a valid phone number");
-      return;
-    }
-    setLoading(true);
-    try {
-      setupRecaptcha();
-      const appVerifier = window.recaptchaVerifier;
-      // Link with phone number
-      // Note: If you just want to sign in, use signInWithPhoneNumber.
-      // To LINK to existing user, we need to get a credential first.
-      // However, linkWithPhoneNumber is not directly available in v9 modular SDK in the same way?
-      // Actually, we use linkWithCredential. So we start a phone auth flow, get the credential, then link.
-      // But first step is sending the code.
-      // We can use linkWithPhoneNumber if available, or signInWithPhoneNumber then get credential.
-      // Let's use linkWithPhoneNumber if it exists, otherwise we simulate it.
-      // Actually, in v9, it is linkWithPhoneNumber(user, phoneNumber, appVerifier).
-      // Let's check imports. I imported linkWithCredential. I should check if linkWithPhoneNumber is available.
-      // If not, we use signInWithPhoneNumber to get confirmationResult, then ask for code.
-
-      // Wait, standard flow:
-      // 1. signInWithPhoneNumber(auth, phoneNumber, appVerifier) -> returns confirmationResult
-      // 2. confirmationResult.confirm(code) -> returns UserCredential
-      // 3. If we are already logged in, we might want to link.
-      // Let's try to just verify the phone number first.
-
-      const confirmationResult = await signInWithPhoneNumber(
-        auth,
-        phoneNumber,
-        appVerifier
-      );
-      window.confirmationResult = confirmationResult;
-      setVerificationId(confirmationResult.verificationId);
-      setIsVerifyingPhone(true);
-      setTempStatus("Code sent!");
-    } catch (err) {
-      console.error(err);
-      setPhoneError(err.message || "Failed to send code");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyPhoneCode = async () => {
-    setPhoneError("");
-    setLoading(true);
-    try {
-      if (!window.confirmationResult)
-        throw new Error("No verification session");
-      const result = await window.confirmationResult.confirm(verificationCode);
-      // result.user is the user. If we were already logged in, this might sign us in as the phone user?
-      // If we want to LINK, we should have used linkWithPhoneNumber.
-      // But let's assume for now we just want to verify they own the phone.
-      // If the user is different, we might have issues.
-      // Ideally:
-      // const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
-      // await linkWithCredential(auth.currentUser, credential);
-
-      // Let's try to link properly:
-      const credential = PhoneAuthProvider.credential(
-        window.confirmationResult.verificationId,
-        verificationCode
-      );
-      await linkWithCredential(auth.currentUser, credential);
-
-      setTempStatus("Phone verified & linked!");
-      setIsVerifyingPhone(false);
-      setVerificationCode("");
-    } catch (err) {
-      console.error(err);
-      setPhoneError(err.message || "Invalid code");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddEmail = async () => {
-      if(!newEmailInput.trim() || !newEmailInput.includes('@')) return;
-      setIsAddingEmail(true);
-      try {
-          const updated = [...additionalEmails, newEmailInput.trim()];
-          await dbUpdate(dbRef(db, `users/${uid}/settings`), {
-              additionalEmails: updated
-          });
-          setNewEmailInput("");
-          setTempStatus("Email added successfully");
-      } catch(err) {
-          setErrorMsg("Failed to add email");
-      } finally {
-          setIsAddingEmail(false);
-      }
-  };
-
-  const handleRemoveEmail = async (emailToRemove) => {
-      try {
-          const updated = additionalEmails.filter(e => e !== emailToRemove);
-           await dbUpdate(dbRef(db, `users/${uid}/settings`), {
-              additionalEmails: updated
-          });
-          setTempStatus("Email removed");
-      } catch(err) {
-           setErrorMsg("Failed to remove email");
-      }
-  };
-
-  const handleSyncGoogle = async () => {
-    try {
-      setIsSyncingCalendar(true);
-      const token = await connectGoogleCalendar();
-      await fetchUpcomingEvents(token);
-      // Note: In a real app we might want to refetch the events in the calendar component, 
-      // but since they share the same Firebase path, it should auto-update live.
-      toast.success("Synced with Google Calendar!");
-    } catch (err) {
-      toast.error("Failed to sync Google Calendar");
-      console.error(err);
-    } finally {
-      setIsSyncingCalendar(false);
-    }
-  };
-
   // small helper to programmatically open file picker
-  const openFilePicker = () =>
-    fileInputRef.current && fileInputRef.current.click();
+  // @ts-ignore
+  const openFilePicker = () => fileInputRef.current && fileInputRef.current.click();
 
   return (
     <div className="profile-root">
@@ -764,53 +451,23 @@ export default function ProfilePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled
-
               />
-              
-              <label className="field-label">Additional Emails</label>
-               <div style={{marginBottom: '1rem'}}>
-                  {additionalEmails.map((email) => (
-                      <div key={email} style={{display:'flex', justifyContent:'space-between', alignItems:'center', background:'rgba(255,255,255,0.05)', padding:'0.5rem', borderRadius:'6px', marginBottom:'0.5rem'}}>
-                          <span style={{fontSize:'0.9rem', color: 'var(--color-text)'}}>{email}</span>
-                          <button onClick={() => handleRemoveEmail(email)} style={{background:'transparent', border:'none', color:'#ef4444', cursor:'pointer'}}>x</button>
-                      </div>
-                  ))}
-                  <div style={{display:'flex', gap:'0.5rem'}}>
-                       <input 
-                          className="field-input" 
-                          placeholder="Add secondary email..."
-                          value={newEmailInput}
-                          onChange={(e) => setNewEmailInput(e.target.value)}
-                          style={{marginBottom: 0}}
-                       />
-                       <button className="btn primary" onClick={handleAddEmail} disabled={isAddingEmail}>Add</button>
-                  </div>
-               </div>
-
-              <label className="field-label">Connected providers</label>
-              <div className="providers">
-                {user?.providerData?.map((p) => (
-                  <div key={p.providerId} className="provider-chip">
-                    {p.providerId.replace(".com", "")}
-                  </div>
-                )) || <div className="provider-chip">email</div>}
-              </div>
-
-              <label className="field-label">Integrations</label>
-              <div style={{ marginBottom: '1.5rem' }}>
-                  <button 
-                    className="btn secondary"
-                    onClick={handleSyncGoogle}
-                    disabled={isSyncingCalendar}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center' }}
+              {!emailVerified && (
+                <div style={{ marginTop: '-0.5rem', marginBottom: '1rem' }}>
+                  <small style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <Shield size={12} /> Email not verified
+                  </small>
+                  <button
+                    onClick={handleSendVerification}
+                    className="btn-text"
+                    style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: '0.25rem', padding: 0 }}
+                    disabled={loading}
                   >
-                     {isSyncingCalendar ? <Loader2 className="animate-spin" size={18} /> : <CalendarIcon size={18} />}
-                     {isSyncingCalendar ? "Syncing..." : "Sync Google Calendar"}
+                    Send verification link
                   </button>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--color-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
-                      Import your upcoming events from Google Calendar into your timetable.
-                  </p>
-              </div>
+                </div>
+              )}
+
 
               <div
                 className="profile-actions"
@@ -846,12 +503,13 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </motion.div >
 
         {/* Customize Panel (Moved to Left Column) */}
-        <motion.div
+        < motion.div
           className="panel"
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ opacity: 0, y: 6 }
+          }
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, delay: 0.08 }}
           style={{ marginTop: "1.5rem" }}
@@ -860,9 +518,9 @@ export default function ProfilePage() {
           <div className="panel-body">
             {/* Profile Banner Selection */}
             <div className="customize-section">
-              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Profile Banner</h3>
-                <a href="/shop" style={{fontSize:'0.8rem', color:'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                <a href="/shop" style={{ fontSize: '0.8rem', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <ShoppingBag size={14} /> Store
                 </a>
               </div>
@@ -871,9 +529,8 @@ export default function ProfilePage() {
                   <motion.div
                     layout
                     key={banner.id}
-                    className={`banner-option ${
-                      selectedBanner === banner.id ? "selected" : ""
-                    }`}
+                    className={`banner-option ${selectedBanner === banner.id ? "selected" : ""
+                      }`}
                     style={{ background: banner.gradient }}
                     onClick={() => setSelectedBanner(banner.id)}
                     whileHover={{ scale: 1.05 }}
@@ -887,9 +544,9 @@ export default function ProfilePage() {
 
             {/* Profile Tag Selection */}
             <div className="customize-section">
-              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Profile Tags (Max 3)</h3>
-                <a href="/shop" style={{fontSize:'0.8rem', color:'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                <a href="/shop" style={{ fontSize: '0.8rem', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <ShoppingBag size={14} /> Store
                 </a>
               </div>
@@ -903,9 +560,8 @@ export default function ProfilePage() {
                       <motion.div
                         layout
                         key={tag}
-                        className={`tag-option checkbox-style ${
-                          isSelected ? "selected" : ""
-                        } ${!canSelect ? "disabled" : ""}`}
+                        className={`tag-option checkbox-style ${isSelected ? "selected" : ""
+                          } ${!canSelect ? "disabled" : ""}`}
                         onClick={() => {
                           if (isSelected) {
                             setSelectedTags(
@@ -934,25 +590,24 @@ export default function ProfilePage() {
 
             {/* Theme Selection */}
             <div className="customize-section">
-              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                 <h3>App Theme</h3>
-                 <a href="/shop" style={{fontSize:'0.8rem', color:'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px'}}>
-                   <ShoppingBag size={14} /> Store
-                 </a>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3>App Theme</h3>
+                <a href="/shop" style={{ fontSize: '0.8rem', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <ShoppingBag size={14} /> Store
+                </a>
               </div>
-              
+
               <div className="banner-grid">
                 {THEMES.filter(t => ownedThemes.includes(t.id)).map((theme) => (
                   <motion.div
                     layout
                     key={theme.id}
-                    className={`banner-option ${
-                      selectedTheme === theme.id ? "selected" : ""
-                    }`}
+                    className={`banner-option ${selectedTheme === theme.id ? "selected" : ""
+                      }`}
                     style={{ background: theme.color, color: (theme.id === 'light' || theme.id === 'cute') ? '#000' : '#fff' }}
                     onClick={() => {
-                        setSelectedTheme(theme.id);
-                        document.documentElement.setAttribute('data-theme', theme.id);
+                      setSelectedTheme(theme.id);
+                      document.documentElement.setAttribute('data-theme', theme.id);
                     }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -960,12 +615,12 @@ export default function ProfilePage() {
                     {theme.name}
                   </motion.div>
                 ))}
-                
+
                 {THEMES.filter(t => !ownedThemes.includes(t.id)).slice(0, 2).map((theme) => (
-                   <motion.div
+                  <motion.div
                     key={theme.id}
                     className="banner-option locked"
-                    style={{ background: '#222', opacity: 0.6, cursor: 'not-allowed', border:'1px dashed #555' }}
+                    style={{ background: '#222', opacity: 0.6, cursor: 'not-allowed', border: '1px dashed #555' }}
                   >
                     🔒 {theme.name}
                   </motion.div>
@@ -997,9 +652,8 @@ export default function ProfilePage() {
                 ].map((color) => (
                   <motion.div
                     key={color}
-                    className={`banner-option ${
-                      avatarColor === color ? "selected" : ""
-                    }`}
+                    className={`banner-option ${avatarColor === color ? "selected" : ""
+                      }`}
                     style={{
                       background: color,
                       height: "40px",
@@ -1019,80 +673,80 @@ export default function ProfilePage() {
               Save Customization
             </button>
           </div>
-        </motion.div>
+        </motion.div >
 
-            {/* Subscription Card */}
-            <motion.div
-              className="profile-card"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+        {/* Subscription Card */}
+        < motion.div
+          className="profile-card"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          style={{
+            border: '1px solid rgba(255, 215, 0, 0.3)',
+            background: 'linear-gradient(145deg, var(--bg-secondary), rgba(255, 215, 0, 0.05))',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Gold top border line */}
+          < div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent)'
+          }} />
+
+          < div style={{ padding: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem', color: '#ffd700' }}>
+              <Crown size={20} fill="#ffd700" />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 500, color: 'var(--color-text)' }}>Subscription</h2>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'rgba(0,0,0,0.2)',
+              padding: '1rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              marginBottom: '1rem'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)', textTransform: 'uppercase' }}>Current Plan</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>Free Student</span>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+                Active
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom: '1rem' }}>
+              Upgrade to unlock unlimited tasks, cloud sync, and premium themes.
+            </p>
+
+            <button
+              onClick={() => React.startTransition(() => setShowPricing(true))}
               style={{
-                border: '1px solid rgba(255, 215, 0, 0.3)',
-                background: 'linear-gradient(145deg, var(--bg-secondary), rgba(255, 215, 0, 0.05))',
-                position: 'relative',
-                overflow: 'hidden'
+                width: '100%',
+                padding: '0.8rem',
+                background: 'var(--color-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
             >
-               {/* Gold top border line */}
-               <div style={{
-                   position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-                   background: 'linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent)'
-               }} />
+              Upgrade to Pro <Zap size={16} fill="currentColor" />
+            </button>
+          </div >
+        </motion.div >
 
-               <div style={{ padding: '1.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem', color: '#ffd700' }}>
-                     <Crown size={20} fill="#ffd700" />
-                     <h2 style={{ fontSize: '1.2rem', fontWeight: 500, color: 'var(--color-text)' }}>Subscription</h2>
-                  </div>
-                  
-                  <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center', 
-                      background: 'rgba(0,0,0,0.2)', 
-                      padding: '1rem', 
-                      borderRadius: '8px', 
-                      border: '1px solid var(--border-color)',
-                      marginBottom: '1rem' 
-                  }}>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)', textTransform: 'uppercase' }}>Current Plan</span>
-                          <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>Free Student</span>
-                      </div>
-                      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
-                          Active
-                      </div>
-                  </div>
-
-                  <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom: '1rem' }}>
-                      Upgrade to unlock unlimited tasks, cloud sync, and premium themes.
-                  </p>
-
-                  <button 
-                    onClick={() => React.startTransition(() => setShowPricing(true))}
-                    style={{
-                        width: '100%',
-                        padding: '0.8rem',
-                        background: 'var(--color-primary)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                    }}
-                  >
-                      Upgrade to Pro <Zap size={16} fill="currentColor" />
-                  </button>
-               </div>
-            </motion.div>
-
-         {/* Right column: settings/customization, security, account */}
-        <div className="side-column">
+        {/* Right column: settings/customization, security, account */}
+        < div className="side-column" >
           <motion.div
             className="panel"
             initial={{ opacity: 0, y: 6 }}
@@ -1121,333 +775,25 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </div>
-
-              {/* Phone Verification Section */}
-              {/* Phone Verification Section */}
-              <div
-                className="verify-row"
-                style={{
-                  marginTop: "1.5rem",
-                  borderTop: "1px solid rgba(255,255,255,0.05)",
-                  paddingTop: "1.5rem",
-                }}
-              >
-                <div>
-                  <div className="verify-status">Phone Verification</div>
-                  <div className="verify-desc">
-                    Link your phone number for additional security.
-                  </div>
-                  <div
-                    id="recaptcha-container"
-                    // IMPORTANT: Do NOT hide this. Invisible reCAPTCHA still needs a container 
-                    // that CAN display the challenge if the score is low.
-                    // If you hide it, the user can't click the images.
-                    style={{ marginTop: '10px' }}
-                  ></div>
-                  {phoneError && (
-                    <div
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "0.85rem",
-                        marginTop: "0.5rem",
-                      }}
-                    >
-                      {phoneError}
-                    </div>
-                  )}
-                </div>
-                <div
-                  className="verify-actions"
-                  style={{
-                    flexDirection: "column",
-                    alignItems: "flex-end",
-                    gap: "0.5rem",
-                  }}
-                >
-                  {!isVerifyingPhone ? (
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <input
-                        className="field-input"
-                        name="phoneNumber"
-                        id="phoneNumber"
-                        placeholder="+1 555 555 5555"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        style={{ width: "160px", marginBottom: 0 }}
-                      />
-                      <button
-                        className="btn primary"
-                        onClick={handleSendPhoneCode}
-                        disabled={loading}
-                      >
-                        Send Code
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <input
-                        className="field-input"
-                        name="verificationCode"
-                        id="verificationCode"
-                        placeholder="123456"
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        style={{ width: "100px", marginBottom: 0 }}
-                      />
-                      <button
-                        className="btn primary"
-                        onClick={handleVerifyPhoneCode}
-                        disabled={loading}
-                      >
-                        Verify
-                      </button>
-                      <button
-                        className="btn ghost"
-                        onClick={() => setIsVerifyingPhone(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           </motion.div>
 
+
+          {/* Settings Shortcut */}
           <motion.div
             className="panel"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, delay: 0.08 }}
           >
-            <div className="section-title">// security</div>
+            <div className="section-title">// account settings</div>
             <div className="panel-body">
-              <div className="security-row">
-                <label className="field-label">Current password</label>
-                <input
-                  className="field-input"
-                  type="password"
-                  name="currentPassword"
-                  id="currentPassword"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password to re-auth"
-                />
-                <label className="field-label">New password</label>
-                <input
-                  className="field-input"
-                  type="password"
-                  name="newPassword"
-                  id="newPassword"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="New password"
-                />
-                <div className="security-actions">
-                  <button
-                    className="btn primary"
-                    onClick={handleChangePassword}
-                    disabled={loading}
-                  >
-                    Change password
-                  </button>
-                  <button
-                    className="btn outline"
-                    onClick={() => {
-                      setCurrentPassword("");
-                      setNewPassword("");
-                    }}
-                  >
-                    Clear
-                  </button>
-                </div>
-                {reauthRequired && (
-                  <div className="note">
-                    Re-authentication required — enter your current password
-                    above.
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-
-
-
-
-          {/* Settings Panel */}
-          <motion.div
-            className="panel"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.09 }}
-          >
-            <div className="section-title">// settings</div>
-            <div className="panel-body">
-              {/* Notification Toggle */}
-              <div
-                className="settings-row"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "1.5rem",
-                }}
-              >
-                <div>
-                  <div className="setting-label" style={{ fontWeight: 600 }}>
-                    Notifications
-                  </div>
-                  <div
-                    className="setting-desc"
-                    style={{ fontSize: "0.85rem", opacity: 0.7 }}
-                  >
-                    Receive alerts for upcoming timetable events.
-                  </div>
-                </div>
-                <label
-                  className="switch"
-                  style={{
-                    position: "relative",
-                    display: "inline-block",
-                    width: "40px",
-                    height: "24px",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    name="toggleNotifications"
-                    id="toggleNotifications"
-                    checked={notificationsEnabled}
-                    onChange={toggleNotifications}
-                    style={{ opacity: 0, width: 0, height: 0 }}
-                  />
-                  <span
-                    className="slider round"
-                    style={{
-                      position: "absolute",
-                      cursor: "pointer",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: notificationsEnabled
-                        ? "var(--color-primary)"
-                        : "#ccc",
-                      transition: ".4s",
-                      borderRadius: "34px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        position: "absolute",
-                        content: '""',
-                        height: "16px",
-                        width: "16px",
-                        left: "4px",
-                        bottom: "4px",
-                        backgroundColor: "white",
-                        transition: ".4s",
-                        borderRadius: "50%",
-                        transform: notificationsEnabled
-                          ? "translateX(16px)"
-                          : "translateX(0)",
-                      }}
-                    />
-                  </span>
-                </label>
-              </div>
-
-              {/* Anonymous Mode Toggle */}
-              <div
-                className="settings-row"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <div className="setting-label" style={{ fontWeight: 600 }}>
-                    Anonymous Mode
-                  </div>
-                  <div
-                    className="setting-desc"
-                    style={{ fontSize: "0.85rem", opacity: 0.7 }}
-                  >
-                    Hide your name and avatar on the leaderboard.
-                  </div>
-                </div>
-                <label
-                  className="switch"
-                  style={{
-                    position: "relative",
-                    display: "inline-block",
-                    width: "40px",
-                    height: "24px",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    name="toggleAnonymous"
-                    id="toggleAnonymous"
-                    checked={anonymousMode}
-                    onChange={toggleAnonymousMode}
-                    style={{ opacity: 0, width: 0, height: 0 }}
-                  />
-                  <span
-                    className="slider round"
-                    style={{
-                      position: "absolute",
-                      cursor: "pointer",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: anonymousMode
-                        ? "var(--color-primary)"
-                        : "#ccc",
-                      transition: ".4s",
-                      borderRadius: "34px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        position: "absolute",
-                        content: '""',
-                        height: "16px",
-                        width: "16px",
-                        left: "4px",
-                        bottom: "4px",
-                        backgroundColor: "white",
-                        transition: ".4s",
-                        borderRadius: "50%",
-                        transform: anonymousMode
-                          ? "translateX(16px)"
-                          : "translateX(0)",
-                      }}
-                    />
-                  </span>
-                </label>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="panel danger"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.12 }}
-          >
-            <div className="section-title">// account</div>
-            <div className="panel-body">
-              <div className="account-actions">
-                <button className="btn outline" onClick={handleSignOut}>
-                  Sign out
-                </button>
-                <button className="btn danger" onClick={handleDeleteAccount}>
-                  Delete account
-                </button>
-              </div>
+              <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom: '1rem' }}>
+                Manage your password, linked accounts, and other preferences in Settings.
+              </p>
+              <a href="/settings" className="btn outline" style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>
+                Go to Settings
+              </a>
             </div>
           </motion.div>
         </div>
@@ -1455,20 +801,23 @@ export default function ProfilePage() {
 
       {/* notifications */}
       <AnimatePresence>
-        {statusMsg && (
-          <motion.div
-            className="toast success"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-          >
-            {statusMsg}
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {
+          statusMsg && (
+            <motion.div
+              className="toast success"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+            >
+              {statusMsg}
+            </motion.div>
+          )
+        }
+      </AnimatePresence >
 
-      {errorMsg && <div className="toast error">{errorMsg}</div>}
+      {errorMsg && <div className="toast error">{errorMsg}</div>
+      }
       <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
-    </div>
+    </div >
   );
 }

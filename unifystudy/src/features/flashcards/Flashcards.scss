@@ -40,7 +40,10 @@
       gap: 0.5rem;
       font-weight: 600;
       cursor: pointer;
-      &:hover { opacity: 0.9; }
+
+      &:hover {
+        opacity: 0.9;
+      }
     }
   }
 
@@ -50,7 +53,8 @@
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
     overflow-y: auto;
-    padding: 1rem; /* Padding to prevent hover clipping */
+    padding: 1rem;
+    /* Padding to prevent hover clipping */
     padding-bottom: 2rem;
 
     .deck-card {
@@ -67,7 +71,7 @@
 
       &:hover {
         transform: translateY(-4px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         border-color: var(--color-primary);
       }
 
@@ -87,6 +91,7 @@
           margin: 0;
           font-size: 1.1rem;
         }
+
         p {
           margin: 0;
           font-size: 0.9rem;
@@ -104,10 +109,15 @@
         opacity: 0;
         cursor: pointer;
         transition: 0.2s;
-        &:hover { color: #ef4444; }
+
+        &:hover {
+          color: #ef4444;
+        }
       }
 
-      &:hover .delete-deck { opacity: 1; }
+      &:hover .delete-deck {
+        opacity: 1;
+      }
     }
 
     .empty-state {
@@ -115,8 +125,11 @@
       text-align: center;
       padding: 4rem;
       color: var(--color-muted);
-      
-      p { font-size: 1.2rem; margin-top: 1rem; }
+
+      p {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+      }
     }
   }
 
@@ -125,32 +138,38 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    
+
     .study-header {
       display: flex;
       align-items: center;
       gap: 1rem;
       margin-bottom: 2rem;
-      
+
       button {
         background: none;
         border: none;
         color: var(--color-text);
         cursor: pointer;
-        &:hover { color: var(--color-primary); }
+
+        &:hover {
+          color: var(--color-primary);
+        }
       }
-      
-      h2 { margin: 0; }
-      
+
+      h2 {
+        margin: 0;
+      }
+
       .deck-actions {
         margin-left: auto;
+
         button {
-            background: var(--bg-2);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+          background: var(--bg-2);
+          padding: 0.5rem 1rem;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
         }
       }
     }
@@ -161,8 +180,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      perspective: 1000px;
-      
+      /* perspective: 1000px; - Removed to prevent 3D context from messing with z-index of controls */
+
       .flashcard {
         width: 100%;
         max-width: 600px;
@@ -171,7 +190,7 @@
         transform-style: preserve-3d;
         transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
         cursor: pointer;
-        
+
         &.flipped {
           transform: rotateY(180deg);
         }
@@ -191,14 +210,14 @@
           text-align: center;
           font-size: 1.5rem;
           font-weight: 500;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
           &.back {
             transform: rotateY(180deg);
             background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1), rgba(var(--color-secondary-rgb), 0.1));
             border-color: var(--color-primary);
           }
-          
+
           .hint {
             position: absolute;
             bottom: 1rem;
@@ -211,11 +230,59 @@
         }
       }
 
+      /* Aura Effect & Wrapper */
+      .card-wrapper {
+        perspective: 1000px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .aura-effect {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 150%;
+          height: 150%;
+          border-radius: 50%;
+          filter: blur(60px);
+          z-index: -1;
+          pointer-events: none;
+          opacity: 0.6;
+          user-select: none;
+
+          &.again {
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.6) 0%, transparent 70%);
+          }
+
+          &.hard {
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.5) 0%, transparent 70%);
+          }
+
+          &.good {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.6) 0%, transparent 70%);
+          }
+
+          &.easy {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, transparent 70%);
+          }
+        }
+
+        .flashcard {
+          z-index: 10;
+          pointer-events: auto;
+          user-select: none;
+        }
+      }
+
       .controls {
         margin-top: 3rem;
         display: flex;
         gap: 1rem;
-        
+        position: relative;
+        z-index: 200;
+        /* Ensure buttons are above card wrapper/aura */
+
         .rate-btn {
           padding: 0.75rem 1.5rem;
           border-radius: 12px;
@@ -230,47 +297,70 @@
           justify-content: center;
           gap: 0.25rem;
           line-height: 1.2;
-          
-          &.again { background: #ef4444; color: white; }
-          &.hard { background: #71717a; color: white; }
-          &.good { background: #10b981; color: white; }
-          &.easy { background: #3b82f6; color: white; }
-          
+
+          &.again {
+            background: #ef4444;
+            color: white;
+          }
+
+          &.hard {
+            background: #71717a;
+            color: white;
+          }
+
+          &.good {
+            background: #10b981;
+            color: white;
+          }
+
+          &.easy {
+            background: #3b82f6;
+            color: white;
+          }
+
           .btn-time {
             font-size: 0.75rem;
             opacity: 0.8;
             font-weight: 400;
           }
-          
-          &:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+          &:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+          }
         }
       }
     }
 
     /* Edit Mode */
     .cards-list {
-        overflow-y: auto;
-        padding-bottom: 2rem;
+      overflow-y: auto;
+      padding-bottom: 2rem;
 
-        .card-row {
-            display: flex;
-            gap: 1rem;
-            background: var(--bg-2);
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 8px;
-            align-items: center;
-            
-            .card-text {
-                flex: 1;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;
-                font-size: 0.9rem;
-                
-                div:first-child { font-weight: 500; color: var(--color-primary); border-right: 1px solid var(--glass-border); padding-right: 1rem; }
-            }
+      .card-row {
+        display: flex;
+        gap: 1rem;
+        background: var(--bg-2);
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        align-items: center;
+
+        .card-text {
+          flex: 1;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          font-size: 0.9rem;
+
+          div:first-child {
+            font-weight: 500;
+            color: var(--color-primary);
+            border-right: 1px solid var(--glass-border);
+            padding-right: 1rem;
+          }
         }
+      }
     }
   }
 }

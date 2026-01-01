@@ -1,5 +1,5 @@
 .chat-layout {
-  // display: flex;
+  display: flex;
   height: 100%;
   width: 100%;
   background-color: var(--bg-1);
@@ -67,12 +67,15 @@
       &::-webkit-scrollbar {
         width: 6px;
       }
+
       &::-webkit-scrollbar-track {
         background: transparent;
       }
+
       &::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 3px;
+
         &:hover {
           background: rgba(255, 255, 255, 0.15);
         }
@@ -121,6 +124,7 @@
 
       .create-channel-input {
         margin-bottom: 8px;
+
         input {
           width: 100%;
           background: var(--bg-2);
@@ -130,6 +134,7 @@
           border-radius: 4px;
           font-size: 14px;
           outline: none;
+
           &:focus {
             border-color: var(--color-primary);
           }
@@ -200,7 +205,7 @@
     .chat-header {
       padding: 16px;
       // Force a dark background for now to match sidebar or ensure visibility
-      background-color: var(--bg-1, #0c1214); 
+      background-color: var(--bg-1, #0c1214);
       border-bottom: 1px solid var(--glass-border);
       display: flex;
       justify-content: space-between;
@@ -236,11 +241,11 @@
             color: var(--color-text, #e6edf3); // Ensure text is light
             white-space: nowrap;
             flex-shrink: 0;
-            display: flex; 
+            display: flex;
             align-items: center;
             gap: 8px;
 
-            svg{
+            svg {
               // padding-top: 5px; // Removed odd padding
             }
           }
@@ -253,7 +258,7 @@
             text-overflow: ellipsis;
             display: none;
             margin-top: 5px;
-            
+
             @media (min-width: 768px) {
               display: block;
             }
@@ -273,6 +278,7 @@
           cursor: pointer;
           border: none;
           color: var(--color-muted);
+
           &:hover {
             color: var(--color-text);
           }
@@ -282,31 +288,38 @@
 
     .messages-area {
       flex: 1;
-      overflow-y: hidden; /* Let Virtuoso handle scrolling */
+      overflow-y: hidden;
+      /* Let Virtuoso handle scrolling */
       /* padding: 20px; REMOVED to put scrollbar on edge */
       display: flex;
       flex-direction: column;
       /* gap: 16px; REMOVED - doesn't work with Virtuoso wrapper */
       background: var(--bg-2);
-      position: relative; /* Ensure it contains the absolute children */
+      position: relative;
+      /* Ensure it contains the absolute children */
 
       /* Custom Scrollbar */
       &::-webkit-scrollbar {
         width: 8px;
         height: 8px;
       }
+
       &::-webkit-scrollbar-track {
         background: transparent;
       }
+
       &::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 4px;
+
         &:hover {
           background: rgba(255, 255, 255, 0.2);
         }
       }
 
-      .loading-state, .error-state, .empty-state {
+      .loading-state,
+      .error-state,
+      .empty-state {
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -316,15 +329,20 @@
         text-align: center;
         padding: 2rem;
 
-        h3 { margin: 1rem 0 0.5rem; color: var(--color-text); }
+        h3 {
+          margin: 1rem 0 0.5rem;
+          color: var(--color-text);
+        }
+
         .spinner {
-          border: 3px solid rgba(255,255,255,0.1);
+          border: 3px solid rgba(255, 255, 255, 0.1);
           border-top: 3px solid var(--color-primary);
           border-radius: 50%;
           width: 24px;
           height: 24px;
           animation: spin 1s linear infinite;
         }
+
         .empty-icon {
           color: var(--color-muted);
           margin-bottom: 1rem;
@@ -335,30 +353,32 @@
         display: flex;
         gap: 12px;
         max-width: 85%;
-        width: fit-content; /* Ensure row wraps content, doesn't span full 85% always */
+        width: fit-content;
+        /* Ensure row wraps content, doesn't span full 85% always */
         animation: messageSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        
+
         /* Spacing Fix for removed container padding */
-        padding: 0 20px; 
+        padding: 0 20px;
         margin-bottom: 16px;
-        box-sizing: border-box; 
+        box-sizing: border-box;
 
         &.own {
-          margin-left: auto; /* Push to right edge in block container */
+          margin-left: auto;
+          /* Push to right edge in block container */
           /* align-self: flex-end; REMOVED - doesn't work in Virtuoso block wrapper */
           flex-direction: row-reverse; // Move avatar to right
-          
+
           .message-avatar {
             margin-right: 0;
             margin-left: 12px;
           }
-          
+
           .message-content {
             align-items: flex-end;
 
             .message-sender {
-               justify-content: flex-end;
-               flex-direction: row-reverse; // Name on right, time on left
+              justify-content: flex-end;
+              flex-direction: row-reverse; // Name on right, time on left
             }
 
             .message-bubble {
@@ -366,13 +386,13 @@
               color: white !important;
               border-radius: 12px 12px 12px 0; // Flip radius
               border: none;
-              
+
               .mention-highlight {
-                  background: rgba(255,255,255,0.2);
-                  color: white;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
               }
             }
-            
+
             .message-status {
               text-align: right;
               opacity: 0.7;
@@ -400,6 +420,7 @@
               transform: scale(1.05);
             }
           }
+
           .avatar-placeholder {
             display: flex;
             align-items: center;
@@ -430,8 +451,12 @@
               font-weight: 600;
               color: var(--color-text);
               cursor: pointer;
-              &:hover { text-decoration: underline; }
+
+              &:hover {
+                text-decoration: underline;
+              }
             }
+
             .message-time {
               color: var(--color-muted);
             }
@@ -441,14 +466,16 @@
             background-color: var(--bg-3);
             color: var(--color-text);
             padding: 10px 16px;
-            border-radius: 4px 18px 18px 18px; /* Modern "Chat" look */
-            font-size: 15px; /* Slightly larger text */
+            border-radius: 4px 18px 18px 18px;
+            /* Modern "Chat" look */
+            font-size: 15px;
+            /* Slightly larger text */
             line-height: 1.5;
             word-wrap: break-word;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             position: relative;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
             .mention-highlight {
               background: rgba(59, 130, 246, 0.2);
               color: #60a5fa;
@@ -457,7 +484,7 @@
               font-weight: 500;
             }
           }
-          
+
           .message-status {
             font-size: 10px;
             color: var(--color-muted);
@@ -469,7 +496,12 @@
             border-radius: 8px;
             overflow: hidden;
             cursor: pointer;
-            img { width: 100%; height: auto; display: block; }
+
+            img {
+              width: 100%;
+              height: auto;
+              display: block;
+            }
           }
 
           .file-attachment {
@@ -480,21 +512,24 @@
             padding: 12px;
             border-radius: 8px;
             border: 1px solid var(--glass-border);
-            
+
             .file-info {
               display: flex;
               flex-direction: column;
-              
+
               .file-name {
                 font-weight: 500;
                 color: var(--color-text);
               }
-              
+
               .download-link {
                 font-size: 12px;
                 color: var(--color-primary);
                 text-decoration: none;
-                &:hover { text-decoration: underline; }
+
+                &:hover {
+                  text-decoration: underline;
+                }
               }
             }
           }
@@ -527,7 +562,7 @@
           display: flex;
           align-items: center;
           gap: 2px;
-          
+
           span {
             width: 4px;
             height: 4px;
@@ -535,60 +570,89 @@
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
 
-            &:nth-child(1) { animation-delay: -0.32s; }
-            &:nth-child(2) { animation-delay: -0.16s; }
+            &:nth-child(1) {
+              animation-delay: -0.32s;
+            }
+
+            &:nth-child(2) {
+              animation-delay: -0.16s;
+            }
           }
         }
 
         strong {
-           color: var(--color-text);
+          color: var(--color-text);
         }
       }
 
       @keyframes bounce {
-        0%, 80%, 100% { transform: scale(0); }
-        40% { transform: scale(1); }
+
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+
+        40% {
+          transform: scale(1);
+        }
       }
 
       @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(5px); }
-          to { opacity: 1; transform: translateY(0); }
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .reply-banner {
-          position: absolute;
-          bottom: 100%;
-          left: 0;
-          right: 0;
-          background: var(--bg-2); /* Distinct from input area */
-          border-top: 1px solid var(--glass-border);
-          border-bottom: 1px solid var(--glass-border);
-          padding: 10px 16px;
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-2);
+        /* Distinct from input area */
+        border-top: 1px solid var(--glass-border);
+        border-bottom: 1px solid var(--glass-border);
+        padding: 10px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        color: var(--color-muted);
+        z-index: 5;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+
+        .reply-info {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          font-size: 0.9rem;
+          gap: 8px;
+
+          strong {
+            color: var(--color-text);
+            font-weight: 600;
+          }
+        }
+
+        .close-reply {
+          background: none;
+          border: none;
           color: var(--color-muted);
-          z-index: 5;
-          box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
-          
-          .reply-info {
-             display: flex;
-             align-items: center;
-             gap: 8px;
-             strong { color: var(--color-text); font-weight: 600; }
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
+
+          &:hover {
+            color: var(--color-text);
+            background: var(--bg-3);
           }
-          
-          .close-reply {
-              background: none;
-              border: none;
-              color: var(--color-muted);
-              cursor: pointer;
-              padding: 4px;
-              border-radius: 4px;
-              display: flex;
-              &:hover { color: var(--color-text); background: var(--bg-3); }
-          }
+        }
       }
 
       .input-wrapper {
@@ -613,7 +677,10 @@
           padding: 4px;
           background: transparent;
           border: none;
-          &:hover { color: var(--color-text); }
+
+          &:hover {
+            color: var(--color-text);
+          }
         }
 
         .message-input {
@@ -638,12 +705,12 @@
           display: flex;
           align-items: center;
           padding: 4px;
-          
+
           &:disabled {
             color: var(--glass-border);
             cursor: default;
           }
-          
+
           &:hover:not(:disabled) {
             opacity: 0.8;
           }
@@ -664,7 +731,7 @@
   background: var(--bg-2);
   border: 1px solid var(--glass-border);
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   z-index: 1000;
   padding: 8px 0;
 
@@ -877,7 +944,7 @@
       max-width: 300px;
       z-index: 100;
       transform: translateX(-100%);
-      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
 
       .sidebar-header .mobile-close {
         display: block;
@@ -895,29 +962,35 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes messageSlideIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(10px); 
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .message-group {
   animation: messageSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-  
+
   &:hover .message-bubble {
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
-  
+
   .message-bubble {
     transition: transform 0.2s, box-shadow 0.2s;
   }
@@ -927,19 +1000,22 @@
 
 .message-row {
   position: relative;
-  /* margin-bottom: 2px !important; Tighter Discord spacing - handled by flex gap */ 
-  padding: 2px 0; /* Align with compact look */
-  
+  /* margin-bottom: 2px !important; Tighter Discord spacing - handled by flex gap */
+  padding: 2px 0;
+  /* Align with compact look */
+
   &:hover {
-      background: rgba(255, 255, 255, 0.02); /* Subtle hover highlight like Discord */
-      .msg-actions {
-          opacity: 1;
-          pointer-events: auto;
-      }
+    background: rgba(255, 255, 255, 0.02);
+
+    /* Subtle hover highlight like Discord */
+    .msg-actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
-  
+
   &.has-reply {
-      margin-top: 6px;
+    margin-top: 6px;
   }
 }
 
@@ -949,7 +1025,8 @@
   pointer-events: none;
   position: absolute;
   right: 15px;
-  top: -15px; /* Slight overlap above message */
+  top: -15px;
+  /* Slight overlap above message */
   background: var(--bg-2);
   border: 1px solid var(--glass-border);
   border-radius: 4px;
@@ -958,14 +1035,15 @@
   gap: 2px;
   transition: opacity 0.1s;
   z-index: 20;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .msg-actions button {
   background: transparent;
   border: none;
   color: var(--color-muted);
-  padding: 6px; /* Larger hit area */
+  padding: 6px;
+  /* Larger hit area */
   cursor: pointer;
   border-radius: 4px;
   display: flex;
@@ -976,14 +1054,14 @@
   transition: all 0.2s;
 
   &:hover {
-      background: var(--bg-3);
-      color: var(--color-text);
+    background: var(--bg-3);
+    color: var(--color-text);
   }
-  
+
   /* Ensure icons are sizeable */
   svg {
-      width: 16px;
-      height: 16px;
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -992,6 +1070,7 @@
   padding: 4px 0;
   width: 100%;
 }
+
 .edit-input {
   width: 100%;
   background: var(--bg-3);
@@ -1003,12 +1082,14 @@
   outline: none;
   font-size: 14px;
 }
+
 .edit-hints {
   font-size: 11px;
   color: var(--color-muted);
   text-align: right;
+
   span {
-     margin-left: 8px;
+    margin-left: 8px;
   }
 }
 
@@ -1032,16 +1113,16 @@
   margin-left: 6px;
   display: inline-flex;
   align-items: center;
-  
+
   &.uni {
-      background: rgba(57, 211, 83, 0.15);
-      color: #39d353;
-      border: 1px solid rgba(57, 211, 83, 0.2);
+    background: rgba(57, 211, 83, 0.15);
+    color: #39d353;
+    border: 1px solid rgba(57, 211, 83, 0.2);
   }
-  
+
   &.guest {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--color-muted);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-muted);
   }
 }
 
@@ -1052,27 +1133,41 @@
   font-size: 12px;
   color: var(--color-muted);
   margin-bottom: 2px;
-  margin-left: 56px; /* Indent to align with bubble content not avatar */
+  margin-left: 56px;
+  /* Indent to align with bubble content not avatar */
   opacity: 0.9;
   position: relative;
-  
+
   &:hover {
-     opacity: 1;
-     .reply-name { text-decoration: underline; cursor: pointer; }
+    opacity: 1;
+
+    .reply-name {
+      text-decoration: underline;
+      cursor: pointer;
+    }
   }
 }
 
 .message-row.own .reply-context {
   flex-direction: row-reverse;
-  margin-right: 18px; /* Align with right bubble */
+  margin-right: 18px;
+  /* Align with right bubble */
   margin-left: 0;
-  
-  .reply-name { margin-right: 0; margin-left: 6px; }
-  svg { transform: scaleX(-1); margin-right: 0; margin-left: 4px; }
+
+  .reply-name {
+    margin-right: 0;
+    margin-left: 6px;
+  }
+
+  svg {
+    transform: scaleX(-1);
+    margin-right: 0;
+    margin-left: 4px;
+  }
 }
 
 .reply-line {
-    display: none;
+  display: none;
 }
 
 .reply-name {

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import { useUI } from "@/context/UIContext";
 import { db } from "@/services/firebaseConfig";
 import { ref, onValue, set } from "firebase/database";
 import { toast } from "sonner";
@@ -8,21 +9,23 @@ import { X } from "lucide-react";
 import "./GlobalPlayer.scss";
 
 export default function GlobalPlayer() {
+  const { setShowMusicPlayer } = useUI();
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState("spotify"); // 'spotify' or 'youtube'
   const [youtubeId, setYoutubeId] = useState("jfKfPfyJRdk"); // Default Lofi Girl
   const [inputVal, setInputVal] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
-  
+
   // Sync State
   const [syncSessionId, setSyncSessionId] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
 
   const playerRef = React.useRef(null);
   const containerRef = React.useRef(null);
+  const dragControls = useDragControls();
 
   const toggleOpen = () => setIsOpen(!isOpen);
-  
+
   const togglePlay = () => {
     const newState = !isPlaying;
     if (mode === "youtube" && playerRef.current) {
@@ -33,17 +36,20 @@ export default function GlobalPlayer() {
 
     // Sync Update
     if (isSyncing && syncSessionId) {
-        set(ref(db, `music_sessions/${syncSessionId}`), {
-            videoId: youtubeId,
-            isPlaying: newState,
-            timestamp: Date.now()
-        });
+      set(ref(db, `music_sessions/${syncSessionId}`), {
+        videoId: youtubeId,
+        isPlaying: newState,
+        timestamp: Date.now()
+      });
     }
   };
 
   // Click outside to close
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Ignore if clicking on the toggle itself
+      if (event.target.closest('.player-toggle')) return;
+
       if (isOpen && containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
       }
@@ -93,38 +99,38 @@ export default function GlobalPlayer() {
 
   // Sync Listener
   useEffect(() => {
-    if(!isSyncing || !syncSessionId) return;
-    
+    if (!isSyncing || !syncSessionId) return;
+
     const sessionRef = ref(db, `music_sessions/${syncSessionId}`);
     const unsub = onValue(sessionRef, (snap) => {
-        const data = snap.val();
-        if(data) {
-            if(data.videoId && data.videoId !== youtubeId) setYoutubeId(data.videoId);
-            if(data.isPlaying !== undefined && data.isPlaying !== isPlaying) {
-                setIsPlaying(data.isPlaying);
-                if(playerRef.current && typeof playerRef.current.playVideo === 'function') {
-                    if(data.isPlaying) playerRef.current.playVideo();
-                    else playerRef.current.pauseVideo();
-                }
-            }
+      const data = snap.val();
+      if (data) {
+        if (data.videoId && data.videoId !== youtubeId) setYoutubeId(data.videoId);
+        if (data.isPlaying !== undefined && data.isPlaying !== isPlaying) {
+          setIsPlaying(data.isPlaying);
+          if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+            if (data.isPlaying) playerRef.current.playVideo();
+            else playerRef.current.pauseVideo();
+          }
         }
+      }
     });
     return () => unsub();
   }, [isSyncing, syncSessionId]); // Reduced deps to avoid loops
 
   const handleSyncToggle = () => {
-      if(isSyncing) {
-          setIsSyncing(false);
-          setSyncSessionId("");
-          toast.success("Disconnected from session.");
-      } else {
-          const id = prompt("Enter Session ID to join/host (e.g. 'room1'):");
-          if(id) {
-              setSyncSessionId(id);
-              setIsSyncing(true);
-              toast.success(`Joined session '${id}'. Playback is now synced!`);
-          }
+    if (isSyncing) {
+      setIsSyncing(false);
+      setSyncSessionId("");
+      toast.success("Disconnected from session.");
+    } else {
+      const id = prompt("Enter Session ID to join/host (e.g. 'room1'):");
+      if (id) {
+        setSyncSessionId(id);
+        setIsSyncing(true);
+        toast.success(`Joined session '${id}'. Playback is now synced!`);
       }
+    }
   };
 
   const handleYoutubeSubmit = (e) => {
@@ -139,36 +145,51 @@ export default function GlobalPlayer() {
     setYoutubeId(id);
     setInputVal("");
     setIsPlaying(false);
-    
+
     // Sync Update
     if (isSyncing && syncSessionId) {
-        set(ref(db, `music_sessions/${syncSessionId}`), {
-            videoId: id,
-            isPlaying: false,
-            timestamp: Date.now()
-        });
+      set(ref(db, `music_sessions/${syncSessionId}`), {
+        videoId: id,
+        isPlaying: false,
+        timestamp: Date.now()
+      });
     }
-  }; 
+  };
+
   return (
-    <div className="global-player" ref={containerRef}>
+    <motion.div
+      className="global-player"
+      ref={containerRef}
+      drag
+      dragListener={false} // Disable default drag listener
+      dragControls={dragControls}
+      dragMomentum={false}
+      initial={{ x: 0, y: 0 }}
+      style={{ touchAction: 'none' }} // Prevent scrolling while dragging
+    >
       <motion.div
         key="player-content"
         className="player-content"
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={isOpen ? { opacity: 1, scale: 1, y: 0, pointerEvents: "auto" } : { opacity: 0, scale: 0.95, y: 10, pointerEvents: "none" }}
         transition={{ duration: 0.25, ease: "easeInOut" }}
-        style={{ position: isOpen ? 'relative' : 'absolute', zIndex: isOpen ? 10 : -1 }}
       >
-        <div className="player-header">
+        <div
+          className="player-header"
+          onPointerDown={(e) => dragControls.start(e)}
+          style={{ cursor: 'grab' }}
+        >
           <div className="mode-switch">
             <button
               className={mode === "spotify" ? "active" : ""}
+              onPointerDown={(e) => e.stopPropagation()} // Prevent drag on click
               onClick={() => setMode("spotify")}
             >
               Spotify
             </button>
             <button
               className={mode === "youtube" ? "active" : ""}
+              onPointerDown={(e) => e.stopPropagation()} // Prevent drag on click
               onClick={() => setMode("youtube")}
             >
               YouTube
@@ -187,11 +208,25 @@ export default function GlobalPlayer() {
                   fontSize: '1.2rem'
                 }}
                 title={isPlaying ? "Pause" : "Play"}
+                onPointerDown={(e) => e.stopPropagation()}
               >
                 {isPlaying ? "⏸" : "▶"}
               </button>
             )}
-            {/* Close button removed (moved to floating toggle) */}
+            <button
+              onClick={() => setShowMusicPlayer(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-muted)',
+                cursor: 'pointer',
+                padding: '4px'
+              }}
+              title="Close Player"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <X size={16} />
+            </button>
           </div>
         </div>
 
@@ -210,20 +245,21 @@ export default function GlobalPlayer() {
           ) : (
             <div className="youtube-player">
               <div className="sync-controls" style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-                 <button 
-                    onClick={handleSyncToggle} 
-                    style={{ 
-                        fontSize: '0.7rem', 
-                        padding: '2px 8px', 
-                        background: isSyncing ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
-                        color: isSyncing ? '#000' : '#fff',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                    }}
-                 >
-                    {isSyncing ? `Synced: ${syncSessionId}` : "Start Sync Party"}
-                 </button>
+                <button
+                  onClick={handleSyncToggle}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  style={{
+                    fontSize: '0.7rem',
+                    padding: '2px 8px',
+                    background: isSyncing ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
+                    color: isSyncing ? '#000' : '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isSyncing ? `Synced: ${syncSessionId}` : "Start Sync Party"}
+                </button>
               </div>
               <iframe
                 id="youtube-player-iframe"
@@ -240,8 +276,9 @@ export default function GlobalPlayer() {
                   placeholder="Paste YouTube URL or ID"
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
+                  onPointerDown={(e) => e.stopPropagation()}
                 />
-                <button type="submit">Load</button>
+                <button type="submit" onPointerDown={(e) => e.stopPropagation()}>Load</button>
               </form>
             </div>
           )}
@@ -249,25 +286,27 @@ export default function GlobalPlayer() {
       </motion.div>
 
       {/* Always visible toggle button */}
-      <motion.div 
+      <motion.div
         key="player-toggle"
-        className="player-toggle" 
+        className="player-toggle"
         onClick={toggleOpen}
+        onPointerDown={(e) => dragControls.start(e)}
         initial={false}
         animate={{ scale: 1, opacity: 1 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
+        style={{ cursor: 'grab', touchAction: 'none' }}
       >
         {isOpen ? (
-            <X size={24} color="var(--color-text)" />
+          <X size={24} color="var(--color-text)" />
         ) : (
-            <div className={`music-bars ${isPlaying ? "playing" : "paused"}`}>
-              <div className="bar"></div>
-              <div className="bar"></div>
-              <div className="bar"></div>
-            </div>
+          <div className={`music-bars ${isPlaying ? "playing" : "paused"}`}>
+            <div className="bar"></div>
+            <div className="bar"></div>
+            <div className="bar"></div>
+          </div>
         )}
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

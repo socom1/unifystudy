@@ -11,6 +11,8 @@ interface UIContextType {
   showCommandPalette: boolean;
   setShowCommandPalette: (show: boolean) => void;
   toggleCommandPalette: () => void;
+  showMusicPlayer: boolean;
+  setShowMusicPlayer: (show: boolean) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -21,6 +23,16 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [focusModeActive, setFocusModeActive] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
 
+  // Persist music player preference
+  const [showMusicPlayer, setShowMusicPlayer] = useState(() => {
+    const saved = localStorage.getItem('ui-show-music-player');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('ui-show-music-player', JSON.stringify(showMusicPlayer));
+  }, [showMusicPlayer]);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
@@ -30,10 +42,10 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const toggleNav = () => setIsNavCollapsed(prev => !prev);
 
   const toggleFocusMode = (e?: React.MouseEvent | React.TouchEvent) => {
-    if(e && e.stopPropagation) e.stopPropagation();
+    if (e && e.stopPropagation) e.stopPropagation();
     setFocusModeActive(prev => !prev);
   };
-  
+
   const toggleCommandPalette = () => setShowCommandPalette(prev => !prev);
 
   return (
@@ -47,7 +59,9 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       setFocusModeActive,
       showCommandPalette,
       setShowCommandPalette,
-      toggleCommandPalette
+      toggleCommandPalette,
+      showMusicPlayer,
+      setShowMusicPlayer
     }}>
       {children}
     </UIContext.Provider>

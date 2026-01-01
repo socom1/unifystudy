@@ -1,24 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
+import { motion, AnimatePresence } from 'framer-motion';
+import {
   User, Lock, Bell, Shield, Database, HelpCircle,
   Mail, Smartphone, Globe, Download, Trash2, LogOut,
-  Sun, Moon, Monitor, Save, X
+  Sun, Moon, Monitor, Save, X, Zap, Plus, X as XIcon, Calendar as CalendarIcon
 } from 'lucide-react';
 import { auth, db } from '@/services/firebaseConfig';
 import { ref, onValue, update } from 'firebase/database';
-import { 
-  updatePassword, 
-  EmailAuthProvider, 
+import {
+  updatePassword,
+  EmailAuthProvider,
   reauthenticateWithCredential,
-  deleteUser 
+  deleteUser,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  PhoneAuthProvider,
+  linkWithCredential
 } from 'firebase/auth';
 import { toast } from 'sonner';
+import { useUI } from '@/context/UIContext';
+import { connectGoogleCalendar, fetchUpcomingEvents } from "@/services/googleCalendar";
 import './SettingsPage.scss';
 
 export default function SettingsPage() {
   const user = auth.currentUser;
   const uid = user?.uid;
+  const { showMusicPlayer, setShowMusicPlayer } = useUI();
 
   // Settings State
   const [settings, setSettings] = useState({
@@ -41,6 +48,24 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Additional Emails State
+  const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
+  const [newEmailInput, setNewEmailInput] = useState("");
+  const [isAddingEmail, setIsAddingEmail] = useState(false);
+
+  // Phone Auth State
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
+
+  // Google Sync State
+  const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
+
+
+  // Track initial settings for dirty checking
+  const [initialSettings, setInitialSettings] = useState<any>(null);
+
   // Load settings from Firebase
   useEffect(() => {
     if (!uid) return;
@@ -48,11 +73,22 @@ export default function SettingsPage() {
     const unsub = onValue(settingsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        setSettings(prev => ({
-          ...prev,
-          notifications: data.notifications || prev.notifications,
-          privacy: data.privacy || prev.privacy,
-        }));
+        const loadedSettings = {
+          notifications: data.notifications || settings.notifications,
+          privacy: data.privacy || settings.privacy,
+        };
+
+        // Merge with current state structure to ensure we have all fields
+        const mergedSettings = {
+          notifications: { ...settings.notifications, ...loadedSettings.notifications },
+          privacy: { ...settings.privacy, ...loadedSettings.privacy }
+        };
+
+        setSettings(mergedSettings);
+        setInitialSettings(mergedSettings);
+      } else {
+        // If no data, current defaults are initial
+        setInitialSettings(settings);
       }
     });
     return () => unsub();
@@ -67,7 +103,8 @@ export default function SettingsPage() {
         notifications: settings.notifications,
         privacy: settings.privacy,
       });
-      
+
+      setInitialSettings(settings); // Update initial settings to match current (clean state)
       toast.success('Settings saved successfully');
     } catch (error) {
       console.error(error);
@@ -76,6 +113,13 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
+
+  // Check for changes
+  // We exclude interface settings from this check as they are local/UIContext only for now? 
+  // Wait, user might want to save them? The interface toggle currently updates context instantly.
+  // The 'Save' button is primarily for the Firebase settings (Notifications/Privacy).
+  // Let's rely on JSON comparison for simplicity.
+  const hasChanges = initialSettings && JSON.stringify(settings) !== JSON.stringify(initialSettings);
 
   // Change Password
   const handleChangePassword = async () => {
@@ -99,10 +143,10 @@ export default function SettingsPage() {
       // Reauthenticate
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
-      
+
       // Update password
       await updatePassword(user, newPassword);
-      
+
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -117,6 +161,7 @@ export default function SettingsPage() {
 
   // Export Data
   const handleExportData = async () => {
+    // ... existing logic ...
     if (!uid) return;
     setLoading(true);
     try {
@@ -124,22 +169,145 @@ export default function SettingsPage() {
       const snapshot = await new Promise<any>((resolve) => {
         onValue(userRef, resolve, { onlyOnce: true });
       });
-      
+
       const data = snapshot.val();
       const dataStr = JSON.stringify(data, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
-      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `unifystudy-data-${new Date().toISOString().split('T')[0]}.json`;
       link.click();
-      
+
       URL.revokeObjectURL(url);
       toast.success('Data exported successfully');
     } catch (error) {
       console.error(error);
       toast.error('Failed to export data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- MIGRATED HANDLERS ---
+
+  // Load Additional Emails
+  useEffect(() => {
+    if (!uid) return;
+    const emailsRef = ref(db, `users/${uid}/settings/additionalEmails`);
+    const unsub = onValue(emailsRef, (snap) => {
+      setAdditionalEmails(snap.val() || []);
+    });
+    return () => unsub();
+  }, [uid]);
+
+  const handleAddEmail = async () => {
+    if (!newEmailInput.trim() || !newEmailInput.includes('@')) return;
+    setIsAddingEmail(true);
+    try {
+      const updated = [...additionalEmails, newEmailInput.trim()];
+      await update(ref(db, `users/${uid}/settings`), {
+        additionalEmails: updated
+      });
+      setNewEmailInput("");
+      toast.success("Email added successfully");
+    } catch (err) {
+      toast.error("Failed to add email");
+    } finally {
+      setIsAddingEmail(false);
+    }
+  };
+
+  const handleRemoveEmail = async (emailToRemove: string) => {
+    try {
+      const updated = additionalEmails.filter(e => e !== emailToRemove);
+      await update(ref(db, `users/${uid}/settings`), {
+        additionalEmails: updated
+      });
+      toast.success("Email removed");
+    } catch (err) {
+      toast.error("Failed to remove email");
+    }
+  };
+
+  // Google Calendar Sync
+  const handleSyncGoogle = async () => {
+    try {
+      setIsSyncingCalendar(true);
+      const token = await connectGoogleCalendar();
+      await fetchUpcomingEvents(token);
+      toast.success("Synced with Google Calendar!");
+    } catch (err) {
+      toast.error("Failed to sync Google Calendar");
+      console.error(err);
+    } finally {
+      setIsSyncingCalendar(false);
+    }
+  };
+
+  // Phone Verification
+  const setupRecaptcha = () => {
+    if ((window as any).recaptchaVerifier) {
+      (window as any).recaptchaVerifier.clear();
+      (window as any).recaptchaVerifier = null;
+    }
+    (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+      callback: () => { },
+      "expired-callback": () => { }
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      if ((window as any).recaptchaVerifier) {
+        (window as any).recaptchaVerifier.clear();
+        (window as any).recaptchaVerifier = null;
+      }
+    }
+  }, []);
+
+  const handleSendPhoneCode = async () => {
+    if (!phoneNumber) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
+    setLoading(true);
+    try {
+      setupRecaptcha();
+      const appVerifier = (window as any).recaptchaVerifier;
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      (window as any).confirmationResult = confirmationResult;
+      setVerificationId(confirmationResult.verificationId);
+      setIsVerifyingPhone(true);
+      toast.success("Verification code sent!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to send code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyPhoneCode = async () => {
+    setLoading(true);
+    try {
+      if (!(window as any).confirmationResult) throw new Error("No verification session");
+      // Link with phone
+      const credential = PhoneAuthProvider.credential(
+        (window as any).confirmationResult.verificationId,
+        verificationCode
+      );
+      if (auth.currentUser) {
+        await linkWithCredential(auth.currentUser, credential);
+        toast.success("Phone verified & linked!");
+        setIsVerifyingPhone(false);
+        setVerificationCode("");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Invalid code");
     } finally {
       setLoading(false);
     }
@@ -158,19 +326,19 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       if (!user?.email) throw new Error('No email found');
-      
+
       // Reauthenticate
       const credential = EmailAuthProvider.credential(user.email, password);
       await reauthenticateWithCredential(user, credential);
-      
+
       // Mark as deleted in database
       if (uid) {
         await update(ref(db, `users/${uid}`), { deleted: true });
       }
-      
+
       // Delete user
       await deleteUser(user);
-      
+
       toast.success('Account deleted');
     } catch (error: any) {
       console.error(error);
@@ -194,6 +362,35 @@ export default function SettingsPage() {
         </header>
 
         <div className="settings-grid">
+          {/* Interface Section */}
+          <motion.section
+            className="settings-section"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="section-header">
+              <Monitor size={20} />
+              <h2>Interface</h2>
+            </div>
+            <div className="section-body">
+              <div className="setting-item">
+                <div>
+                  <div className="setting-title">Show Music Player</div>
+                  <div className="setting-description">Display the global music player</div>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={showMusicPlayer}
+                    onChange={(e) => setShowMusicPlayer(e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+            </div>
+          </motion.section>
+
           {/* Notifications Section */}
           <motion.section
             className="settings-section"
@@ -354,7 +551,13 @@ export default function SettingsPage() {
               <h2>Security</h2>
             </div>
             <div className="section-body">
-              <label className="setting-label">Change Password</label>
+              {/* Password Info */}
+              <div className="setting-item">
+                <div>
+                  <div className="setting-title">Change Password</div>
+                  <div className="setting-description">Update your login password</div>
+                </div>
+              </div>
               <div className="password-inputs">
                 <input
                   type="password"
@@ -384,6 +587,109 @@ export default function SettingsPage() {
                 >
                   {loading ? 'Updating...' : 'Update Password'}
                 </button>
+              </div>
+
+              <div className="divider" />
+
+              {/* Phone Verification */}
+              <div className="setting-item">
+                <div>
+                  <div className="setting-title">Phone Verification</div>
+                  <div className="setting-description">Link a phone number for recovery</div>
+                </div>
+              </div>
+              <div className="password-inputs">
+                {!isVerifyingPhone ? (
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input
+                      className="setting-input"
+                      placeholder="+1 555 555 5555"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                    />
+                    <button className="btn secondary" onClick={handleSendPhoneCode} disabled={loading}>
+                      Send Code
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input
+                      className="setting-input"
+                      placeholder="123456"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                    />
+                    <button className="btn primary" onClick={handleVerifyPhoneCode} disabled={loading}>
+                      Verify
+                    </button>
+                    <button className="btn ghost" onClick={() => setIsVerifyingPhone(false)}>Cancel</button>
+                  </div>
+                )}
+                <div id="recaptcha-container"></div>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Integrations Section - NEW */}
+          <motion.section
+            className="settings-section"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <div className="section-header">
+              <Globe size={20} />
+              <h2>Integrations</h2>
+            </div>
+            <div className="section-body">
+              <div className="setting-item">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <CalendarIcon size={24} className="text-secondary" />
+                  <div>
+                    <div className="setting-title">Google Calendar</div>
+                    <div className="setting-description">Sync upcoming events to your timetable</div>
+                  </div>
+                </div>
+                <button className="btn secondary" onClick={handleSyncGoogle} disabled={isSyncingCalendar}>
+                  {isSyncingCalendar ? "Syncing..." : "Sync Now"}
+                </button>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Account Details Section - NEW (Emails) */}
+          <motion.section
+            className="settings-section"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.48 }}
+          >
+            <div className="section-header">
+              <User size={20} />
+              <h2>Account Details</h2>
+            </div>
+            <div className="section-body">
+              <label className="setting-label">Additional Emails</label>
+              <div className="password-inputs">
+                {additionalEmails.map(email => (
+                  <div key={email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '8px' }}>
+                    <span>{email}</span>
+                    <button onClick={() => handleRemoveEmail(email)} className="btn danger" style={{ padding: '0.25rem 0.5rem' }}>
+                      <XIcon size={14} />
+                    </button>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    className="setting-input"
+                    placeholder="Add secondary email..."
+                    value={newEmailInput}
+                    onChange={(e) => setNewEmailInput(e.target.value)}
+                  />
+                  <button className="btn secondary" onClick={handleAddEmail} disabled={isAddingEmail}>
+                    <Plus size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           </motion.section>
@@ -454,13 +760,22 @@ export default function SettingsPage() {
           </motion.section>
         </div>
 
-        {/* Sticky Save Button */}
-        <div className="settings-actions">
-          <button className="btn primary large" onClick={saveSettings} disabled={loading}>
-            <Save size={18} />
-            {loading ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
+        {/* Sticky Save Button - Only show when changes exist */}
+        <AnimatePresence>
+          {hasChanges && (
+            <motion.div
+              className="settings-actions"
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+            >
+              <button className="btn primary large" onClick={saveSettings} disabled={loading}>
+                <Save size={18} />
+                {loading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );

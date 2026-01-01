@@ -59,13 +59,13 @@ export default function StickyWall() {
   };
 
   return (
-    <div className="sticky-wall" ref={containerRef}>
+    <div className="sticky-wall">
       <header className="wall-header">
         <h1>Sticky Wall</h1>
         <button onClick={addNote}>+ New Note</button>
       </header>
 
-      <div className="wall-area">
+      <div className="wall-area" ref={containerRef}>
         <AnimatePresence>
           {notes.map((note) => (
             <StickyNote
@@ -78,9 +78,9 @@ export default function StickyWall() {
           ))}
         </AnimatePresence>
         {notes.length === 0 && (
-            <div className="empty-state">
-                <p>Click "+ New Note" to add a sticky note!</p>
-            </div>
+          <div className="empty-state">
+            <p>Click "+ New Note" to add a sticky note!</p>
+          </div>
         )}
       </div>
     </div>
@@ -95,16 +95,16 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
   // Parse text for [[links]]
   const renderText = (text) => {
     if (!text) return "Double click to edit...";
-    
+
     // Regex to find [[link]]
     const parts = text.split(/(\[\[.*?\]\])/g);
-    
+
     return parts.map((part, index) => {
       if (part.startsWith('[[') && part.endsWith(']]')) {
         const linkContent = part.slice(2, -2);
         return (
-          <span 
-            key={index} 
+          <span
+            key={index}
             className="wiki-link"
             onClick={(e) => {
               e.stopPropagation();
@@ -145,22 +145,21 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
           y: note.y + info.offset.y,
         });
       }}
-      style={{ backgroundColor: "rgba(30, 30, 40, 0.6)" }}
       onDoubleClick={(e) => {
         e.stopPropagation();
         setIsEditing(true);
       }}
     >
-      <div 
-        className="note-header" 
+      <div
+        className="note-header"
         onPointerDown={(e) => dragControls.start(e)}
         style={{ height: '24px', width: '100%', cursor: 'grab', position: 'absolute', top: 0, left: 0, zIndex: 10 }}
       />
       <div className="note-actions">
         <button onClick={() => onDelete(note.id)}>×</button>
       </div>
-      
-      <div className="note-content" style={{ marginTop: '20px', height: 'calc(100% - 30px)', overflow: 'auto' }}>
+
+      <div className="note-content">
         {isEditing ? (
           <textarea
             autoFocus
@@ -169,7 +168,7 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
             onChange={(e) => onUpdate(note.id, { text: e.target.value })}
             onBlur={() => setIsEditing(false)}
             onPointerDown={(e) => e.stopPropagation()}
-            style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', color: 'inherit', resize: 'none', outline: 'none' }} 
+            className="note-textarea"
           />
         ) : (
           <div className="note-view">
@@ -178,7 +177,7 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
         )}
       </div>
 
-      <div 
+      <div
         className="resize-handle"
         onPointerDown={(e) => {
           e.stopPropagation();
@@ -204,6 +203,6 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
           document.addEventListener("pointerup", onUp);
         }}
       />
-    </motion.div>
+    </motion.div >
   );
 }

@@ -36,9 +36,9 @@ import { TimerProvider } from "@/features/pomodoro/TimerContext";
 import TimerWidget from "@/features/pomodoro/TimerWidget";
 import CommandPalette from "@/components/navigation/CommandPalette";
 import Sidebar from "@/layout/Sidebar";
-import AuthWrapper from "@/features/auth/signUp/AuthWrapper"; 
+import AuthWrapper from "@/features/auth/signUp/AuthWrapper";
 import PageLoader from "@/components/ui/PageLoader";
-import NotificationManager from "@/features/notifications/NotificationManager"; 
+import NotificationManager from "@/features/notifications/NotificationManager";
 
 import { auth, db } from "@/services/firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -48,16 +48,17 @@ import { useUI } from "@/context/UIContext";
 
 const AppLayout = () => {
   const { user, loading, setUser, signOut } = useAuth();
-  
-  const { 
+
+  const {
     isNavCollapsed,
     isMobile,
     focusModeActive,
     setFocusModeActive,
     showCommandPalette,
-    setShowCommandPalette
+    setShowCommandPalette,
+    showMusicPlayer
   } = useUI();
-  
+
   const location = useLocation();
 
   const [showStandup, setShowStandup] = useState(true);
@@ -76,15 +77,15 @@ const AppLayout = () => {
       return () => unsub();
     }
   }, [user]);
-  
+
   // Keyboard Shortcut for Command Palette
   // Moved logic to consume context
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-           e.preventDefault();
-           setShowCommandPalette(!showCommandPalette);
-       }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(!showCommandPalette);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -96,15 +97,15 @@ const AppLayout = () => {
 
   // Auth Routes Wrapper
   if (!user) {
-      return (
-          <div className="app-layout">
-              <Routes>
-                  <Route path="/signup" element={<SignUp onLoginSuccess={setUser} />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="*" element={<AuthWrapper onSuccess={setUser} />} />
-              </Routes>
-          </div>
-      );
+    return (
+      <div className="app-layout">
+        <Routes>
+          <Route path="/signup" element={<SignUp onLoginSuccess={setUser} />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="*" element={<AuthWrapper onSuccess={setUser} />} />
+        </Routes>
+      </div>
+    );
   }
 
   return (
@@ -116,153 +117,153 @@ const AppLayout = () => {
         <div className={`main-content ${isNavCollapsed ? 'collapsed' : ''}`}>
           <AnimatePresence mode="wait">
             <Suspense fallback={<PageLoader message="Loading content..." />}>
-            <Routes location={location} key={location.pathname}>
-              
-              <Route path="/" element={ <Navigate to="/dashboard" replace /> } />
-              
-              <Route path="/dashboard" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size scrollable">
-                  <Dashboard user={user} />
-                </motion.div>
-              } />
+              <Routes location={location} key={location.pathname}>
 
-              <Route path="/pomodoro" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <Pomodoro />
-                </motion.div>
-              } />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-              <Route path="/todo" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <TdlOVERALL />
-                </motion.div>
-              } />
+                <Route path="/dashboard" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size scrollable">
+                    <Dashboard user={user} />
+                  </motion.div>
+                } />
 
-              <Route path="/mindmap" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <MindMap />
-                </motion.div>
-              } />
+                <Route path="/pomodoro" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Pomodoro />
+                  </motion.div>
+                } />
 
-              <Route path="/timetable" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <MyTimetable user={user} />
-                </motion.div>
-              } />
+                <Route path="/todo" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <TdlOVERALL />
+                  </motion.div>
+                } />
 
-               {/* Legacy Calendar Route */}
-               <Route path="/calendar" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <YearlyCalendar />
-                </motion.div>
-              } />
+                <Route path="/mindmap" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <MindMap />
+                  </motion.div>
+                } />
 
-              <Route path="/grades" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <Grades />
-                </motion.div>
-              } />
+                <Route path="/timetable" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <MyTimetable user={user} />
+                  </motion.div>
+                } />
 
-              <Route path="/leaderboard" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <Leaderboard />
-                </motion.div>
-              } />
+                {/* Legacy Calendar Route */}
+                <Route path="/calendar" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <YearlyCalendar />
+                  </motion.div>
+                } />
 
-              <Route path="/shop" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size scrollable">
-                  <Shop />
-                </motion.div>
-              } />
+                <Route path="/grades" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Grades />
+                  </motion.div>
+                } />
 
-              <Route path="/workspace" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <Workspace user={user} />
-                </motion.div>
-              } />
+                <Route path="/leaderboard" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Leaderboard />
+                  </motion.div>
+                } />
 
-              <Route path="/profile" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <Profile />
-                </motion.div>
-              } />
+                <Route path="/shop" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size scrollable">
+                    <Shop />
+                  </motion.div>
+                } />
 
-              <Route path="/chat" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <Chat />
-                </motion.div>
-              } />
+                <Route path="/workspace" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Workspace user={user} />
+                  </motion.div>
+                } />
 
-              <Route path="/flashcards" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <Flashcards />
-                </motion.div>
-              } />
+                <Route path="/profile" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Profile />
+                  </motion.div>
+                } />
 
-              <Route path="/analytics" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <Analytics />
-                </motion.div>
-              } />
+                <Route path="/chat" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Chat />
+                  </motion.div>
+                } />
 
-              <Route path="/habits" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <HabitTracker />
-                </motion.div>
-              } />
+                <Route path="/flashcards" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Flashcards />
+                  </motion.div>
+                } />
 
-              <Route path="/notes" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <StickyWall />
-                </motion.div>
-              } />
+                <Route path="/analytics" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Analytics />
+                  </motion.div>
+                } />
 
-              <Route path="/buddy" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <StudyBuddy />
-                </motion.div>
-              } />
+                <Route path="/habits" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <HabitTracker />
+                  </motion.div>
+                } />
 
-              <Route path="/resources" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <ResourceLibrary user={user} />
-                </motion.div>
-              } />
+                <Route path="/notes" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <StickyWall />
+                  </motion.div>
+                } />
 
-              <Route path="/settings" element={
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                  <SettingsPage />
-                </motion.div>
-              } />
+                <Route path="/buddy" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <StudyBuddy />
+                  </motion.div>
+                } />
 
-              {/* Catch all for authenticated users */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/resources" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <ResourceLibrary user={user} />
+                  </motion.div>
+                } />
 
-            </Routes>
+                <Route path="/settings" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <SettingsPage />
+                  </motion.div>
+                } />
+
+                {/* Catch all for authenticated users */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+              </Routes>
             </Suspense>
           </AnimatePresence>
-          
+
           <TimerWidget />
           {user && <NotificationManager user={user} />}
 
           {/* Daily Standup Local State replacement - keeping simple for now or move to UI Context if needed */}
-          {user && showStandup && <DailyStandup user={user} onClose={() => setShowStandup(false)} />} 
+          {user && showStandup && <DailyStandup user={user} onClose={() => setShowStandup(false)} />}
           <OfflineIndicator />
-          {user && <GlobalPlayer />}
+          {user && showMusicPlayer && <GlobalPlayer />}
           <UpdateNotification />
-          
+
           <AnimatePresence>
             {focusModeActive && (
               <Suspense fallback={<div className="focus-loader" />}>
-                <FocusMode 
-                   key="focus-mode-overlay"
-                   isActive={true} 
-                   onClose={() => setFocusModeActive(false)} 
+                <FocusMode
+                  key="focus-mode-overlay"
+                  isActive={true}
+                  onClose={() => setFocusModeActive(false)}
                 />
               </Suspense>
             )}
           </AnimatePresence>
-          
+
           <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} user={user} />
         </div>
       </div>
