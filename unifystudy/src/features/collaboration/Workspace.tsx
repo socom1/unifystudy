@@ -173,6 +173,8 @@ const Workspace = ({ user }) => {
   }, [workspaceId, activeFile, currentPage]);
 
   const saveTimeoutRef = useRef(null);
+  const lastCursorUpdate = useRef(Date.now());
+  const cursorUpdateInterval = useRef(null);
 
   const handlePageInput = (e) => {
      // Do NOT update React state here. It causes re-renders and cursor jumps.
@@ -219,7 +221,10 @@ const Workspace = ({ user }) => {
    useEffect(() => {
      if (!workspaceId || !user) return;
 
+
+
      const handleSelection = () => {
+         lastCursorUpdate.current = Date.now();
          const sel = window.getSelection();
          if (sel.rangeCount > 0) {
              const range = sel.getRangeAt(0);
@@ -241,12 +246,34 @@ const Workspace = ({ user }) => {
                      color: user.settings?.customization?.avatarColor || '#ff0000',
                      timestamp: serverTimestamp()
                  });
+
+                 const cursorRef = ref(db, `projects/${workspaceId}/cursors/${user.uid}`);
+                 onDisconnect(cursorRef).remove();
              }
          }
      };
 
+     // Check for idle cursors every 5 seconds
+     if (cursorUpdateInterval.current) clearInterval(cursorUpdateInterval.current);
+     cursorUpdateInterval.current = setInterval(() => {
+         const now = Date.now();
+         if (now - lastCursorUpdate.current > 60000) { // 60 seconds
+             remove(ref(db, `projects/${workspaceId}/cursors/${user.uid}`));
+         }
+     }, 5000);
+
      document.addEventListener('selectionchange', handleSelection);
-     return () => document.removeEventListener('selectionchange', handleSelection);
+     document.addEventListener('mousemove', handleSelection); // Also track mouse movement
+     document.addEventListener('keydown', () => { lastCursorUpdate.current = Date.now(); }); // And typing
+
+     return () => {
+         document.removeEventListener('selectionchange', handleSelection);
+         document.removeEventListener('mousemove', handleSelection);
+         document.removeEventListener('keydown', () => {});
+         if (cursorUpdateInterval.current) clearInterval(cursorUpdateInterval.current);
+         // Cleanup on unmount
+         remove(ref(db, `projects/${workspaceId}/cursors/${user.uid}`));
+     };
   }, [workspaceId, user]);
   
   // Pagination
@@ -267,7 +294,7 @@ const Workspace = ({ user }) => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  if (!user) return <div className="workspace-loading">Loading user profile...</div>;
+
 
   // Load User's Projects
   useEffect(() => {
@@ -327,7 +354,6 @@ const Workspace = ({ user }) => {
       await set(newProjectRef, {
         name: newProjectName,
         createdBy: user.uid,
-        createdAt: serverTimestamp(),
         createdAt: serverTimestamp(),
         members: { [user.uid]: true }
       });
@@ -577,7 +603,7 @@ const Workspace = ({ user }) => {
               const timer = setTimeout(async () => {
                  try {
                     const usersRef = ref(db, 'public_leaderboard');
-                    let snap = await get(usersRef);
+                    const snap = await get(usersRef);
                     let allUsers = [];
 
                     if (snap.exists()) {
@@ -686,6 +712,8 @@ const Workspace = ({ user }) => {
   const execCommand = (command, value = null) => {
     document.execCommand(command, false, value);
   };
+
+  if (!user) return <div className="workspace-loading">Loading user profile...</div>;
 
   if (viewMode === 'dashboard') {
     return (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check, X, Star, Crown, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import './Settings.scss'; // Re-use settings SCSS or add specific if needed
+import './SettingsPage.scss';
 
 import { createPortal } from 'react-dom';
 

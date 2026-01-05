@@ -1,8 +1,9 @@
+
 // @ts-nocheck
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
-import { db, auth } from "@/services/firebaseConfig";
-import { ref, update, push, runTransaction, onValue } from "firebase/database";
-import { checkAchievements, getAchievementById } from "@/utils/achievements";
+import { toast } from 'sonner';
+import { recordStudySession } from '@/services/leaderboardService';
+import { auth } from "@/services/firebaseConfig";
 import { useGamification } from "@/context/GamificationContext";
 
 const TimerContext = createContext();
@@ -82,11 +83,7 @@ export const TimerProvider = ({ children }) => {
     // We only want to reset if the calculated totalSeconds is different from what we expect?
     // Or just trust the logic: Mode change -> Reset.
     
-    // One catch: if we are running, and we switch mode, we definitely stop.
-    // But we need to make sure we don't reset just because we re-calculated totalSeconds with same value.
-    // useMemo handles that.
-    
-    // Wait, if we are running, we don't want to reset just because we navigated?
+    // One catch: if we are running, we don't want to reset just because we navigated?
     // Navigation doesn't trigger this effect because Provider doesn't unmount.
     // So this is safe.
     
@@ -191,134 +188,27 @@ export const TimerProvider = ({ children }) => {
       setCompletedPomodoros((c) => c + 1);
       setCycleCount((c) => c + 1);
 
-      // --- GAMIFICATION ---
+      // --- GAMIFICATION (Unified via Service) ---
       const durationMinutes = selectedTemplate?.work || 25;
       if (auth.currentUser) {
-        const uid = auth.currentUser.uid;
-        
         try {
-          // Update stats
-          await update(ref(db, `users/${uid}/stats`), { lastSession: Date.now() });
+          // 2. Record Session via Service
+          // This handles: stats update, currency, leaderboard, achievements
+          const result = await recordStudySession(auth.currentUser.uid, durationMinutes, "pomodoro");
           
-          // Add session
-          await push(ref(db, `users/${uid}/study_sessions`), {
-            duration: durationMinutes,
-            timestamp: Date.now(),
-            type: 'pomodoro'
-          });
-
-          // NEW: Award XP
-          addXP(10, "Pomodoro Session");
-
-          // Increment Currency
-          const currencyRef = ref(db, `users/${uid}/currency`);
-          await runTransaction(currencyRef, (currentCoins) => {
-            return (currentCoins || 0) + durationMinutes;
-          });
+          addXP(10, "Pomodoro Session"); // Keep XP separate or move to service if desired, currently service handles coins
           
-          // Increment Total Study Time
-          const totalTimeRef = ref(db, `users/${uid}/stats/totalStudyTime`);
-          let finalTotalTime = 0;
-          await runTransaction(totalTimeRef, (currentTime) => {
-            finalTotalTime = (currentTime || 0) + durationMinutes;
-            return finalTotalTime;
-          });
-
-          // Increment Session Count
-          const sessionCountRef = ref(db, `users/${uid}/stats/sessionCount`);
-          let finalSessionCount = 0;
-          await runTransaction(sessionCountRef, (currentCount) => {
-            finalSessionCount = (currentCount || 0) + 1;
-            return finalSessionCount;
-          });
-
-          // Replicate to Public Leaderboard (Secure)
-          // We need to fetch displayName/photo if not available, but for now we just update stats
-          // A proper backend trigger would be better, but client-side sync is okay for MVP
-          const publicLbRef = ref(db, `public_leaderboard/${uid}`);
-          await update(publicLbRef, {
-             stats: { totalStudyTime: finalTotalTime },
-             currency: (await new Promise(r => onValue(currencyRef, s => r(s.val()), {onlyOnce: true}))),
-             // We'll update the user info in Profile or Auth context ideally
-             // For now, rely on Profile updates or initial creation to populate name/photo
-             // If they don't exist, they might be missing in LB until profile update
-          });
-          
-          // Also push session to public for weekly/monthly calc (minimized data)
-          await push(ref(db, `public_leaderboard/${uid}/study_sessions`), {
-              duration: durationMinutes,
-              timestamp: Date.now()
-          });
-
-
-
-          // Check for new achievements
-          const userStatsSnapshot = await new Promise((resolve) => {
-            onValue(ref(db, `users/${uid}/stats`), (snap) => resolve(snap), { onlyOnce: true });
-          });
-          const userStats = userStatsSnapshot.val() || {};
-          
-          const unlockedAchievements = (await new Promise((resolve) => {
-            onValue(ref(db, `users/${uid}/achievements/unlocked`), (snap) => resolve(snap), { onlyOnce: true });
-          })).val() || [];
-
-          // Calculate streak (simplified - you may want to calculate this more accurately)
-          const currentStreak = userStats.currentStreak || 1;
-
-          const { newlyUnlocked, progress } = checkAchievements(
-            { totalStudyTime: finalTotalTime, sessionCount: finalSessionCount },
-            currentStreak
-          );
-
-          // Filter out already unlocked achievements
-          const achievementsToUnlock = newlyUnlocked.filter(id => !unlockedAchievements.includes(id));
-
-          if (achievementsToUnlock.length > 0) {
-            // Update unlocked achievements
-            const updatedUnlocked = [...unlockedAchievements, ...achievementsToUnlock];
-            await update(ref(db, `users/${uid}/achievements`), {
-              unlocked: updatedUnlocked,
-              progress
-            });
-
-            // Award Lumens for each new achievement
-            let totalReward = 0;
-            achievementsToUnlock.forEach(achievementId => {
-              const achievement = getAchievementById(achievementId);
-              if (achievement) {
-                totalReward += achievement.reward;
-              }
-            });
-
-            if (totalReward > 0) {
-              await runTransaction(currencyRef, (currentCoins) => {
-                return (currentCoins || 0) + totalReward;
-              });
-
-
-              
-              // Notify user about first achievement
-              const firstAchievement = getAchievementById(achievementsToUnlock[0]);
-              if ("Notification" in window && Notification.permission === "granted" && firstAchievement) {
-                new Notification(`Achievement Unlocked! ${firstAchievement.icon}`, {
-                  body: `${firstAchievement.name}: ${firstAchievement.description} (+${firstAchievement.reward} Lumens)`,
-                });
-              }
-            }
-          }
-
-          if ("Notification" in window && Notification.permission === "granted" && achievementsToUnlock.length === 0) {
-              new Notification("Great Job!", {
-                  body: `You finished a session and earned ${durationMinutes} Lumens! 💡`,
+          if (result.earnedCoins > 0 && "Notification" in window && Notification.permission === "granted") {
+             const achievementMsg = result.unlocked.length > 0 ? ` and unlocked ${result.unlocked.length} achievements!` : '!';
+             new Notification("Great Job!", {
+                  body: `You finished a session and earned ${result.earnedCoins} Lumens${achievementMsg} 💡`,
               });
           }
+
         } catch (error) {
           console.error("❌ Failed to update gamification data:", error);
-          // Show error to user
           if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Error", {
-              body: "Failed to award Lumens. Please check your connection.",
-            });
+            new Notification("Error", { body: "Failed to save session stats." });
           }
         }
       }

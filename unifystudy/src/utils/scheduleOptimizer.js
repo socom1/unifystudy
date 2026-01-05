@@ -6,7 +6,7 @@
  * @param {Date} currentDate - The date to plan for (default today)
  * @returns {Array} suggestions - List of { start, end, task, score } objects
  */
-export const optimizeSchedule = (tasks, events, currentDate = new Date()) => {
+export const optimizeSchedule = (tasks, events, subjects = [], currentDate = new Date()) => {
   const suggestions = [];
   const WORK_START_HOUR = 9; // 9 AM
   const WORK_END_HOUR = 21; // 9 PM
@@ -20,12 +20,8 @@ export const optimizeSchedule = (tasks, events, currentDate = new Date()) => {
     return scoreB - scoreA;
   });
 
-  if (priorityTasks.length === 0) return [];
-
   // 2. Identify occupied slots for the target day
   const dayStr = currentDate.toLocaleDateString('en-US', { weekday: 'long' }); // e.g., "Monday"
-  // Note: MyTimetable uses day names like "Monday", "Tuesday". 
-  // Events structure: { id, day, startTime, endTime, ... }
   
   const occupiedSlots = events.filter(e => e.day === dayStr).map(e => ({
     start: parseTime(e.startTime),
@@ -44,35 +40,54 @@ export const optimizeSchedule = (tasks, events, currentDate = new Date()) => {
     
     // Check gap before this slot
     if (slot.start - currentTime >= SLOT_DURATION_MINS) {
-      addSuggestion(suggestions, currentTime, slot.start, priorityTasks);
+      addSuggestion(suggestions, currentTime, slot.start, priorityTasks, subjects);
     }
     currentTime = Math.max(currentTime, slot.end);
   }
 
   // Check gap after last slot
   if (endTime - currentTime >= SLOT_DURATION_MINS) {
-    addSuggestion(suggestions, currentTime, endTime, priorityTasks);
+    addSuggestion(suggestions, currentTime, endTime, priorityTasks, subjects);
   }
 
   return suggestions.slice(0, 3); // Return top 3 suggestions
 };
 
-function addSuggestion(suggestions, startMins, endMins, tasks) {
+function addSuggestion(suggestions, startMins, endMins, tasks, subjects) {
     // Determine how many blocks fit in this gap
     const duration = 60; // 1 hour
     let current = startMins;
     
     while (current + duration <= endMins) {
-        // Pick a task round-robin or just top priority
-        const task = tasks[suggestions.length % tasks.length];
+        let title = "Study Session";
+        let taskRef = null;
+
+        // Strategy: 
+        // 1. If we have high priority tasks, suggest working on one.
+        // 2. If not, but we have subjects, suggest studying a subject.
+        // 3. Fallback to generic if neither.
         
+        // Pick a task round-robin if available and high score
+        if (tasks.length > 0 && (suggestions.length % 2 === 0 || subjects.length === 0)) {
+             const task = tasks[suggestions.length % tasks.length];
+             title = `Work on: ${task.text}`;
+             taskRef = task;
+        } else if (subjects.length > 0) {
+             const subject = subjects[suggestions.length % subjects.length];
+             title = `Study: ${subject}`;
+        } else if (tasks.length > 0) {
+             const task = tasks[suggestions.length % tasks.length];
+             title = `Work on: ${task.text}`;
+             taskRef = task;
+        }
+
         suggestions.push({
             start: formatTime(current),
             end: formatTime(current + duration),
-            title: `Study: ${task.text}`,
+            title: title,
             type: 'study',
             day: new Date().toLocaleDateString('en-US', { weekday: 'long' }),
-            taskRef: task
+            taskRef: taskRef
         });
         
         current += duration;

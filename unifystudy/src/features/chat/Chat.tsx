@@ -1,7 +1,9 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { db, storage } from "@/services/firebaseConfig";
 import { useAuth } from "@/context/AuthContext";
+import { useUI } from "@/context/UIContext";
 // Remove auth, onAuthStateChanged imports as they're now in context
 // @ts-ignore
 
@@ -17,6 +19,7 @@ import {
   get,
   onChildAdded,
   update,
+  startAt,
 } from "firebase/database";
 import {
   ref as storageRef,
@@ -91,6 +94,9 @@ const UserAvatar = ({ photoURL, displayName, avatarColor, className }) => {
 const Chat = () => {
   // Changed to functional component declaration
   const { user } = useAuth(); // Use context instead of local state
+  const { openProfile } = useUI();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   // const [user, setUser] = useState(null); // Local state removed
@@ -380,19 +386,19 @@ const Chat = () => {
     return () => unsubscribe();
   }, [activeChannel]);
 
+  // Ref to track active channel without triggering effect re-runs
+  const activeChannelRef = useRef(activeChannel);
+  useEffect(() => {
+      activeChannelRef.current = activeChannel;
+  }, [activeChannel]);
+
   // Listen for unread messages in background channels
   useEffect(() => {
     if (!user) return;
     
-    // We need to listen to all channels to track unread counts
-    // This is a simplified approach. Ideally, we'd have a separate listener for "lastMessage" of each channel.
-    // For now, we'll rely on the global listener in Sidebar to handle the "Global" count,
-    // but for specific channels, we can listen to `users/{uid}/unreadChannelCounts` if we implemented that,
-    // OR we can just listen to the channels we know about.
-    
-    // Let's implement a local listener for unread counts if the user is in the Chat component
     const handleNewBackgroundMessage = (snapshot, channelId) => {
-      if (channelId === activeChannel) return; // Already viewing
+      // Check against current active channel
+      if (channelId === activeChannelRef.current) return;
       
       const msg = snapshot.val();
       if (!msg || msg.uid === user.uid) return;
@@ -404,22 +410,24 @@ const Chat = () => {
     };
 
     const listeners = [];
+    const now = Date.now(); // Only listen for messages arriving AFTER this point
     
     // Listen to global
-    const globalRef = query(ref(db, "global_chat"), limitToLast(1));
+    // Use startAt to avoid fetching existing history as "new"
+    const globalRef = query(ref(db, "global_chat"), orderByChild('timestamp'), startAt(now));
     const unsubGlobal = onChildAdded(globalRef, (snap) => handleNewBackgroundMessage(snap, "global"));
     listeners.push(unsubGlobal);
     
     // Listen to subjects
     subjects.forEach(sub => {
-      const subRef = query(ref(db, `channels/${sub.id}`), limitToLast(1));
+      const subRef = query(ref(db, `channels/${sub.id}`), orderByChild('timestamp'), startAt(now));
       const unsub = onChildAdded(subRef, (snap) => handleNewBackgroundMessage(snap, sub.id));
       listeners.push(unsub);
     });
     
     // Listen to private/DMs
     [...privateChannels, ...directMessages].forEach(ch => {
-      const chRef = query(ref(db, `channels/${ch.id}/messages`), limitToLast(1));
+      const chRef = query(ref(db, `channels/${ch.id}/messages`), orderByChild('timestamp'), startAt(now));
       const unsub = onChildAdded(chRef, (snap) => handleNewBackgroundMessage(snap, ch.id));
       listeners.push(unsub);
     });
@@ -427,7 +435,7 @@ const Chat = () => {
     return () => {
       listeners.forEach(unsub => unsub());
     };
-  }, [user, activeChannel, privateChannels, directMessages]);
+  }, [user, privateChannels, directMessages]); // Removed activeChannel dependency
 
   // Clear unread for active channel
   useEffect(() => {
@@ -805,19 +813,47 @@ const Chat = () => {
         lastUpdated: serverTimestamp(),
       });
 
-      // Add to both users' channels
+      // Add to CURRENT user's channels (Self-write is allowed)
       await set(ref(db, `users/${user.uid}/channels/${channelId}`), true);
-      await set(ref(db, `users/${targetUser.uid}/channels/${channelId}`), true);
+      
+      // We CANNOT write to targetUser's channels directly due to security rules.
+      // Instead, we send a notification. When they click it, THEY will write to their own channel list.
+      const notifRef = push(ref(db, `users/${targetUser.uid}/notifications`));
+      await set(notifRef, {
+        type: 'dm_invite',
+        title: 'New Message',
+        message: `${user.displayName} started a chat with you.`,
+        channelId: channelId,
+        senderUid: user.uid,
+        timestamp: serverTimestamp(),
+        read: false
+      });
 
       setActiveChannel(channelId);
       setActiveChannelName(targetUser.displayName);
       setShowUserPicker(false);
       setUserSearch(""); // Reset search
+      console.log("DM Started Successfully:", channelId);
+      toast.success(`Chat started with ${targetUser.displayName}`);
     } catch (err) {
       console.error("Start DM Error:", err);
       setError(err.message);
+      toast.error(`Failed to start chat: ${err.message}`);
     }
   };
+
+  // Handle incoming DM from Profile Modal
+  useEffect(() => {
+    console.log("Chat Init Check - User:", user?.uid, "State:", location.state);
+    if (location.state?.dmUser && user) {
+      console.log("Starting DM with:", location.state.dmUser);
+      startDM(location.state.dmUser);
+      // Clear state to avoid re-triggering
+      navigate(location.pathname, { replace: true, state: {} });
+    } else {
+        console.log("Skipping DM init: User missing or No DM User state");
+    }
+  }, [location.state, user]);
 
   const addUserToChannel = async (targetUser) => {
     if (
@@ -883,102 +919,14 @@ const Chat = () => {
     u.displayName.toLowerCase().includes(userSearch.toLowerCase())
   );
 
-  // Profile Card State
-  const [selectedUserProfile, setSelectedUserProfile] = useState(null);
-
-  const handleProfileClick = (msgUser) => {
-    setSelectedUserProfile(msgUser);
-  };
-
-  const handleStartDirectChat = () => {
-    if (selectedUserProfile) {
-      startDM(selectedUserProfile);
-      setSelectedUserProfile(null);
-    }
-  };
+  // Profile Card State Removed
+  // const [selectedUserProfile, setSelectedUserProfile] = useState(null);
+  // handleProfileClick removed
+  // handleStartDirectChat removed
 
   return (
     <div className="chat-layout">
-      {/* Profile Card Modal */}
-      <AnimatePresence>
-        {selectedUserProfile && (
-          <motion.div
-            className="profile-modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedUserProfile(null)}
-            style={{ zIndex: 1100 }}
-          >
-            <motion.div
-              className="profile-modal-card"
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div 
-                className="modal-banner" 
-                style={{ 
-                  background: selectedUserProfile.bannerGradient || 
-                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-                }}
-              />
-              <div className="modal-content">
-                <div className="modal-avatar">
-                  <UserAvatar
-                    photoURL={selectedUserProfile.photoURL}
-                    displayName={selectedUserProfile.displayName}
-                    avatarColor={selectedUserProfile.avatarColor}
-                    className="profile-avatar-large"
-                  />
-                </div>
-                <h2 className="modal-name">
-                  {selectedUserProfile.displayName || 'Unknown User'}
-                  {selectedUserProfile.tag && <span className="modal-tag">{selectedUserProfile.tag}</span>}
-                </h2>
-                <div className="modal-stats">
-                  <div className="stat-item">
-                    <span className="label">Status</span>
-                    <span className="value">
-                      {selectedUserProfile.isAnonymous ? "Anonymous" : "Online"}
-                    </span>
-                  </div>
-                  {selectedUserProfile.totalTime !== undefined && (
-                    <div className="stat-item">
-                      <span className="label">Study Time</span>
-                      <span className="value">{selectedUserProfile.totalTime}</span>
-                    </div>
-                  )}
-                  {selectedUserProfile.currency !== undefined && (
-                    <div className="stat-item">
-                      <span className="label">Lumens</span>
-                      <span className="value">💡 {selectedUserProfile.currency}</span>
-                    </div>
-                  )}
-                </div>
-                
-                {user && user.uid !== selectedUserProfile.uid && (
-                  <div className="profile-actions">
-                    <button 
-                      className="action-btn primary"
-                      onClick={handleStartDirectChat}
-                    >
-                      <Send size={16} />
-                      {directMessages.some(dm => dm.id.includes(selectedUserProfile.uid)) 
-                        ? "Send Message" 
-                        : "Start Chat"}
-                    </button>
-                  </div>
-                )}
-              </div>
-              <button className="close-btn" onClick={() => setSelectedUserProfile(null)}>
-                Close
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Profile Card Modal Removed - Uses Global UIContext */}
 
       <div className="typing-indicator-area" style={{ 
           padding: '0 1rem', 
@@ -1317,6 +1265,43 @@ const Chat = () => {
             </div>
           ))}
 
+          {directMessages.length > 0 && (
+              <div className="section-label mt-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>DIRECT MESSAGES</span>
+                  <Plus size={14} style={{ cursor: 'pointer' }} onClick={() => setShowUserPicker(true)} />
+              </div>
+          )}
+
+          {directMessages.map((dm) => (
+             <div
+               key={dm.id}
+               className={`channel-item ${activeChannel === dm.id ? "active" : ""}`}
+               onClick={() => {
+                 setActiveChannel(dm.id);
+                 setActiveChannelName(dm.name);
+               }}
+             >
+               <div className="channel-icon-wrapper">
+                 <img 
+                    src={dm.photoURL || "https://ui-avatars.com/api/?background=random&name=" + dm.name} 
+                    alt="avatar" 
+                    style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'cover' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                 />
+                 <span style={{ fontSize: '10px', marginLeft: 4 }}>
+                    {/* Fallback icon if img fails or is just loading, usually adjacent */}
+                 </span>
+               </div>
+               <span>{dm.name}</span>
+               {unreadChannels[dm.id] > 0 && (
+                 <span className="channel-badge">{unreadChannels[dm.id]}</span>
+               )}
+               {/* 
+                 Optional: Add status dot if we have user status 
+               */}
+             </div>
+          ))}
+
         </div>
         
         {/* User Status Bar - Fixed at Bottom */}
@@ -1461,12 +1446,18 @@ const Chat = () => {
                     }`}
                     >
                      {!anonymousMode && (
-                        <UserAvatar
-                        photoURL={msg.photoURL}
-                        displayName={msg.displayName}
-                        avatarColor={msg.avatarColor}
-                        className="message-avatar"
-                        />
+                        <div 
+                          className="avatar-wrapper"
+                          onClick={() => !msg.isAnonymous && openProfile(msg.uid)}
+                          style={{ cursor: msg.isAnonymous ? 'default' : 'pointer' }}
+                        >
+                          <UserAvatar
+                          photoURL={msg.photoURL}
+                          displayName={msg.displayName}
+                          avatarColor={msg.avatarColor}
+                          className="message-avatar"
+                          />
+                        </div>
                      )}
 
                     <div className="message-content">
@@ -1475,6 +1466,8 @@ const Chat = () => {
                             className={`sender-name ${
                             msg.role === "Verified Student" || msg.role === "Teacher" ? "verified" : ""
                             }`}
+                            onClick={() => !msg.isAnonymous && openProfile(msg.uid)}
+                            style={{ cursor: msg.isAnonymous ? 'default' : 'pointer' }}
                         >
                             {msg.displayName}
                             {msg.role === "Verified Student" && (

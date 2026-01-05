@@ -14,8 +14,11 @@ import { User, CalendarEvent } from "@/types";
 const colors = [
   "var(--color-primary)",
   "var(--color-secondary)",
-  "#e79950",
-  "#e94f4f",
+  "var(--color-accent, #e79950)",
+  "#ef4444", // Danger/Red
+  "#22c55e", // Success/Green
+  "#3b82f6", // Blue
+  "#a855f7", // Purple
 ];
 const days = [
   "Monday",
@@ -336,8 +339,8 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
                 onClick={() => setIsMagicFillOpen(true)}
                 title="Auto-fill empty slots"
                 style={{ 
-                    background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', 
-                    color: 'var(--bg-body)',
+                    background: 'var(--color-secondary)', 
+                    color: '#fff',
                     fontWeight: 'bold',
                     marginRight: '0.5rem',
                     display: 'flex',
@@ -385,7 +388,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
                     type="button" 
                     className="btn-primary" 
                     onClick={() => handleMagicFill()}
-                    style={{ background: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', color: 'var(--bg-body)', fontWeight: 600 }}
+                    style={{ background: 'var(--color-secondary)', color: 'white', fontWeight: 600 }}
                 >
                   Auto-Schedule
                 </button>

@@ -1,77 +1,70 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 interface UIContextType {
+  // Navigation
   isNavCollapsed: boolean;
+  setIsNavCollapsed: (val: boolean) => void;
   toggleNav: () => void;
-  setNavCollapsed: (collapsed: boolean) => void;
-  isMobile: boolean;
+
+  // Focus Mode
   focusModeActive: boolean;
-  toggleFocusMode: (e?: React.MouseEvent | React.TouchEvent) => void;
-  setFocusModeActive: (active: boolean) => void;
+  setFocusModeActive: (val: boolean) => void;
+
+  // Command Palette
   showCommandPalette: boolean;
-  setShowCommandPalette: (show: boolean) => void;
-  toggleCommandPalette: () => void;
+  setShowCommandPalette: (val: boolean) => void;
+
+  // Music Player
   showMusicPlayer: boolean;
-  setShowMusicPlayer: (show: boolean) => void;
+  setShowMusicPlayer: (val: boolean) => void;
+
+  // Global Profile Modal
+  selectedUserId: string | null;
+  openProfile: (userId: string) => void;
+  closeProfile: () => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
-export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function UIProvider({ children }: { children: React.ReactNode }) {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [focusModeActive, setFocusModeActive] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showMusicPlayer, setShowMusicPlayer] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  // Persist music player preference
-  const [showMusicPlayer, setShowMusicPlayer] = useState(() => {
-    const saved = localStorage.getItem('ui-show-music-player');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('ui-show-music-player', JSON.stringify(showMusicPlayer));
-  }, [showMusicPlayer]);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const toggleNav = () => setIsNavCollapsed(prev => !prev);
-
-  const toggleFocusMode = (e?: React.MouseEvent | React.TouchEvent) => {
-    if (e && e.stopPropagation) e.stopPropagation();
-    setFocusModeActive(prev => !prev);
+  const toggleNav = () => setIsNavCollapsed((prev) => !prev);
+  
+  const openProfile = (userId: string) => {
+    setSelectedUserId(userId);
   };
 
-  const toggleCommandPalette = () => setShowCommandPalette(prev => !prev);
+  const closeProfile = () => {
+    setSelectedUserId(null);
+  };
 
-  return (
-    <UIContext.Provider value={{
-      isNavCollapsed,
-      toggleNav,
-      setNavCollapsed: setIsNavCollapsed,
-      isMobile,
-      focusModeActive,
-      toggleFocusMode,
-      setFocusModeActive,
-      showCommandPalette,
-      setShowCommandPalette,
-      toggleCommandPalette,
-      showMusicPlayer,
-      setShowMusicPlayer
-    }}>
-      {children}
-    </UIContext.Provider>
-  );
-};
+  const value = {
+    isNavCollapsed,
+    setIsNavCollapsed,
+    toggleNav,
+    focusModeActive,
+    setFocusModeActive,
+    showCommandPalette,
+    setShowCommandPalette,
+    showMusicPlayer,
+    setShowMusicPlayer,
+    selectedUserId,
+    openProfile,
+    closeProfile,
+  };
 
-export const useUI = () => {
+  return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
+}
+
+export function useUI() {
   const context = useContext(UIContext);
   if (context === undefined) {
     throw new Error("useUI must be used within a UIProvider");
   }
   return context;
-};
+}

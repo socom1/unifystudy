@@ -1,13 +1,14 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Plus, X, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X, Clock, Calendar as CalendarIcon, Sparkles, Edit2, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db, auth } from '@/services/firebaseConfig';
 import { ref, onValue } from 'firebase/database';
 import './YearlyCalendar.scss';
 
 const YearlyCalendar = () => {
+  // Force re-render for UI update
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
@@ -19,6 +20,8 @@ const YearlyCalendar = () => {
   const [eventEndDate, setEventEndDate] = useState({ month: 0, day: 1 });
   const [isDateRange, setIsDateRange] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
+  const [showSidebar, setShowSidebar] = useState(false); // Mobile sidebar toggle
+
   // Subject Integration
   const [userId, setUserId] = useState(null);
   const [subjects, setSubjects] = useState([]);
@@ -28,30 +31,17 @@ const YearlyCalendar = () => {
   const location = useLocation();
   useEffect(() => {
     if (location.state?.autoOpenModal && location.state?.initialEventSubject) {
-        // Wait for subjects to load? Or just set it?
-        // Let's set it after a small delay or check subjects length
-        // Actually, we can just set it and let the modal handle it
         setTimeout(() => {
              setEventType('exam');
              setSelectedSubjectId(location.state.initialEventSubject);
-             
-             // Try to find subject name for auto-fill
-             // Note: subjects might not be loaded yet. 
-             // Ideally we should wait for subjects, but for now we can rely on user selecting or just passing name too?
-             // Simpler: Just open modal in exam mode
              openEventModal('exam');
              setSelectedSubjectId(location.state.initialEventSubject);
         }, 500);
         
-        // Clear state to prevent reopening on refresh? 
-        // React Router state persists on refresh usually, but good to consume it.
         window.history.replaceState({}, document.title);
     }
-  }, [location, subjects]); // Depend on subjects? Maybe.
+  }, [location, subjects]);
 
-
-
-  
   // Day details panel
   const [selectedDayForDetails, setSelectedDayForDetails] = useState(null);
   const [showDayDetails, setShowDayDetails] = useState(false);
@@ -96,28 +86,12 @@ const YearlyCalendar = () => {
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
-  // Sync Status
-  const [syncStatus, setSyncStatus] = useState({ google: false, outlook: false });
-  useEffect(() => {
-    const checkSync = () => {
-      const saved = localStorage.getItem('calendar-sync-status');
-      if (saved) setSyncStatus(JSON.parse(saved));
-    };
-    checkSync();
-    window.addEventListener('storage', checkSync); // Listen for changes
-    return () => window.removeEventListener('storage', checkSync);
-    checkSync();
-    window.addEventListener('storage', checkSync); // Listen for changes
-    return () => window.removeEventListener('storage', checkSync);
-  }, []);
-
-  // Fetch User ID
+  // Fetch User ID & Subjects
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((u) => setUserId(u ? u.uid : null));
     return () => unsub();
   }, []);
 
-  // Fetch Subjects
   useEffect(() => {
     if (!userId) return;
     const gradesRef = ref(db, `users/${userId}/grades`);
@@ -205,8 +179,9 @@ const YearlyCalendar = () => {
       name: eventName,
       month: selectedDate.month,
       day: selectedDate.day,
+      year: currentYear, // Save the current view year
       time: eventTime,
-      subjectId: selectedSubjectId, // Save linked subject
+      subjectId: selectedSubjectId, 
     };
 
     if (isDateRange && (eventEndDate.month !== selectedDate.month || eventEndDate.day !== selectedDate.day)) {
@@ -234,8 +209,16 @@ const YearlyCalendar = () => {
 
   const getEventsForDay = (month, day) => {
     return events.filter(event => {
+      // Check for specific year if saved, otherwise match any year (legacy behavior) OR match current view year
+      // For simplicity, if event has no year, we assume it repeats or is for this year.
+      // But strictly, let's just match month/day for display in the grid (which is per month)
+      // Ideally we filter by year too.
+      const eventYear = event.year || currentYear; 
+      if (eventYear !== currentYear) return false;
+
       if (event.month === month && event.day === day) return true;
       if (event.endMonth !== undefined) {
+        // ... (date range logic)
         const startDate = new Date(currentYear, event.month, event.day);
         const endDate = new Date(currentYear, event.endMonth, event.endDay);
         const checkDate = new Date(currentYear, month, day);
@@ -245,9 +228,54 @@ const YearlyCalendar = () => {
     });
   };
 
+  // Force update every minute to keep comparison fresh
+  const [nowTick, setNowTick] = useState(Date.now());
+  
+  useEffect(() => {
+    const interval = setInterval(() => setNowTick(Date.now()), 60000); // Every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  // --- Upcoming Events Logic ---
+  const upcomingEvents = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const now = new Date(); // Actual current time
+
+    const futureEvents = events.map(event => {
+      // Ensure numeric types
+      const y = event.year || now.getFullYear();
+      const m = parseInt(event.month);
+      const d = parseInt(event.day);
+      const eDate = new Date(y, m, d);
+      return { ...event, dateObj: eDate };
+    })
+    .filter(e => {
+        // Filter out past dates (yesterday or earlier)
+        if (e.dateObj < today) return false;
+        
+        // If it's today, check if time has passed
+        if (e.dateObj.getTime() === today.getTime() && e.time) {
+            const [hours, minutes] = e.time.split(':').map(Number);
+            const eventTime = new Date();
+            eventTime.setHours(hours, minutes, 0, 0);
+            
+            // If event time is earlier than right now, it's passed
+            if (eventTime < now) return false;
+        }
+        return true;
+    }) 
+    .sort((a, b) => a.dateObj - b.dateObj)
+    .slice(0, 5);
+
+    return futureEvents;
+  }, [events, nowTick]); // Dependency on nowTick ensures re-calc
+
+
   const variants = {
     enter: (direction) => ({
-      x: direction > 0 ? 500 : -500,
+      x: direction > 0 ? 50 : -50, // Reduced movement for cleaner feel
       opacity: 0
     }),
     center: {
@@ -257,7 +285,7 @@ const YearlyCalendar = () => {
     },
     exit: (direction) => ({
       zIndex: 0,
-      x: direction < 0 ? 500 : -500,
+      x: direction < 0 ? 50 : -50,
       opacity: 0
     })
   };
@@ -271,25 +299,26 @@ const YearlyCalendar = () => {
       days.push(<div key={`empty-${i}`} className="day empty"></div>);
     }
 
+    const today = new Date();
+    const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+
     for (let d = 1; d <= daysInMonth; d++) {
       const dayEvents = getEventsForDay(currentMonth, d);
       const hasHoliday = dayEvents.some(e => e.type === 'holiday');
       const hasExam = dayEvents.some(e => e.type === 'exam');
+      const isToday = isCurrentMonth && today.getDate() === d;
       
       days.push(
         <div 
           key={d} 
-          className={`day ${hasHoliday ? 'holiday' : ''} ${hasExam ? 'exam' : ''} ${dayEvents.length > 1 ? 'multi-event' : ''}`}
+          className={`day ${isToday ? 'today' : ''}`}
           onClick={() => handleDayClick(currentMonth, d)}
         >
           <span className="day-number">{d}</span>
-          <div className="day-events-preview">
-            {dayEvents.slice(0, 3).map((ev, idx) => (
-              <div key={idx} className={`event-row ${ev.type}`} title={ev.name}>
-                {ev.name}
-              </div>
+          <div className="day-dots">
+            {dayEvents.map((ev, idx) => (
+               <div key={idx} className={`dot ${ev.type}`} title={ev.name} />
             ))}
-            {dayEvents.length > 3 && <span className="more-events">+{dayEvents.length - 3}</span>}
           </div>
         </div>
       );
@@ -310,7 +339,7 @@ const YearlyCalendar = () => {
         }}
       >
         <div className="days-grid">
-          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d, i) => (
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
             <div key={i} className="day-label">{d}</div>
           ))}
           {days}
@@ -325,33 +354,76 @@ const YearlyCalendar = () => {
     <div className="yearly-calendar">
       <header className="calendar-header">
         <div className="controls">
-          <button onClick={handlePrev}><ChevronLeft /></button>
+          <button onClick={handlePrev}><ChevronLeft size={24} /></button>
           <h1>{months[currentMonth]} {currentYear}</h1>
-          <button onClick={handleNext}><ChevronRight /></button>
+          <button onClick={handleNext}><ChevronRight size={24} /></button>
         </div>
         
         <div className="header-actions">
-          <div className="event-buttons">
-            <button 
-              className="add-event-btn holiday" 
-              onClick={() => openEventModal('holiday')}
-            >
-              <Plus size={16} /> Holiday
-            </button>
-            <button 
-              className="add-event-btn exam" 
-              onClick={() => openEventModal('exam')}
-            >
-              <Plus size={16} /> Exam
-            </button>
-          </div>
+          <button className="add-event-btn holiday" onClick={() => openEventModal('holiday')}>
+            <Sparkles size={16} /> Holiday
+          </button>
+          <button className="add-event-btn exam" onClick={() => openEventModal('exam')}>
+            <Plus size={16} /> Exam
+          </button>
         </div>
       </header>
       
       <div className="calendar-content">
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
-          {renderMonth()}
-        </AnimatePresence>
+        <div className="calendar-main-area">
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            {renderMonth()}
+          </AnimatePresence>
+          
+          {/* Mobile Toggle Button */}
+          <button 
+             className="upcoming-toggle-btn"
+             onClick={() => setShowSidebar(!showSidebar)}
+             title="Toggle Upcoming Events"
+          >
+             <Clock size={24} />
+          </button>
+        </div>
+        
+        {/* Sidebar for Upcoming - Toggle class based on state */}
+        <div className={`upcoming-sidebar ${showSidebar ? 'open' : ''}`}>
+           <div className="sidebar-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+              <h3><Clock size={18} /> Upcoming</h3>
+              {/* Close button for mobile */}
+              <button 
+                className="close-sidebar-btn" 
+                onClick={() => setShowSidebar(false)}
+                style={{
+                  display: 'none', // Hidden on desktop via CSS potentially, but inline for now
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={20} />
+              </button>
+           </div>
+           
+           <div className="upcoming-list">
+             {upcomingEvents.length === 0 ? (
+                <div className="no-upcoming">No upcoming events soon</div>
+             ) : (
+                upcomingEvents.map(ev => (
+                  <div key={ev.id} className="upcoming-item">
+                     <div className="up-header">
+                        <span className="up-date">{months[ev.month].substring(0,3)} {ev.day}, {ev.year || currentYear}</span>
+                        <div className={`up-badge ${ev.type}`} />
+                     </div>
+                     <h4>{ev.name}</h4>
+                     {ev.time && (
+                       <span className="up-time"><Clock size={12}/> {ev.time}</span>
+                     )}
+                  </div>
+                ))
+             )}
+           </div>
+        </div>
       </div>
 
       {/* Event Modal */}
@@ -366,9 +438,9 @@ const YearlyCalendar = () => {
           >
             <motion.div 
               className="modal-content"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
             >
               <h2>{editingEventId ? 'Edit' : 'Add'} {eventType === 'holiday' ? 'Holiday' : 'Exam'}</h2>
@@ -379,12 +451,11 @@ const YearlyCalendar = () => {
                   type="text" 
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
-                  placeholder={eventType === 'holiday' ? 'e.g., Christmas' : 'e.g., Math Final'}
+                  placeholder={eventType === 'holiday' ? 'e.g., Winter Break' : 'e.g., Calculus Midterm'}
                   autoFocus
                 />
               </div>
 
-              {/* Subject Selection (for syncing with Grades) */}
               {subjects.length > 0 && (
                   <div className="form-group">
                     <label>Link Subject (Optional)</label>
@@ -392,7 +463,6 @@ const YearlyCalendar = () => {
                         value={selectedSubjectId} 
                         onChange={(e) => {
                             setSelectedSubjectId(e.target.value);
-                            // Auto-fill name if empty
                             const sub = subjects.find(s => s.id === e.target.value);
                             if (sub && !eventName) {
                                 setEventName(`${sub.name} Exam`);
@@ -420,11 +490,12 @@ const YearlyCalendar = () => {
 
               {eventType === 'holiday' && (
                 <div className="form-group checkbox-group">
-                  <label>
+                  <label style={{display:'flex', gap:'0.5rem', alignItems:'center'}}>
                     <input 
                       type="checkbox" 
                       checked={isDateRange}
                       onChange={(e) => setIsDateRange(e.target.checked)}
+                      style={{width:'auto'}}
                     />
                     Date Range
                   </label>
@@ -485,7 +556,7 @@ const YearlyCalendar = () => {
 
               <div className="modal-actions">
                 <button onClick={closeEventModal}>Cancel</button>
-                <button className="primary" onClick={saveEvent}>Save</button>
+                <button className="primary" onClick={saveEvent}>Save Event</button>
               </div>
             </motion.div>
           </motion.div>
@@ -497,33 +568,33 @@ const YearlyCalendar = () => {
         {showDayDetails && selectedDayForDetails && (
           <motion.div 
             className="day-details-panel"
-            initial={{ x: 400 }}
+            initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: 400 }}
+            exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
             <div className="panel-header">
               <h3>
-                <CalendarIcon size={20} />
-                {months[selectedDayForDetails.month]} {selectedDayForDetails.day}, {currentYear}
+                <CalendarIcon size={18} />
+                {months[selectedDayForDetails.month]} {selectedDayForDetails.day}
               </h3>
               <button onClick={() => setShowDayDetails(false)}>
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             <div className="panel-content">
               {dayDetailsEvents.length === 0 ? (
-                <div className="no-events">
-                  <p>No events on this day</p>
+                <div className="no-events" style={{textAlign:'center', marginTop:'2rem', opacity:0.6}}>
+                  <p>No events today</p>
                   <button 
-                    className="add-event-btn exam" 
+                    style={{marginTop:'1rem', background:'transparent', border:'1px solid var(--border-color)', padding:'0.5rem 1rem', borderRadius:'8px', cursor:'pointer', color:'var(--text-primary)'}}
                     onClick={() => {
                       setShowDayDetails(false);
                       openEventModal('exam', selectedDayForDetails.month, selectedDayForDetails.day);
                     }}
                   >
-                    <Plus size={16} /> Add Event
+                    + Add Event
                   </button>
                 </div>
               ) : (
@@ -532,42 +603,33 @@ const YearlyCalendar = () => {
                     <motion.div 
                       key={event.id} 
                       className={`event-card ${event.type}`}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      whileHover={{ scale: 1.02 }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
                     >
-                      <div className="event-header">
-                        <span className={`event-badge ${event.type}`}>
-                          {event.type === 'holiday' ? '🎉' : '📝'} {event.type}
-                        </span>
-                        <div className="event-actions">
-                          <button 
-                            onClick={() => {
-                              setShowDayDetails(false);
-                              openEventModal(event.type, event.month, event.day, event.id);
-                            }}
-                            title="Edit"
-                          >
-                            ✏️
-                          </button>
-                          <button 
-                            onClick={() => deleteEvent(event.id)}
-                            title="Delete"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
+                         <h4 style={{fontSize:'1rem'}}>{event.name}</h4>
+                         <div style={{display:'flex', gap:'0.5rem'}}>
+                           <button 
+                             onClick={() => { setShowDayDetails(false); openEventModal(event.type, event.month, event.day, event.id); }} 
+                             className="icon-btn edit"
+                             title="Edit"
+                           >
+                             <Edit2 size={16} />
+                           </button>
+                           <button 
+                             onClick={() => deleteEvent(event.id)} 
+                             className="icon-btn delete"
+                             title="Delete"
+                           >
+                             <Trash2 size={16} />
+                           </button>
+                         </div>
                       </div>
-                      <h4>{event.name}</h4>
+                      
                       {event.time && (
                         <div className="event-time">
-                          <Clock size={14} />
+                          <Clock size={12} style={{display:'inline', marginRight:'4px'}} />
                           {event.time}
-                        </div>
-                      )}
-                      {event.endMonth !== undefined && (
-                        <div className="event-duration">
-                          {months[event.month]} {event.day} - {months[event.endMonth]} {event.endDay}
                         </div>
                       )}
                     </motion.div>
@@ -584,7 +646,7 @@ const YearlyCalendar = () => {
                   openEventModal('exam', selectedDayForDetails.month, selectedDayForDetails.day);
                 }}
               >
-                <Plus size={16} /> Add Another Event
+                <Plus size={16} /> Quick Add
               </button>
             </div>
           </motion.div>

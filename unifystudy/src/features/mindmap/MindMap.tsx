@@ -388,7 +388,7 @@ const MindMapApp = () => {
     e.preventDefault();
     if (!modalInput.trim() && modalType !== "createNode" && modalType !== "editNode") return; 
 
-    let newStore = { ...store };
+    const newStore = { ...store };
     let newActiveFolderId = activeFolderId;
     let newActiveMapId = activeMapId;
 

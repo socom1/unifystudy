@@ -764,173 +764,7 @@
   }
 }
 
-// Profile Modal Styles (matching Leaderboard design)
-.profile-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-  padding: 1rem;
-}
 
-.profile-modal-card {
-  background: #1a1f23;
-  width: 100%;
-  max-width: 400px;
-  border-radius: 24px;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-
-  .modal-banner {
-    height: 140px;
-    width: 100%;
-  }
-
-  .modal-content {
-    padding: 0 2rem 2rem;
-    margin-top: -50px;
-    position: relative;
-    text-align: center;
-
-    .modal-avatar {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      border: 4px solid #1a1f23;
-      margin: 0 auto 1rem;
-      overflow: hidden;
-      background: #1a1f23;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-
-      .profile-avatar-large {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-      }
-
-      .avatar-placeholder {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        font-weight: 700;
-      }
-    }
-
-    .modal-name {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.8rem;
-      flex-wrap: wrap;
-
-      .modal-tag {
-        font-size: 0.9rem;
-        padding: 0.3rem 0.8rem;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        color: var(--color-muted);
-        font-weight: 600;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-    }
-
-    .modal-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      background: rgba(255, 255, 255, 0.03);
-      padding: 1.2rem;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      margin-bottom: 1rem;
-
-      .stat-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-
-        .label {
-          font-size: 0.8rem;
-          color: var(--color-muted);
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          font-weight: 600;
-        }
-
-        .value {
-          font-size: 1.4rem;
-          font-weight: 800;
-          color: var(--color-primary);
-        }
-      }
-    }
-
-    .profile-actions {
-      margin-top: 1rem;
-
-      .action-btn {
-        width: 100%;
-        padding: 1rem;
-        border-radius: 12px;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &.primary {
-          background: var(--color-primary);
-          color: white;
-
-          &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-          }
-        }
-      }
-    }
-  }
-
-  .close-btn {
-    width: 100%;
-    padding: 1.2rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    color: var(--color-muted);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.9rem;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-    }
-  }
-}
 
 // Mobile Responsive
 @media (max-width: 768px) {
@@ -1055,7 +889,12 @@
 
   &:hover {
     background: var(--bg-3);
-    color: var(--color-text);
+    color: var(--color-primary);
+  }
+
+  &.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
   }
 
   /* Ensure icons are sizeable */
@@ -1183,4 +1022,132 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 300px;
+}
+
+// Corrected Status Bar Styles
+.user-status-bar {
+  margin-top: auto;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  user-select: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    
+    .dropdown-arrow {
+      opacity: 1;
+      transform: translateY(2px);
+    }
+  }
+
+  .status-avatar-wrapper {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+
+    &.online { color: #39d353; background: rgba(57, 211, 83, 0.1); }
+    &.dnd { color: #ff5252; background: rgba(255, 82, 82, 0.1); }
+    &.idle { color: #fb8c00; background: rgba(251, 140, 0, 0.1); }
+    &.offline { color: #8b949e; background: rgba(139, 148, 158, 0.1); }
+  }
+
+  .user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #e6edf3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .status-text {
+      font-size: 0.75rem;
+      color: #8b949e;
+      line-height: 1.2;
+    }
+  }
+
+  .dropdown-arrow {
+    color: #8b949e;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+    
+    &.open {
+      transform: rotate(180deg);
+      opacity: 1;
+    }
+  }
+
+  .status-picker-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 1rem;
+    right: 1rem;
+    margin-bottom: 0.5rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    z-index: 100;
+    overflow: hidden;
+
+    .status-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 8px;
+      color: #c9d1d9;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      .icon {
+        opacity: 0.7;
+        transition: all 0.2s ease;
+      }
+
+      &.active {
+        background: rgba(255, 255, 255, 0.05);
+        .icon { opacity: 1; }
+      }
+
+      &:hover {
+        background: #39d353;
+        color: white;
+        
+        .icon {
+          opacity: 1;
+          color: white !important; // Override specific colors on hover for uniformity
+        }
+      }
+
+      // Specific icon colors when not hovered
+      .icon.online { color: #39d353; }
+      .icon.dnd { color: #ff5252; }
+      .icon.idle { color: #fb8c00; }
+      .icon.offline { color: #8b949e; }
+    }
+  }
 }

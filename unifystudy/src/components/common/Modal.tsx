@@ -25,8 +25,6 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
     return () => document.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const maxWidths = {
     sm: '400px',
     md: '500px',
@@ -36,7 +34,14 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="modal-backdrop" onClick={onClose}>
+        <motion.div 
+            className="modal-backdrop" 
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+        >
           <motion.div 
             className="modal-container"
             style={{ maxWidth: maxWidths[size] }}
@@ -63,7 +68,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
               </div>
             )}
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

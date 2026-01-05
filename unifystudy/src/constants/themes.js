@@ -1,7 +1,6 @@
 
 export const THEMES = [
   // Free / Default
-  { id: "default", name: "Default Dark", price: 0, color: "#1a1a2e", type: 'free' },
   { id: "light", name: "Light Mode", price: 0, color: "#f8f9fa", type: 'free' },
 
   // Coding Classics

@@ -2,11 +2,13 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { db, auth } from '@/services/firebaseConfig';
 import { ref, onValue, runTransaction } from 'firebase/database';
 import { toast } from 'sonner';
+import { syncUserToLeaderboard } from '@/services/leaderboardService';
 
 interface GamificationContextType {
   xp: number;
   level: number;
   progress: number; // 0-100% to next level
+  streak: number;
   addXP: (amount: number, reason: string) => Promise<void>;
 }
 
@@ -32,6 +34,7 @@ export const GamificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [xp, setXp] = useState(0);
     const [level, setLevel] = useState(1);
     const [progress, setProgress] = useState(0);
+    const [streak, setStreak] = useState(0);
     const [userId, setUserId] = useState<string | null>(null);
 
     // Listen to Auth
@@ -50,12 +53,19 @@ export const GamificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
 
         const statsRef = ref(db, `users/${userId}/stats`);
+        
+        // --- SYNC LEADERBOARD ---
+        // Ensure public data matches private data on load
+        syncUserToLeaderboard(userId);
+
         const unsub = onValue(statsRef, (snapshot) => {
             const data = snapshot.val();
             const currentXP = data?.xp || 0;
+            const currentStreak = data?.currentStreak || 0;
             console.log("[Gamification] onValue XP:", currentXP);
             
             setXp(currentXP);
+            setStreak(currentStreak);
             
             const currentLevel = calculateLevel(currentXP);
             setLevel(currentLevel);
@@ -112,7 +122,7 @@ export const GamificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     return (
-        <GamificationContext.Provider value={{ xp, level, progress, addXP }}>
+        <GamificationContext.Provider value={{ xp, level, progress, streak, addXP }}>
             {children}
         </GamificationContext.Provider>
     );

@@ -1,0 +1,6 @@
+
+> unifystudy@1.0.0 type-check
+> tsc
+
+src/layout/AppLayout.tsx(105,49): error TS2322: Type '(user: User | null) => void' is not assignable to type '() => void'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.

@@ -23,8 +23,6 @@
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   z-index: 2000; /* High z-index to cover everything */
-  opacity: 0;
-  animation: fadeIn 0.2s forwards;
 }
 
 .modal-container {

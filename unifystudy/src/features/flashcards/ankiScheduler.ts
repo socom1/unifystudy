@@ -129,7 +129,7 @@ export class AnkiScheduler {
 
     public answerCard(card: Card, rating: Rating): Card {
         // Clone to avoid mutation side-effects before return
-        let c = { ...card };
+        const c = { ...card };
         const now = this.nowSecs();
 
         c.reps += 1;
@@ -155,32 +155,41 @@ export class AnkiScheduler {
         // Determine steps list based on type
         const steps = c.ctype === CardType.Relearn ? this.config.relearn_steps : this.config.learn_steps;
 
+        // Initialize learning state if New
+        if (c.ctype === CardType.New) {
+            c.ctype = CardType.Learn;
+            c.remaining_steps = steps.length;
+        }
+
         if (rating === Rating.Again) {
             // Fail: Reset to first step
             c.remaining_steps = steps.length;
             this.rescheduleLearning(c, steps[0], now);
-            // Don't change interval or ease for learning cards usually, but logic varies
-            // For new cards, interval is 0.
         } else if (rating === Rating.Hard) {
-            // Repeat current step (no progress)
-            // Interval: Average of previous step and next step? 
-            // Anki V3: Hard on learning card often repeats step with 1.5x delay or similar?
-            // Simplified: Just repeat current step delay
-            const currentStepIdx = steps.length - c.remaining_steps;
-            const delay = steps[currentStepIdx] || steps[0];
-            this.rescheduleLearning(c, delay, now);
+            // Repeat current step, but with progression?
+            // User feedback: "Looping" is annoying.
+            // Fix: Hard should push it slightly further, potentially out of the immediate <3m session.
+            // Anki V2 style: Average of current step and next step.
+            // Step 1 (1m), Step 2 (10m) -> Avg = 5.5m.
+            
+            const currentStepIdx = Math.max(0, steps.length - c.remaining_steps);
+            const currentDelay = steps[currentStepIdx] || steps[0];
+            const nextDelay = steps[currentStepIdx + 1] || currentDelay * 2; // Fallback if last step
+            
+            const newDelay = Math.floor((currentDelay + nextDelay) / 2);
+            this.rescheduleLearning(c, newDelay, now);
         } else if (rating === Rating.Good) {
-            // Advance step
-            if (c.remaining_steps > 1) {
-                // Move to next step
-                c.remaining_steps -= 1;
-                const nextStepIdx = steps.length - c.remaining_steps;
-                const delay = steps[nextStepIdx];
-                this.rescheduleLearning(c, delay, now);
-            } else {
-                // Graduate
-                this.graduateCard(c, false);
-            }
+             // Advance step
+             if (c.remaining_steps > 1) {
+                 // Move to next step
+                 c.remaining_steps -= 1;
+                 const nextStepIdx = steps.length - c.remaining_steps;
+                 const delay = steps[nextStepIdx];
+                 this.rescheduleLearning(c, delay, now);
+             } else {
+                 // Graduate
+                 this.graduateCard(c, false);
+             }
         } else if (rating === Rating.Easy) {
             // Graduate immediately
             this.graduateCard(c, true);
@@ -278,9 +287,14 @@ export class AnkiScheduler {
 
         // Map old 'state' to 'ctype'
         let ctype = CardType.New;
-        if (legacyCard.state === 'learning') ctype = CardType.Learn;
-        else if (legacyCard.state === 'review') ctype = CardType.Review;
-        else if (legacyCard.state === 'relearning') ctype = CardType.Relearn;
+        if (legacyCard.ctype !== undefined) {
+             ctype = legacyCard.ctype;
+        } else {
+            // Legacy Migration
+            if (legacyCard.state === 'learning') ctype = CardType.Learn;
+            else if (legacyCard.state === 'review') ctype = CardType.Review;
+            else if (legacyCard.state === 'relearning') ctype = CardType.Relearn;
+        }
 
         // Ensure defaults
         return {
@@ -291,7 +305,7 @@ export class AnkiScheduler {
             back: legacyCard.back || '',
 
             ctype: ctype,
-            queue: CardQueue.New, // Default to New if unsure, will fix itself
+            queue: legacyCard.queue !== undefined ? legacyCard.queue : CardQueue.New,
             // V3 'due' (seconds) > Legacy 'dueDate' (ms) > Default (now)
             due: legacyCard.due !== undefined ? legacyCard.due : (legacyCard.dueDate ? Math.floor(legacyCard.dueDate / 1000) : now),
 
@@ -306,19 +320,19 @@ export class AnkiScheduler {
     // --- Statistics ---
     public getDeckCounts(cards: Card[]): { new: number, learn: number, review: number } {
         const now = this.nowSecs();
-        let counts = { new: 0, learn: 0, review: 0 };
+        const counts = { new: 0, learn: 0, review: 0 };
 
         for (const card of cards) {
             // New
             if (card.ctype === CardType.New) {
                 counts.new++;
             }
-            // Learn / Relearn (Count if due or in learning)
+                // Learn / Relearn (Count if due or in learning)
             else if (card.ctype === CardType.Learn || card.ctype === CardType.Relearn) {
                 // In Anki, "Learn" count usually includes ALL learning cards, or those due?
                 // Usually "Due" column shows due counts.
-                // Let's count "Due" for dashboard.
-                if (card.due <= now) counts.learn++;
+                // WE CHANGE: Include cards due within 20 mins (1200s) to allow Learn Ahead
+                if (card.due <= now + 1200) counts.learn++;
             }
             // Review
             else if (card.ctype === CardType.Review) {

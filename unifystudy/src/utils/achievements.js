@@ -7,7 +7,6 @@ export const ACHIEVEMENTS = [
     id: "first-steps",
     name: "First Steps",
     description: "Complete your first study session",
-    icon: "🌱",
     category: "study-time",
     reward: 100,
     criteria: {
@@ -19,7 +18,6 @@ export const ACHIEVEMENTS = [
     id: "getting-started",
     name: "Getting Started",
     description: "Study for 1 hour total",
-    icon: "⏰",
     category: "study-time",
     reward: 150,
     criteria: {
@@ -31,7 +29,6 @@ export const ACHIEVEMENTS = [
     id: "dedicated-learner",
     name: "Dedicated Learner",
     description: "Study for 10 hours total",
-    icon: "📚",
     category: "study-time",
     reward: 300,
     criteria: {
@@ -43,7 +40,6 @@ export const ACHIEVEMENTS = [
     id: "scholar",
     name: "Scholar",
     description: "Study for 50 hours total",
-    icon: "🎓",
     category: "study-time",
     reward: 500,
     criteria: {
@@ -55,7 +51,6 @@ export const ACHIEVEMENTS = [
     id: "master-student",
     name: "Master Student",
     description: "Study for 100 hours total",
-    icon: "🏆",
     category: "study-time",
     reward: 1000,
     criteria: {
@@ -69,7 +64,6 @@ export const ACHIEVEMENTS = [
     id: "on-fire",
     name: "On Fire",
     description: "Maintain a 3 day study streak",
-    icon: "🔥",
     category: "streak",
     reward: 200,
     criteria: {
@@ -81,7 +75,6 @@ export const ACHIEVEMENTS = [
     id: "unstoppable",
     name: "Unstoppable",
     description: "Maintain a 7 day study streak",
-    icon: "⚡",
     category: "streak",
     reward: 400,
     criteria: {
@@ -93,7 +86,6 @@ export const ACHIEVEMENTS = [
     id: "diamond-streak",
     name: "Diamond Streak",
     description: "Maintain a 30 day study streak",
-    icon: "💎",
     category: "streak",
     reward: 1500,
     criteria: {
@@ -107,7 +99,6 @@ export const ACHIEVEMENTS = [
     id: "focused",
     name: "Focused",
     description: "Complete 10 study sessions",
-    icon: "🎯",
     category: "sessions",
     reward: 250,
     criteria: {
@@ -119,7 +110,6 @@ export const ACHIEVEMENTS = [
     id: "iron-will",
     name: "Iron Will",
     description: "Complete 50 study sessions",
-    icon: "💪",
     category: "sessions",
     reward: 600,
     criteria: {
@@ -131,7 +121,6 @@ export const ACHIEVEMENTS = [
     id: "legendary",
     name: "Legendary",
     description: "Complete 100 study sessions",
-    icon: "🌟",
     category: "sessions",
     reward: 1200,
     criteria: {

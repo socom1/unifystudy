@@ -1,5 +1,6 @@
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue, off, update, push, runTransaction } from 'firebase/database';
 import { db } from './firebaseConfig';
+import { checkAchievements, getAchievementById } from "@/utils/achievements";
 
 /**
  * Subscribes to the users data for the leaderboard.
@@ -18,4 +19,182 @@ export const subscribeToLeaderboard = (callback) => {
   });
 
   return () => off(usersRef, listener);
+};
+
+/**
+ * Records a study session, updates stats, currency, leaderboard, and checks achievements.
+ * @param {string} uid - User ID
+ * @param {number} durationMinutes - Duration in minutes (can be float)
+ * @param {string} type - Session type ('pomodoro', 'flashcards', etc.)
+ * @returns {Promise<{ earnedCoins: number, unlocked: string[] }>}
+ */
+export const recordStudySession = async (uid, durationMinutes, type = 'study') => {
+  if (!uid || durationMinutes <= 0) return { earnedCoins: 0, unlocked: [] };
+
+  try {
+    const now = Date.now();
+    
+    // 1. Update stats (Streak Logic)
+    const statsRef = ref(db, `users/${uid}/stats`);
+    let finalStreak = 1;
+    
+    await runTransaction(statsRef, (currentStats) => {
+        if (!currentStats) return { lastSession: now, currentStreak: 1, totalStudyTime: 0, sessionCount: 0 };
+        
+        const last = currentStats.lastSession || 0;
+        const lastDate = new Date(last).setHours(0,0,0,0);
+        const todayDate = new Date(now).setHours(0,0,0,0);
+        
+        const diffDays = (todayDate - lastDate) / (1000 * 60 * 60 * 24);
+        
+        let newStreak = currentStats.currentStreak || 0;
+        
+        if (diffDays === 1) {
+            // Consecutive day
+            newStreak += 1;
+        } else if (diffDays > 1) {
+            // Broken streak
+            newStreak = 1;
+        } else if (diffDays === 0) {
+            // Same day, keep streak, but ensure it's at least 1
+            if (newStreak === 0) newStreak = 1;
+        }
+        
+        finalStreak = newStreak;
+        
+        return {
+            ...currentStats,
+            lastSession: now,
+            currentStreak: newStreak
+        };
+    });
+
+    // 2. Add to study_sessions
+    await push(ref(db, `users/${uid}/study_sessions`), {
+      duration: durationMinutes,
+      timestamp: now,
+      type: type
+    });
+
+    // 3. Update Total Study Time
+    const totalTimeRef = ref(db, `users/${uid}/stats/totalStudyTime`);
+    let finalTotalTime = 0;
+    await runTransaction(totalTimeRef, (current) => {
+      finalTotalTime = (current || 0) + durationMinutes;
+      return finalTotalTime;
+    });
+
+    // 4. Update Session Count
+    const sessionCountRef = ref(db, `users/${uid}/stats/sessionCount`);
+    let finalSessionCount = 0;
+    await runTransaction(sessionCountRef, (current) => {
+      finalSessionCount = (current || 0) + 1;
+      return finalSessionCount;
+    });
+
+    // 5. Check Achievements & Calculate Total Coins
+    // We already have finalStreak, finalTotalTime, finalSessionCount
+    const { newlyUnlocked, progress } = checkAchievements(
+      { totalStudyTime: finalTotalTime, sessionCount: finalSessionCount },
+      finalStreak
+    );
+
+    // Fetch previously unlocked to filter
+    const unlockedSnapshot = await new Promise((resolve) => {
+      onValue(ref(db, `users/${uid}/achievements/unlocked`), (snap) => resolve(snap), { onlyOnce: true });
+    });
+    const unlockedAchievements = unlockedSnapshot.val() || [];
+    const achievementsToUnlock = newlyUnlocked.filter(id => !unlockedAchievements.includes(id));
+
+    let achievementCoins = 0;
+    achievementsToUnlock.forEach(id => {
+        const ach = getAchievementById(id);
+        if (ach) achievementCoins += ach.reward;
+    });
+
+    const sessionCoins = Math.floor(durationMinutes);
+    const totalCoinsToAdd = sessionCoins + achievementCoins;
+
+    // 6. Update Currency (One Transaction)
+    const currencyRef = ref(db, `users/${uid}/currency`);
+    let finalCurrency = 0;
+    await runTransaction(currencyRef, (current) => {
+        finalCurrency = (current || 0) + totalCoinsToAdd;
+        return finalCurrency;
+    });
+
+    // 7. Store Achievements (if any)
+    if (achievementsToUnlock.length > 0) {
+       await update(ref(db, `users/${uid}/achievements`), {
+        unlocked: [...unlockedAchievements, ...achievementsToUnlock],
+        progress
+      });
+    }
+
+    // 8. Update Public Leaderboard (Authoritative Sync)
+    const publicLbRef = ref(db, `public_leaderboard/${uid}`);
+    
+    // Self-healing check (user profile data)
+    const publicUserSnap = await new Promise(r => onValue(publicLbRef, s => r(s), {onlyOnce: true}));
+    if (!publicUserSnap.exists() || !publicUserSnap.val().displayName) {
+        const privateSnap = await new Promise(r => onValue(ref(db, `users/${uid}`), s => r(s), {onlyOnce: true}));
+        const pVal = privateSnap.val();
+        if (pVal) {
+             await update(publicLbRef, {
+                 username: pVal.username || pVal.displayName || 'Student',
+                 displayName: pVal.displayName || 'Student',
+                 photoURL: pVal.photoURL || null
+             });
+        }
+    }
+
+    await update(publicLbRef, {
+        stats: { totalStudyTime: finalTotalTime },
+        currency: finalCurrency
+    });
+    
+    await push(ref(db, `public_leaderboard/${uid}/study_sessions`), {
+        duration: durationMinutes,
+        timestamp: now
+    });
+
+    return { earnedCoins: totalCoinsToAdd, unlocked: achievementsToUnlock };
+
+  } catch (error) {
+    console.error("Error recording study session:", error);
+    throw error;
+  }
+};
+
+/**
+ * Force syncs a user's private stats/currency to the public leaderboard.
+ * Call this on app start to ensure consistency.
+ */
+export const syncUserToLeaderboard = async (uid) => {
+    if (!uid) return;
+    try {
+        const userRef = ref(db, `users/${uid}`);
+        const snap = await new Promise(r => onValue(userRef, s => r(s), {onlyOnce: true}));
+        const userData = snap.val();
+
+        if (!userData) return;
+
+        const publicLbRef = ref(db, `public_leaderboard/${uid}`);
+        
+        await update(publicLbRef, {
+            username: userData.username || userData.displayName || 'Student',
+            displayName: userData.displayName || 'Student',
+            photoURL: userData.photoURL || null,
+            stats: { 
+                totalStudyTime: userData.stats?.totalStudyTime || 0 
+            },
+            currency: userData.currency || 0,
+            settings: userData.settings || {} // specific fields like specific anonymous mode?
+        });
+        // We generally can't sync settings wholesale if it contains private info, 
+        // but for now relying on existing structure where settings.anonymousMode is checked.
+        
+    } catch (e) {
+        console.error("Leaderboard Sync Failed", e);
+    }
 };

@@ -1,13 +1,12 @@
 // @ts-nocheck
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Folder, FileText, Link as LinkIcon, Plus, Search, Trash2, ExternalLink, Video, Image, ChevronRight, Upload, X, Eye } from 'lucide-react';
+import { Folder, FileText, Link as LinkIcon, Plus, Search, Trash2, ExternalLink, Video, Image, ChevronRight, Upload, X } from 'lucide-react';
 import { db, storage } from "@/services/firebaseConfig";
-import { ref, onValue, push, remove, set } from 'firebase/database';
+import { ref, onValue, push, remove } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import './ResourceLibrary.scss';
-import Modal from "@/components/common/Modal";
-import { toast } from "sonner";
+
 
 const ResourceLibrary = ({ user }) => {
   const [currentFolder, setCurrentFolder] = useState(null); // null = root
@@ -157,8 +156,46 @@ const ResourceLibrary = ({ user }) => {
   });
 
   return (
-    <div className="resource-library">
-      <header className="library-header">
+    <div className="resource-library" style={{ position: 'relative', overflow: 'hidden', minHeight: '80vh' }}>
+        {/* Coming Soon Overlay */}
+        <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 50,
+            backdropFilter: 'blur(12px)',
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            textAlign: 'center'
+        }}>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+            >
+                <div style={{ 
+                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', 
+                    padding: '2rem', 
+                    borderRadius: '24px', 
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                }}>
+                    <Folder size={64} style={{ marginBottom: '1rem', opacity: 0.9 }} />
+                    <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem', letterSpacing: '-0.02em' }}>Coming Soon</h1>
+                    <p style={{ fontSize: '1.2rem', opacity: 0.8, maxWidth: '400px', lineHeight: '1.6' }}>
+                        We're building a powerful resource library for you to store and organize your study materials. Stay tuned!
+                    </p>
+                </div>
+            </motion.div>
+        </div>
+
+      <header className="library-header" style={{ opacity: 0.3, pointerEvents: 'none' }}>
         <div className="header-left">
           <h1>Resource Library</h1>
           <div className="breadcrumbs">
@@ -192,7 +229,7 @@ const ResourceLibrary = ({ user }) => {
         </div>
       </header>
 
-      <div className="library-controls">
+      <div className="library-controls" style={{ opacity: 0.3, pointerEvents: 'none' }}>
         <div className="search-bar">
           <Search size={18} />
           <input 
@@ -215,7 +252,7 @@ const ResourceLibrary = ({ user }) => {
         </div>
       </div>
 
-      <div className="resources-grid">
+      <div className="resources-grid" style={{ opacity: 0.3, pointerEvents: 'none' }}>
         <AnimatePresence mode="popLayout">
           {filteredResources.length === 0 && (
             <motion.div 

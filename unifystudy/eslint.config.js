@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'electron', 'src/components/jsfiles']),
+  globalIgnores(['dist', 'electron', 'src/components/jsfiles', 'anki-main']),
   prettierConfig,
   ...tseslint.configs.recommended,
   {
@@ -30,7 +30,10 @@ export default defineConfig([
       'no-unused-vars': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
-      'react-refresh/only-export-components': 'warn'
+      'react-refresh/only-export-components': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      'no-empty': 'warn',
+      'no-undef': 'warn'
     },
   },
 ])

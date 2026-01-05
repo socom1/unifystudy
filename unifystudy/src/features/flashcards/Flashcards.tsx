@@ -1,9 +1,13 @@
 // @ts-nocheck
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { db, auth } from '@/services/firebaseConfig';
 import { ref, onValue, push, set, remove, update } from 'firebase/database';
 import { toast } from 'sonner';
 import { AnkiScheduler, Card, CardType, Rating, DEFAULT_DECK_CONFIG } from "./ankiScheduler";
+import Modal from "@/components/common/Modal";
+import { Trash2 } from "lucide-react";
+import { recordStudySession } from "@/services/leaderboardService";
+import { useGamification } from "@/context/GamificationContext";
 
 const scheduler = new AnkiScheduler(DEFAULT_DECK_CONFIG);
 
@@ -25,15 +29,22 @@ export default function Flashcards() {
     const [showCreateDeck, setShowCreateDeck] = useState(false);
 
     const [showAddModal, setShowAddModal] = useState(false);
-    const [showSmartGen, setShowSmartGen] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
-    const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
-    const [explanation, setExplanation] = useState(null);
+    
+    // Card List Modal State
+    // Card List Modal State
+    const [showCardList, setShowCardList] = useState(false);
+    const [activeListDeck, setActiveListDeck] = useState(null);
+    const [cardListTitle, setCardListTitle] = useState('');
+    const [cardList, setCardList] = useState([]);
+
+
+    // Session Tracking
+    const sessionStartTimeRef = useRef(0);
+    const { addXP } = useGamification();
 
     // Reset explanation on new card
-    useEffect(() => {
-        setExplanation(null);
-    }, [currentCardIndex, studyQueue]);
+
 
     // Auth
     useEffect(() => {
@@ -114,38 +125,32 @@ export default function Flashcards() {
         card ? scheduler.formatCardContent(card.front, 'back', card.modelType) + '<br/><br/>' + (card.back || '') : '',
         [card]);
 
-    const saveApiKey = (key) => {
-        setApiKey(key);
-        localStorage.setItem('gemini_api_key', key);
-        setShowSettings(false);
-        toast.success("API Key Saved");
-    };
 
-    const fetchExplanation = async (front, back) => {
-        if (!apiKey) {
-            toast.error("Please set your Gemini API Key in Settings");
-            setShowSettings(true);
-            return null;
+    
+    const handleShowCards = (deck, category) => {
+        const now = Math.floor(Date.now() / 1000);
+        let filtered = [];
+        
+        if (category === 'new') {
+            filtered = deck.cards.filter(c => c.ctype === CardType.New);
+        } else if (category === 'learn') {
+            // "Learn" stats count usually means due learning cards
+             filtered = deck.cards.filter(c => (c.ctype === CardType.Learn || c.ctype === CardType.Relearn));
+             // In Scheduler getDeckCounts logic: 
+             // if (card.ctype === CardType.Learn || card.ctype === CardType.Relearn) { if (card.due <= now) counts.learn++; }
+             // So for stats consistency we should filter by due <= now. 
+             // But if user clicks "Learn", maybe they want to see ALL learning cards? 
+             // The number shows what is ready. Seeing what is ready makes most sense.
+             // UPDATE: Match the "Learn Ahead" logic (now + 1200s)
+             filtered = filtered.filter(c => c.due <= now + 1200);
+        } else if (category === 'due') {
+             filtered = deck.cards.filter(c => c.ctype === CardType.Review && c.due <= now);
         }
-
-        try {
-            const prompt = `Explain this flashcard concept briefly and simply:\nFront: ${front}\nBack: ${back}\n\nExplanation:`;
-            // Call Gemini API (Client-side for demo)
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            return data.candidates[0].content.parts[0].text;
-        } catch (e) {
-            console.error(e);
-            toast.error("AI Error: " + e.message);
-            return null;
-        }
+        
+        setCardList(filtered);
+        setActiveListDeck(deck);
+        setCardListTitle(`${category.charAt(0).toUpperCase() + category.slice(1)} Cards (${filtered.length})`);
+        setShowCardList(true);
     };
 
     // --- Actions ---
@@ -159,103 +164,7 @@ export default function Flashcards() {
         setShowCreateDeck(false);
     };
 
-    // Smart Gen / Import
-    const handleSmartGen = async (deckId, text) => {
-        if (!text.trim()) return;
-        const newCards = [];
-        const now = Math.floor(Date.now() / 1000);
 
-        // 1. Try JSON parsing (if user pasted ChatGPT output)
-        try {
-            const json = JSON.parse(text);
-            if (Array.isArray(json)) {
-                json.forEach(item => {
-                    if (item.front && item.back) {
-                        newCards.push({
-                            front: item.front,
-                            back: item.back,
-                            modelType: item.modelType || 'basic'
-                        });
-                    }
-                });
-                if (newCards.length > 0) {
-                    toast.success(`Imported ${newCards.length} cards from JSON!`);
-                }
-            }
-        } catch (e) {
-            // Not JSON, continue to heuristic parser
-        }
-
-        if (newCards.length === 0) {
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-            let currentQ = null;
-
-            lines.forEach(line => {
-                // Heuristic 1: Cloze (High priority)
-                if (line.includes('{{c')) {
-                    newCards.push({
-                        front: line,
-                        back: '', // Cloze doesn't strictly need back, acts as Extra
-                        modelType: 'cloze'
-                    });
-                    return;
-                }
-
-                // Heuristic 2: Q/A format
-                if (line.toLowerCase().startsWith('q:')) {
-                    currentQ = line.substring(2).trim();
-                } else if (currentQ && line.toLowerCase().startsWith('a:')) {
-                    const answer = line.substring(2).trim();
-                    newCards.push({
-                        front: currentQ,
-                        back: answer,
-                        modelType: 'basic'
-                    });
-                    currentQ = null;
-                }
-
-                // Heuristic 3: Separators ( - or : )
-                else if (line.includes(' - ') || line.includes(': ')) {
-                    const sep = line.includes(' - ') ? ' - ' : ': ';
-                    const parts = line.split(sep);
-                    if (parts.length >= 2) {
-                        newCards.push({
-                            front: parts[0].trim(),
-                            back: parts.slice(1).join(sep).trim(),
-                            modelType: 'basic'
-                        });
-                    }
-                }
-            });
-        }
-
-        if (newCards.length === 0) {
-            toast.error("No cards found. Try 'Term - Definition' or paste JSON.");
-            return;
-        }
-
-        // Batch Add
-        const updates = {};
-        newCards.forEach(c => {
-            const cardData = {
-                ...c,
-                ctype: CardType.New,
-                queue: 0,
-                due: now,
-                interval: 0,
-                ease_factor: 2500,
-                reps: 0,
-                lapses: 0,
-                remaining_steps: 0
-            };
-            const newKey = push(ref(db, `users/${userId}/flashcards/${deckId}/cards`)).key;
-            updates[`users/${userId}/flashcards/${deckId}/cards/${newKey}`] = cardData;
-        });
-
-        await update(ref(db), updates);
-        toast.success(`Created ${newCards.length} cards!`);
-        setShowSmartGen(false);
-    };
 
     // Create new card
     const handleCreateCard = async (deckId, front, back, modelType) => {
@@ -277,13 +186,35 @@ export default function Flashcards() {
         setShowAddModal(false);
     };
 
+    const handleDeleteDeck = async (e, deckId) => {
+        e.stopPropagation();
+        if (confirm("Are you sure you want to delete this deck? This cannot be undone.")) {
+            await remove(ref(db, `users/${userId}/flashcards/${deckId}`));
+            toast.success("Deck deleted");
+        }
+    };
+
+    const handleDeleteCard = async (deck, cardId) => {
+        if (confirm("Delete this card?")) {
+            await remove(ref(db, `users/${userId}/flashcards/${deck.id}/cards/${cardId}`));
+            // Update local list if open
+            setCardList(prev => prev.filter(c => c.id !== cardId));
+            toast.success("Card deleted");
+        }
+    };
+
     const startStudy = (deck) => {
         setActiveDeck(deck);
         const now = Math.floor(Date.now() / 1000);
         const queue = deck.cards.filter(c => {
-            // If New, always avail. If Review/Learn, check due.
-            return (c.ctype === CardType.New) || (c.due <= now);
+            // If New, always avail. If Review/Learn, check due (plus 20 mins for learn ahead)
+            return (c.ctype === CardType.New) || (c.due <= now + 1200);
         });
+
+        if (queue.length === 0) {
+            toast('No cards due for this deck!', { description: 'Great job!' });
+            return;
+        }
 
         // Sort: Due date ascending, then New cards last
         queue.sort((a, b) => {
@@ -297,9 +228,10 @@ export default function Flashcards() {
 
         setStudyQueue(queue);
         setCurrentCardIndex(0);
-        setShowAnswer(false);
-        setSessionComplete(queue.length === 0);
+        setSessionComplete(false);
         setViewMode('study');
+        setShowAnswer(false);
+        sessionStartTimeRef.current = Date.now();
     };
 
     const handleAnswer = async (rating: Rating) => {
@@ -326,17 +258,32 @@ export default function Flashcards() {
         const now = Math.floor(Date.now() / 1000);
         // If card is still in learning path loop, requeue it for this session?
         // Simple logic: if due < now + 20 mins, put at end of queue
-        if (nextCard.due <= now + 1200) {
-            const q = [...studyQueue];
+        const q = [...studyQueue];
+        // If card is still in learning path loop, requeue it for this session?
+        // Simple logic: if due < now + 3 mins (180s), put at end of queue
+        // This allows cards with >3m steps (like Good=10m or Hard=5.5m) to exit the session.
+        if (nextCard.due <= now + 180) {
             q.push({ ...card, ...nextCard });
             setStudyQueue(q);
         }
 
-        if (currentCardIndex < studyQueue.length - 1) {
+        if (currentCardIndex < q.length - 1) {
             setShowAnswer(false);
             setCurrentCardIndex(prev => prev + 1);
         } else {
             setSessionComplete(true);
+            // Record Session Stats
+            const durationMinutes = (Date.now() - sessionStartTimeRef.current) / 1000 / 60;
+            // Only record if > 0.1 mins (6 seconds) to avoid accidental clicks
+            if (durationMinutes > 0.1 && userId) {
+                recordStudySession(userId, durationMinutes, 'flashcards')
+                    .then(({ earnedCoins, unlocked }) => {
+                         // Toast handled by addXP mostly, but coins logic separate? 
+                         // Actually recordStudySession awards coins.
+                         // addXP handles XP.
+                         addXP(Math.floor(durationMinutes * 5) + 10, "Flashcard Master");
+                    });
+            }
         }
     };
 
@@ -344,49 +291,98 @@ export default function Flashcards() {
 
     // Modern Dashboard
     if (viewMode === 'dashboard') {
+        const totalCards = decks.reduce((acc, d) => acc + d.cards.length, 0);
+        // Mock streak for now, or pull from leaderboard context if available
+        const streak = 0; 
+
         return (
-            <div style={{ padding: '3rem', maxWidth: '1000px', margin: '0 auto', color: 'var(--color-text)', fontFamily: 'Inter, sans-serif' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', background: 'linear-gradient(to right, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
-                        My Decks
-                    </h1>
-                    <div style={{ display: 'flex' }}>
-                        <button onClick={() => setShowSettings(true)} style={{ padding: '0.8rem', background: 'transparent', color: '#888', border: 'none', cursor: 'pointer', marginRight: '0.5rem', fontSize: '1.2rem' }} title="Settings">
-                            ⚙️
-                        </button>
-                        <button onClick={() => setShowCreateDeck(true)} style={{ padding: '0.8rem 1.5rem', background: '#333', color: 'white', border: '1px solid #444', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, marginRight: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            + New Deck
-                        </button>
-                        <button onClick={() => setShowSmartGen(true)} style={{ padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, marginRight: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            ✨ Magic Import
-                        </button>
-                        <button onClick={() => setShowAddModal(true)} style={{ padding: '0.8rem 1.5rem', background: '#333', color: 'white', border: '1px solid #444', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-                            + Add Card
-                        </button>
+            <div className="flashcards-dashboard" style={{ padding: '2rem', height: '100%', overflowY: 'auto', color: 'var(--color-text)' }}>
+                {/* Hero / Stats Section */}
+                <div style={{ 
+                    marginBottom: '3rem', 
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)', 
+                    borderRadius: '24px', 
+                    padding: '3rem', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    border: '1px solid rgba(255,255,255,0.05)'
+                }}>
+                    <div>
+                        <h1 style={{ fontSize: '3rem', fontWeight: '800', margin: '0 0 0.5rem 0', letterSpacing: '-0.02em' }}>
+                            Flashcards
+                        </h1>
+                        
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '2rem' }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '2.5rem', fontWeight: '700', color: '#6366f1' }}>{decks.length}</div>
+                            <div style={{ textTransform: 'uppercase', fontSize: '0.8rem', opacity: 0.6, fontWeight: '600', letterSpacing: '0.05em' }}>Decks</div>
+                        </div>
+                        <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '2.5rem', fontWeight: '700', color: '#a855f7' }}>{totalCards}</div>
+                            <div style={{ textTransform: 'uppercase', fontSize: '0.8rem', opacity: 0.6, fontWeight: '600', letterSpacing: '0.05em' }}>Cards</div>
+                        </div>
+                        <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+                         <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '2.5rem', fontWeight: '700', color: '#22c55e' }}>{streak}</div>
+                            <div style={{ textTransform: 'uppercase', fontSize: '0.8rem', opacity: 0.6, fontWeight: '600', letterSpacing: '0.05em' }}>Day Streak</div>
+                        </div>
                     </div>
                 </div>
 
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: '600' }}>Your Decks</h2>
+                    <button 
+                        onClick={() => setShowCreateDeck(true)} 
+                        style={{ 
+                            padding: '0.8rem 1.5rem', 
+                            background: 'var(--color-primary)', 
+                            color: 'white', 
+                            border: 'none', 
+                            borderRadius: '12px', 
+                            cursor: 'pointer', 
+                            fontWeight: 600, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '8px',
+                            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                        }}
+                    >
+                        + New Deck
+                    </button>
+                </div>
+
                 {/* Modals */}
-                {showCreateDeck && <CreateDeckModal onClose={() => setShowCreateDeck(false)} onSave={handleCreateDeck} />}
-                {showSettings && <SettingsModal apiKey={apiKey} onSave={saveApiKey} onClose={() => setShowSettings(false)} />}
-                {showSmartGen && (
-                    <SmartImportModal
-                        decks={decks}
-                        onClose={() => setShowSmartGen(false)}
-                        onImport={handleSmartGen}
-                    />
-                )}
+                <CreateDeckModal 
+                    isOpen={showCreateDeck} 
+                    onClose={() => setShowCreateDeck(false)} 
+                    onSave={handleCreateDeck} 
+                />
+                
+                <AddCardModal
+                    isOpen={showAddModal}
+                    decks={decks}
+                    onClose={() => setShowAddModal(false)}
+                    onSave={handleCreateCard}
+                />
+                
+                <CardListModal
+                    isOpen={showCardList}
+                    title={cardListTitle}
+                    cards={cardList}
+                    onClose={() => setShowCardList(false)}
+                    onDelete={(cid) => handleDeleteCard(activeListDeck, cid)}
+                />
 
-                {/* Add Card Modal overlay would go here */}
-                {showAddModal && (
-                    <AddCardModal
-                        decks={decks}
-                        onClose={() => setShowAddModal(false)}
-                        onSave={handleCreateCard}
-                    />
-                )}
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+                    gap: '2rem',
+                    paddingBottom: '2rem'
+                }}>
                     {decks.map(deck => {
                         const stats = deckStats[deck.id] || { new: 0, learn: 0, review: 0 };
                         const hasCards = stats.new + stats.learn + stats.review > 0;
@@ -396,51 +392,99 @@ export default function Flashcards() {
                                 key={deck.id}
                                 onClick={() => startStudy(deck)}
                                 style={{
-                                    background: 'var(--bg-2, #1e1e1e)',
-                                    border: '1px solid var(--glass-border, #333)',
-                                    borderRadius: '16px',
-                                    padding: '1.5rem',
+                                    background: 'var(--glass-bg)', // Use theme var
+                                    backdropFilter: 'blur(10px)',
+                                    border: '1px solid var(--glass-border)',
+                                    borderRadius: '24px',
+                                    padding: '2rem',
                                     cursor: 'pointer',
-                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    gap: '1rem',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                    gap: '1.5rem',
+                                    position: 'relative',
+                                    overflow: 'hidden'
                                 }}
-                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.2)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; }}
+                                onMouseEnter={e => { 
+                                    e.currentTarget.style.transform = 'translateY(-6px)'; 
+                                    e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2)'; 
+                                    e.currentTarget.style.borderColor = 'var(--color-primary)';
+                                }}
+                                onMouseLeave={e => { 
+                                    e.currentTarget.style.transform = 'none'; 
+                                    e.currentTarget.style.boxShadow = 'none'; 
+                                    e.currentTarget.style.borderColor = 'var(--glass-border)';
+                                }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{deck.name}</h2>
-                                    {/* <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{deck.cards.length} Total</span> */}
+                                    <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '700' }}>{deck.name}</h2>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); setShowAddModal(true); }}
+                                            style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--color-text)', cursor: 'pointer', padding: '6px 10px', borderRadius: '8px', fontSize: '0.8rem' }}
+                                            title="Add Card"
+                                        >
+                                            + Add
+                                        </button>
+                                        <button 
+                                            onClick={(e) => handleDeleteDeck(e, deck.id)}
+                                            style={{ 
+                                                background: 'transparent', 
+                                                border: 'none', 
+                                                color: 'var(--color-muted)', 
+                                                cursor: 'pointer', 
+                                                padding: '6px', 
+                                                borderRadius: '8px',
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+                                            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted)'}
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
 
+                                {/* Nice dividing line */}
+                                <div style={{ height: '1px', background: 'var(--glass-border)', width: '100%' }}></div>
+
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
-                                    <div style={{ flex: 1, textAlign: 'center', background: 'rgba(34, 197, 94, 0.1)', padding: '0.5rem', borderRadius: '8px' }}>
-                                        <div style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.2rem' }}>{stats.new}</div>
-                                        <div style={{ fontSize: '0.75rem', opacity: 0.8, color: '#22c55e' }}>New</div>
+                                    <div 
+                                        onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'new'); }}
+                                        style={{ flex: 1, textAlign: 'center', padding: '0.5rem', borderRadius: '12px', cursor: 'pointer', transition: 'background 0.2s', background: 'rgba(34, 197, 94, 0.05)' }}
+                                    >
+                                        <div style={{ color: '#22c55e', fontWeight: '800', fontSize: '1.5rem' }}>{stats.new}</div>
+                                        <div style={{ fontSize: '0.7rem', opacity: 0.7, color: '#22c55e', fontWeight: '600', letterSpacing: '0.05em' }}>NEW</div>
                                     </div>
-                                    <div style={{ flex: 1, textAlign: 'center', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem', borderRadius: '8px' }}>
-                                        <div style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '1.2rem' }}>{stats.learn}</div>
-                                        <div style={{ fontSize: '0.75rem', opacity: 0.8, color: '#ef4444' }}>Lrn</div>
+                                    <div 
+                                        onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'learn'); }}
+                                        style={{ flex: 1, textAlign: 'center', padding: '0.5rem', borderRadius: '12px', cursor: 'pointer', transition: 'background 0.2s', background: 'rgba(239, 68, 68, 0.05)' }}
+                                    >
+                                        <div style={{ color: '#ef4444', fontWeight: '800', fontSize: '1.5rem' }}>{stats.learn}</div>
+                                        <div style={{ fontSize: '0.7rem', opacity: 0.7, color: '#ef4444', fontWeight: '600', letterSpacing: '0.05em' }}>LEARN</div>
                                     </div>
-                                    <div style={{ flex: 1, textAlign: 'center', background: 'rgba(59, 130, 246, 0.1)', padding: '0.5rem', borderRadius: '8px' }}>
-                                        <div style={{ color: '#3b82f6', fontWeight: 'bold', fontSize: '1.2rem' }}>{stats.review}</div>
-                                        <div style={{ fontSize: '0.75rem', opacity: 0.8, color: '#3b82f6' }}>Due</div>
+                                    <div 
+                                        onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'due'); }}
+                                        style={{ flex: 1, textAlign: 'center', padding: '0.5rem', borderRadius: '12px', cursor: 'pointer', transition: 'background 0.2s', background: 'rgba(59, 130, 246, 0.05)' }}
+                                    >
+                                        <div style={{ color: '#3b82f6', fontWeight: '800', fontSize: '1.5rem' }}>{stats.review}</div>
+                                        <div style={{ fontSize: '0.7rem', opacity: 0.7, color: '#3b82f6', fontWeight: '600', letterSpacing: '0.05em' }}>DUE</div>
                                     </div>
                                 </div>
                                 <button style={{
                                     width: '100%',
-                                    padding: '0.75rem',
+                                    padding: '1rem',
                                     marginTop: '0.5rem',
-                                    background: hasCards ? 'var(--color-primary, #6366f1)' : '#333',
-                                    color: 'white',
+                                    background: hasCards ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
+                                    color: hasCards ? 'white' : 'var(--color-muted)',
                                     border: 'none',
-                                    borderRadius: '8px',
-                                    fontWeight: '600',
-                                    cursor: 'pointer'
+                                    borderRadius: '16px',
+                                    fontWeight: '700',
+                                    cursor: hasCards ? 'pointer' : 'default',
+                                    opacity: hasCards ? 1 : 0.5,
+                                    transition: 'all 0.2s',
+                                    letterSpacing: '0.02em',
                                 }}>
-                                    {hasCards ? 'Study Now' : 'Deck Complete'}
+                                    {hasCards ? 'STUDY NOW' : 'ALL CAUGHT UP'}
                                 </button>
                             </div>
                         );
@@ -448,8 +492,22 @@ export default function Flashcards() {
                 </div>
 
                 {decks.length === 0 && !loading && (
-                    <div style={{ textAlign: 'center', padding: '4rem', color: '#666' }}>
-                        No decks found. Wait for sync or create one.
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '6rem', 
+                        color: 'var(--color-muted)',
+                        border: '2px dashed var(--glass-border)',
+                        borderRadius: '24px',
+                        marginTop: '2rem'
+                    }}>
+                        <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--color-text)' }}>It's quiet here...</h3>
+                        <p style={{ marginBottom: '2rem' }}>Create your first deck to get started!</p>
+                        <button 
+                            onClick={() => setShowCreateDeck(true)} 
+                            style={{ padding: '0.8rem 1.5rem', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                            + Create Deck
+                        </button>
                     </div>
                 )}
             </div>
@@ -486,10 +544,7 @@ export default function Flashcards() {
         // But in our UI, we show the "Back" section.
         // Using dangerouslySetInnerHTML.
 
-        const handleExplainAI = async () => {
-            const exp = await fetchExplanation(card.front, card.back);
-            if (exp) setExplanation(exp);
-        };
+
 
         return (
             <div style={{ height: '100%', display: 'flex', flexDirection: 'column', maxWidth: '800px', margin: '0 auto', padding: '1rem' }}>
@@ -532,22 +587,7 @@ export default function Flashcards() {
                             <div dangerouslySetInnerHTML={{ __html: card.modelType === 'cloze' ? formattedBack : card.back }} />
 
                             {/* AI Explanation Area */}
-                            {explanation ? (
-                                <div style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid var(--color-primary)', borderRadius: '12px', padding: '1.5rem', textAlign: 'left', marginTop: '1rem', animation: 'fadeIn 0.3s' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--color-primary)', fontWeight: 'bold' }}>
-                                        <span>🤖 AI Explanation</span>
-                                        <button onClick={(e) => { e.stopPropagation(); setExplanation(null); }} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>✕</button>
-                                    </div>
-                                    <div style={{ fontSize: '1rem', lineHeight: '1.5' }} dangerouslySetInnerHTML={{ __html: explanation }} />
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleExplainAI(); }}
-                                    style={{ background: 'transparent', border: '1px solid #555', color: '#aaa', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 auto' }}
-                                >
-                                    ✨ Explain This
-                                </button>
-                            )}
+
                         </div>
                     ) : (
                         <div style={{
@@ -600,158 +640,154 @@ export default function Flashcards() {
 
 // ... Small components
 
-function SettingsModal({ apiKey, onSave, onClose }) {
-    const [key, setKey] = useState(apiKey);
-    return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
-            <div style={{ background: '#1e1e1e', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '500px', border: '1px solid #333' }}>
-                <h2 style={{ marginTop: 0 }}>Settings</h2>
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Gemini API Key</label>
-                    <input
-                        type="password"
-                        value={key}
-                        onChange={e => setKey(e.target.value)}
-                        style={{ width: '100%', padding: '0.8rem', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '8px' }}
-                        placeholder="AIzaSy..."
-                    />
-                    <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
-                        Required for Magic Import and Explain This features.
-                    </p>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                    <button onClick={onClose} style={{ padding: '0.8rem', background: 'transparent', border: 'none', color: '#888', cursor: 'pointer' }}>Cancel</button>
-                    <button onClick={() => onSave(key)} style={{ padding: '0.8rem 1.5rem', background: '#6366f1', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 'bold' }}>Save</button>
-                </div>
-            </div>
-        </div>
-    );
-}
+
 
 // Only ReactMarkdown is missing, I will replace it with simple text rendering or dangerouslySetInnerHTML for now since I don't want to install new deps yet.
 // Replacing <ReactMarkdown> with simple div.
 
-function CreateDeckModal({ onClose, onSave }) {
+function CreateDeckModal({ isOpen, onClose, onSave }) {
     const [name, setName] = useState('');
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
-            <div style={{ background: '#1e1e1e', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '400px', border: '1px solid #333' }}>
-                <h2 style={{ marginTop: 0 }}>Create New Deck</h2>
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>Deck Name</label>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Create New Deck"
+            footer={(
+                <>
+                    <button className="btn-secondary" onClick={onClose}>Cancel</button>
+                    <button className="btn-primary" onClick={() => onSave(name)}>Create Deck</button>
+                </>
+            )}
+        >
+                <div className="form-group">
+                    <label>Deck Name</label>
                     <input
                         type="text"
                         value={name}
                         onChange={e => setName(e.target.value)}
                         autoFocus
-                        style={{ width: '100%', padding: '0.8rem', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '8px' }}
                         placeholder="e.g. Biology 101"
                     />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                    <button onClick={onClose} style={{ padding: '0.8rem', background: 'transparent', border: 'none', color: '#888', cursor: 'pointer' }}>Cancel</button>
-                    <button onClick={() => onSave(name)} style={{ padding: '0.8rem 1.5rem', background: '#6366f1', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 'bold' }}>Create Deck</button>
-                </div>
-            </div>
-        </div>
+        </Modal>
     );
 }
 
-function AddCardModal({ decks, onClose, onSave }) {
+function AddCardModal({ isOpen, decks, onClose, onSave }) {
     const [deckId, setDeckId] = useState(decks[0]?.id || '');
     const [type, setType] = useState('basic');
     const [front, setFront] = useState('');
     const [back, setBack] = useState('');
-    return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
-            <div style={{ background: '#1e1e1e', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '500px', border: '1px solid #333' }}>
-                <h2 style={{ marginTop: 0 }}>Add Flashcard</h2>
+    
+    // Reset when opened
+    useEffect(() => {
+        if (isOpen && decks.length > 0 && !deckId) setDeckId(decks[0].id);
+    }, [isOpen, decks, deckId]);
 
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Deck</label>
-                    <select value={deckId} onChange={e => setDeckId(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '8px' }}>
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Add Flashcard"
+            footer={(
+                <>
+                     <button className="btn-secondary" onClick={onClose}>Cancel</button>
+                    <button className="btn-primary" onClick={() => onSave(deckId, front, back, type)}>Save Card</button>
+                </>
+            )}
+        >
+                <div className="form-group">
+                    <label>Deck</label>
+                    <select value={deckId} onChange={e => setDeckId(e.target.value)}>
                         {decks.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
                 </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Type</label>
+                <div className="form-group">
+                    <label>Type</label>
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <button onClick={() => setType('basic')} style={{ flex: 1, padding: '0.8rem', background: type === 'basic' ? '#6366f1' : '#333', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>Basic</button>
                         <button onClick={() => setType('cloze')} style={{ flex: 1, padding: '0.8rem', background: type === 'cloze' ? '#6366f1' : '#333', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>Cloze</button>
                     </div>
                 </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                <div className="form-group">
+                    <label>
                         {type === 'cloze' ? 'Text (Use {{c1::answer}})' : 'Front'}
                     </label>
                     <textarea
                         value={front}
                         onChange={e => setFront(e.target.value)}
                         rows={4}
-                        style={{ width: '100%', padding: '0.8rem', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '8px' }}
                         placeholder={type === 'cloze' ? 'The capital of France is {{c1::Paris}}.' : 'Question'}
                     />
                 </div>
 
-                <div style={{ marginBottom: '2rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                <div className="form-group">
+                    <label>
                         {type === 'cloze' ? 'Extra (Back)' : 'Back'}
                     </label>
                     <textarea
                         value={back}
                         onChange={e => setBack(e.target.value)}
                         rows={3}
-                        style={{ width: '100%', padding: '0.8rem', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '8px' }}
                         placeholder="Extra info or Answer"
                     />
                 </div>
-
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                    <button onClick={onClose} style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: 'none', color: '#888', cursor: 'pointer' }}>Cancel</button>
-                    <button onClick={() => onSave(deckId, front, back, type)} style={{ padding: '0.8rem 1.5rem', background: '#6366f1', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>Save Card</button>
-                </div>
-            </div>
-        </div>
+        </Modal>
     );
 }
 
-function SmartImportModal({ decks, onClose, onImport }) {
-    const [deckId, setDeckId] = useState(decks[0]?.id || '');
-    const [text, setText] = useState('');
-
+function CardListModal({ isOpen, title, cards, onClose, onDelete }) {
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
-            <div style={{ background: '#1e1e1e', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '600px', border: '1px solid #333' }}>
-                <h2 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>✨ Smart Import</h2>
-                <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                    Paste raw text (Q: A:, Term - Def) or ask an AI to generate JSON and paste it here.
-                </p>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={title}
+            size="lg"
+            footer={(
+                <button className="btn-secondary" onClick={onClose}>Close</button>
+            )}
+        >
+                <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', maxHeight: '60vh' }}>
+                    {cards.length === 0 ? (
+                        <p style={{ opacity: 0.6, textAlign: 'center', padding: '1rem' }}>No cards in this category.</p>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {cards.map(card => {
+                                const now = Math.floor(Date.now() / 1000);
+                                const dueDiff = card.due - now;
+                                let dueText = "Ready";
+                                if (dueDiff > 0) {
+                                    const mins = Math.ceil(dueDiff / 60);
+                                    dueText = `in ${mins}m`;
+                                }
 
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Deck</label>
-                    <select value={deckId} onChange={e => setDeckId(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '8px' }}>
-                        {decks.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                    </select>
+                                return (
+                                <div key={card.id} style={{ background: 'var(--bg-1)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#fff', flex: 1 }}>{card.front}</div>
+                                        <span style={{ fontSize: '0.8rem', color: dueDiff > 0 ? '#f59e0b' : '#22c55e', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>
+                                            {dueText}
+                                        </span>
+                                    </div>
+                                    <div style={{ opacity: 0.7, fontSize: '0.9rem', color: '#ddd' }}>{card.back}</div>
+                                    {card.modelType === 'cloze' && <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.2rem' }}>[Cloze]</div>}
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                                        <button 
+                                            onClick={() => onDelete(card.id)}
+                                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
-
-                <div style={{ marginBottom: '2rem' }}>
-                    <textarea
-                        value={text}
-                        onChange={e => setText(e.target.value)}
-                        rows={10}
-                        style={{ width: '100%', padding: '1rem', background: '#333', border: '1px solid #444', color: 'white', borderRadius: '8px', fontFamily: 'monospace', fontSize: '0.9rem' }}
-                        placeholder={`Paste text here...\n\nExample 1:\nQ: What is the capital of France?\nA: Paris\n\nExample 2:\nMitochondria - Powerhouse of the cell\n\nExample 3:\nJSON Array from ChatGPT`}
-                    />
-                </div>
-
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                    <button onClick={onClose} style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: 'none', color: '#888', cursor: 'pointer' }}>Cancel</button>
-                    <button onClick={() => onImport(deckId, text)} style={{ padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>Generate Cards</button>
-                </div>
-            </div>
-        </div>
+        </Modal>
     );
 }
 

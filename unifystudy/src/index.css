@@ -77,3 +77,17 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
+
+/* --- Global Icon Set Styles --- */
+[data-icon-set='neon'] svg.lucide {
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+[data-icon-set='minimalist'] svg.lucide {
+  stroke-width: 1.5px;
+}
+
+[data-icon-set='3d-pack'] svg.lucide {
+  filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.5));
+  transform: translateY(-1px);
+}

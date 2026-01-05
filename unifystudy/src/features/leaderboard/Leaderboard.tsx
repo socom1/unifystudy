@@ -1,15 +1,15 @@
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+// import { motion, AnimatePresence } from "framer-motion"; // Removed local modal motion
 import { subscribeToLeaderboard } from "@/services/leaderboardService";
-import "./Leaderboard.css";
+import { useUI } from "@/context/UIContext"; // Import Global Context
 import "./Leaderboard.scss";
 
 export default function Leaderboard() {
   const [timeRange, setTimeRange] = useState("all"); // 'all', 'monthly', 'weekly'
   const [sortBy, setSortBy] = useState("time"); // 'time', 'currency'
   const [leaders, setLeaders] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  
+  const { openProfile } = useUI(); // Use global profile opener
 
   // Preset banners for mapping (same as Profile.jsx)
   const presetBanners = [
@@ -31,8 +31,7 @@ export default function Leaderboard() {
         const arr = Object.entries(data).map(([uid, val]) => {
           let time = 0;
           const isAnonymous = val.settings?.anonymousMode === true;
-          const bannerId = val.settings?.customization?.profileBanner || "gradient-1";
-          const bannerGradient = presetBanners.find(b => b.id === bannerId)?.gradient || presetBanners[0].gradient;
+          // ... (existing logic)
           const profileTag = val.settings?.customization?.profileTag || "";
 
           // Base user object
@@ -41,7 +40,6 @@ export default function Leaderboard() {
             isAnonymous,
             name: isAnonymous ? "Anonymous Student" : (val.displayName || "Unknown Student"),
             photoURL: isAnonymous ? null : val.photoURL,
-            bannerGradient: isAnonymous ? presetBanners[0].gradient : bannerGradient,
             tag: isAnonymous ? "" : profileTag,
             score: 0,
             rawTime: val.stats?.totalStudyTime || 0,
@@ -78,8 +76,6 @@ export default function Leaderboard() {
       }
     });
     
-
-    
     return () => {
       if (unsubscribe) unsubscribe();
     };
@@ -87,12 +83,6 @@ export default function Leaderboard() {
 
   const formatScore = (val) => {
     if (sortBy === 'currency') return `💡 ${val}`;
-    const h = Math.floor(val / 60);
-    const m = val % 60;
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  };
-
-  const formatTime = (val) => {
     const h = Math.floor(val / 60);
     const m = val % 60;
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
@@ -155,7 +145,8 @@ export default function Leaderboard() {
             <div 
               key={user.uid}
               className={`lb-item ${i < 3 ? 'top-3' : ''}`}
-              onClick={() => setSelectedUser(user)}
+              onClick={() => !user.isAnonymous && openProfile(user.uid)}
+              style={{ cursor: user.isAnonymous ? 'default' : 'pointer' }}
             >
                 <div className="rank">
                   {i + 1}
@@ -190,64 +181,6 @@ export default function Leaderboard() {
             ))}
         </div>
       )}
-
-      {/* Profile Card Modal */}
-      <AnimatePresence>
-        {selectedUser && (
-          <motion.div 
-            className="profile-modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedUser(null)}
-          >
-            <motion.div 
-              className="profile-modal-card"
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div 
-                className="modal-banner" 
-                style={{ background: selectedUser.bannerGradient }}
-              />
-              <div className="modal-content">
-                <div className="modal-avatar">
-                  {(selectedUser.isAnonymous || !selectedUser.photoURL) ? (
-                     <div className="avatar-placeholder-q large">?</div>
-                  ) : (
-                    <img 
-                      src={selectedUser.photoURL} 
-                      alt={selectedUser.name} 
-                    />
-                  )}
-                </div>
-                <h2 className="modal-name">
-                  {selectedUser.name}
-                  {selectedUser.tag && <span className="modal-tag">{selectedUser.tag}</span>}
-                </h2>
-                <div className="modal-stats">
-                  <div className="stat-item">
-                    <span className="label">Total Time</span>
-                    <span className="value">{formatTime(selectedUser.rawTime)}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">Lumens</span>
-                    <span className="value">{selectedUser.rawCurrency}</span>
-                  </div>
-                </div>
-                {selectedUser.isAnonymous && (
-                  <p className="modal-note">This user is anonymous.</p>
-                )}
-              </div>
-              <button className="close-btn" onClick={() => setSelectedUser(null)}>
-                Close
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

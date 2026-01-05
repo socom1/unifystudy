@@ -1,0 +1,1238 @@
+
+> unifystudy@1.0.0 lint
+> eslint .
+
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\qt\aqt\data\web\js\deckbrowser.ts
+   4:1   error    '$' is not defined                  no-undef
+   7:5   error    '$' is not defined                  no-undef
+  11:26  warning  '_event' is defined but never used  no-unused-vars
+  11:26  warning  '_event' is defined but never used  @typescript-eslint/no-unused-vars
+  12:20  error    '$' is not defined                  no-undef
+  17:5   error    '$' is not defined                  no-undef
+  21:5   error    '$' is not defined                  no-undef
+  29:24  error    '$' is not defined                  no-undef
+  31:5   error    'pycmd' is not defined              no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\qt\aqt\data\web\js\pycmd.d.ts
+  1:24  warning  'cmd' is defined but never used              no-unused-vars
+  1:37  warning  'result_callback' is defined but never used  no-unused-vars
+  1:56  warning  'arg' is defined but never used              no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\qt\aqt\data\web\js\reviewer-bottom.ts
+  34:10  warning  'showQuestion' is defined but never used          no-unused-vars
+  57:10  warning  'selectedAnswerButton' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\qt\aqt\data\web\js\toolbar.ts
+   9:5   warning  'NoChanges' is defined but never used        no-unused-vars
+  10:5   warning  'Normal' is defined but never used           no-unused-vars
+  11:5   warning  'Full' is defined but never used             no-unused-vars
+  14:10  warning  'updateSyncColor' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\qt\aqt\data\web\js\vendor\plot.js
+   7:1004   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:1157   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:1358   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:1392   error    Unnecessary escape character: \%                                       no-useless-escape
+   7:1422   error    Unnecessary escape character: \%                                       no-useless-escape
+   7:1452   error    Unnecessary escape character: \%                                       no-useless-escape
+   7:1556   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:1591   error    Unnecessary escape character: \%                                       no-useless-escape
+   7:1621   error    Unnecessary escape character: \%                                       no-useless-escape
+   7:1651   error    Unnecessary escape character: \%                                       no-useless-escape
+   7:1802   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:1941   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:3127   error    'jQuery' is not defined                                                no-undef
+   7:5410   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:7376   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:8056   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:8120   error    'positions' is already defined                                         no-redeclare
+   7:8188   error    'i' is already defined                                                 no-redeclare
+   7:8192   error    'position' is already defined                                          no-redeclare
+   7:8201   error    Expected a conditional expression and instead saw an assignment        no-cond-assign
+   7:9940   error    Unexpected aliasing of 'this' to local variable                        @typescript-eslint/no-this-alias
+   7:10423  warning  'i' is defined but never used                                          no-unused-vars
+   7:10423  warning  'i' is defined but never used                                          @typescript-eslint/no-unused-vars
+   7:17951  warning  'length' is defined but never used                                     no-unused-vars
+   7:17951  warning  'length' is defined but never used                                     @typescript-eslint/no-unused-vars
+   7:17970  warning  'x' is defined but never used                                          no-unused-vars
+   7:17970  warning  'x' is defined but never used                                          @typescript-eslint/no-unused-vars
+   7:17972  warning  'y' is defined but never used                                          no-unused-vars
+   7:17972  warning  'y' is defined but never used                                          @typescript-eslint/no-unused-vars
+   7:17974  warning  'axis' is defined but never used                                       no-unused-vars
+   7:17974  warning  'axis' is defined but never used                                       @typescript-eslint/no-unused-vars
+   7:24667  warning  'axis' is defined but never used                                       no-unused-vars
+   7:24667  warning  'axis' is defined but never used                                       @typescript-eslint/no-unused-vars
+   7:25751  error    'a' is already defined                                                 no-redeclare
+   8:6106   warning  'top' is defined but never used                                        no-unused-vars
+   8:6106   warning  'top' is defined but never used                                        @typescript-eslint/no-unused-vars
+   8:13079  error    'i' is already defined                                                 no-redeclare
+   8:14878  warning  'foundPoint' is assigned a value but never used                        no-unused-vars
+   8:14878  warning  'foundPoint' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+   8:15839  error    'x' is already defined                                                 no-redeclare
+   8:15851  error    'y' is already defined                                                 no-redeclare
+   8:16492  warning  's' is defined but never used                                          no-unused-vars
+   8:16492  warning  's' is defined but never used                                          @typescript-eslint/no-unused-vars
+   8:20784  error    'jQuery' is not defined                                                no-undef
+  16:2317   error    'jQuery' is not defined                                                no-undef
+  24:1449   warning  'series' is defined but never used                                     no-unused-vars
+  24:1449   warning  'series' is defined but never used                                     @typescript-eslint/no-unused-vars
+  24:1456   warning  'datapoints' is defined but never used                                 no-unused-vars
+  24:1456   warning  'datapoints' is defined but never used                                 @typescript-eslint/no-unused-vars
+  24:2055   error    'i' is already defined                                                 no-redeclare
+  24:2112   error    'i' is already defined                                                 no-redeclare
+  24:2139   error    'value' is already defined                                             no-redeclare
+  24:2289   error    'i' is already defined                                                 no-redeclare
+  24:2316   error    'value' is already defined                                             no-redeclare
+  24:5176   error    'i' is already defined                                                 no-redeclare
+  24:8121   error    Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  24:12035  error    'jQuery' is not defined                                                no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\bundle_svelte.mjs
+  13:8   error  '_tsx' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  13:14  error  '_script' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  60:30  error  '_warning' is defined but never used          @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\bundle_ts.mjs
+  7:8   error  '_node' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  7:15  error  '_script' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editable\change-timer.ts
+  15:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editable\content-editable.ts
+   38:33  warning  'element' is defined but never used  no-unused-vars
+  145:16  warning  's' is defined but never used        no-unused-vars
+  145:27  warning  't' is defined but never used        no-unused-vars
+  145:38  warning  'u' is defined but never used        no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editable\decorated.ts
+  27:54  error    'CustomElementConstructor' is not defined  no-undef
+  32:14  warning  'undecorated' is defined but never used    no-unused-vars
+  36:19  warning  'stored' is defined but never used         no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editable\frame-element.ts
+  156:36  error  'HTMLElementEventMap' is not defined  no-undef
+  162:34  error  'HTMLElementEventMap' is not defined  no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editable\frame-handle.ts
+  111:26  error    'InsertPosition' is not defined       no-undef
+  202:27  warning  'offset' is defined but never used    no-unused-vars
+  282:31  error    'HTMLElementEventMap' is not defined  no-undef
+  329:31  error    'HTMLElementEventMap' is not defined  no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editable\mathjax-element.svelte.ts
+   69:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:23  error    '$state' is not defined                   no-undef
+  183:36  error    'HTMLElementEventMap' is not defined      no-undef
+  187:62  error    'HTMLElementEventMap' is not defined      no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editor\base.ts
+  29:18  warning  'r' is defined but never used  no-unused-vars
+  31:20  warning  'n' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editor\code-mirror.ts
+  64:13  warning  'editor' is defined but never used   no-unused-vars
+  71:15  warning  'options' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editor\helpers.ts
+  13:16  warning  'color' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editor\old-editor-adapter.ts
+  21:54  warning  '_nosave' is assigned a value but never used  no-unused-vars
+  21:54  warning  '_nosave' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editor\rich-text-input\normalizing-node-store.ts
+  17:18  error  'NodeListOf' is not defined  no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editor\rich-text-input\rich-text-resolve.ts
+  31:56  warning  'input' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editor\surround.ts
+  236:18  warning  'format' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\editor\types.ts
+  24:5  warning  'Initial' is defined but never used               no-unused-vars
+  25:5  warning  'Fields' is defined but never used                no-unused-vars
+  26:5  warning  'ImageOcclusionPicker' is defined but never used  no-unused-vars
+  27:5  warning  'ImageOcclusionMasks' is defined but never used   no-unused-vars
+  28:5  warning  'ImageOcclusionFields' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\html-filter\element.ts
+  12:22  warning  'element' is defined but never used        no-unused-vars
+  15:26  warning  'attributeName' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\html-filter\index.ts
+   8:5   warning  'Basic' is defined but never used       no-unused-vars
+   9:5   warning  'Extended' is defined but never used    no-unused-vars
+  10:5   warning  'Internal' is defined but never used    no-unused-vars
+  13:36  warning  'element' is defined but never used     no-unused-vars
+  29:49  warning  'outputHTML' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\html-filter\node.ts
+   9:14  warning  'node' is defined but never used     no-unused-vars
+  17:44  warning  'element' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\html-filter\styling.ts
+   5:26  warning  'property' is defined but never used  no-unused-vars
+   5:44  warning  'value' is defined but never used     no-unused-vars
+   7:15  warning  '_key' is defined but never used      no-unused-vars
+   7:15  warning  '_key' is defined but never used      @typescript-eslint/no-unused-vars
+   7:29  warning  '_value' is defined but never used    no-unused-vars
+   7:29  warning  '_value' is defined but never used    @typescript-eslint/no-unused-vars
+   8:18  warning  '_key' is defined but never used      no-unused-vars
+   8:18  warning  '_key' is defined but never used      @typescript-eslint/no-unused-vars
+   8:32  warning  '_value' is defined but never used    no-unused-vars
+   8:32  warning  '_value' is defined but never used    @typescript-eslint/no-unused-vars
+  16:5   warning  'element' is defined but never used   no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\components\helpers.ts
+  18:32  warning  'button' is defined but never used  no-unused-vars
+  22:30  warning  'span' is defined but never used    no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\components\resizable.ts
+  14:12  warning  'increment' is defined but never used  no-unused-vars
+  15:13  warning  'size' is defined but never used       no-unused-vars
+  16:10  warning  'fullWidth' is defined but never used  no-unused-vars
+  16:29  warning  'amount' is defined but never used     no-unused-vars
+  26:6   warning  'element' is defined but never used    no-unused-vars
+  26:28  warning  'getter' is defined but never used     no-unused-vars
+  26:37  warning  'element' is defined but never used    no-unused-vars
+  39:18  warning  'element' is defined but never used    no-unused-vars
+  45:20  warning  'element' is defined but never used    no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\components\types.ts
+  16:5  warning  'SM2' is defined but never used   no-unused-vars
+  17:5  warning  'FSRS' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\find-above.ts
+  6:24  warning  'element' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\location\location.ts
+  10:5  warning  'Before' is defined but never used  no-unused-vars
+  11:5  warning  'Equal' is defined but never used   no-unused-vars
+  12:5  warning  'After' is defined but never used   no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\apply\format.ts
+  8:36  warning  'format' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\build\format.ts
+  29:25  warning  'format' is defined but never used      no-unused-vars
+  30:25  warning  'base' is defined but never used        no-unused-vars
+  31:25  warning  'range' is defined but never used       no-unused-vars
+  32:25  warning  'splitRange' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\flat-range.ts
+  12:16  warning  'parent' is defined but never used      no-unused-vars
+  13:16  warning  'startIndex' is defined but never used  no-unused-vars
+  14:16  warning  'endIndex' is defined but never used    no-unused-vars
+  47:23  error    'ChildNode' is not defined              no-undef
+  51:22  error    'ChildNode' is not defined              no-undef
+  82:35  error    'ChildNode' is not defined              no-undef
+  88:36  error    'ChildNode' is not defined              no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\match-type.ts
+  24:11  warning  'callback' is defined but never used  no-unused-vars
+  29:14  warning  'value' is defined but never used     no-unused-vars
+  85:5   warning  'element' is defined but never used   no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\split-text.ts
+  27:27  warning  'start' is defined but never used  no-unused-vars
+  27:50  warning  'end' is defined but never used    no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\surround-format.ts
+  13:15  warning  'element' is defined but never used  no-unused-vars
+  13:50  warning  'match' is defined but never used    no-unused-vars
+  18:15  warning  'before' is defined but never used   no-unused-vars
+  18:42  warning  'after' is defined but never used    no-unused-vars
+  24:18  warning  'node' is defined but never used     no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\test-utils.ts
+  38:40  warning  'childNodes' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\tree\element-node.ts
+  8:25  warning  'element' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\tree\formatting-node.ts
+  16:25  warning  'range' is defined but never used           no-unused-vars
+  24:25  warning  'matchAncestors' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\domlib\surround\tree\tree-node.ts
+  11:16  warning  'insideRange' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\generated\post.ts
+  12:30  warning  'arr' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\action-list.ts
+   8:13  warning  'params' is defined but never used   no-unused-vars
+  12:5   warning  'element' is defined but never used  no-unused-vars
+  13:5   warning  'params' is defined but never used   no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\closing-click.ts
+  65:35  warning  'value' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\closing-keyup.ts
+  26:5   warning  '_args' is defined but never used  no-unused-vars
+  26:5   warning  '_args' is defined but never used  @typescript-eslint/no-unused-vars
+  42:38  warning  'value' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\context-property.ts
+  6:37  warning  'value' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\dom-mirror.ts
+  18:5  warning  'element' is defined but never used  no-unused-vars
+  19:5  warning  'params' is defined but never used   no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\dynamic-slotting.ts
+   41:9   warning  'component' is defined but never used   no-unused-vars
+   42:9   warning  'reinsert' is defined but never used    no-unused-vars
+   42:20  warning  'newElement' is defined but never used  no-unused-vars
+   42:35  warning  'access' is defined but never used      no-unused-vars
+   44:17  warning  'update' is defined but never used      no-unused-vars
+   44:26  warning  'hostProps' is defined but never used   no-unused-vars
+   44:46  warning  'identifier' is defined but never used  no-unused-vars
+   64:28  warning  'element' is defined but never used     no-unused-vars
+   95:23  warning  'propsList' is defined but never used   no-unused-vars
+   99:26  warning  'callback' is defined but never used    no-unused-vars
+  100:23  warning  'api' is defined but never used         no-unused-vars
+  119:20  warning  'newElement' is defined but never used  no-unused-vars
+  119:35  warning  'access' is defined but never used      no-unused-vars
+  186:18  warning  'props' is defined but never used       no-unused-vars
+  233:9   warning  'button' is defined but never used      no-unused-vars
+  234:9   warning  'position' is defined but never used    no-unused-vars
+  237:9   warning  'button' is defined but never used      no-unused-vars
+  238:9   warning  'position' is defined but never used    no-unused-vars
+  240:10  warning  'position' is defined but never used    no-unused-vars
+  241:10  warning  'position' is defined but never used    no-unused-vars
+  242:12  warning  'position' is defined but never used    no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\event-store.ts
+  10:22  warning  'type' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\handler-list.ts
+   8:20  warning  'args' is defined but never used     no-unused-vars
+  19:17  warning  'setter' is defined but never used   no-unused-vars
+  19:26  warning  'handler' is defined but never used  no-unused-vars
+  19:47  warning  'clear' is defined but never used    no-unused-vars
+  20:17  warning  'clear' is defined but never used    no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\input-handler.ts
+  13:40  warning  'element' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\lifecycle-hooks.ts
+   8:30  warning  'api' is defined but never used       no-unused-vars
+   9:32  warning  'api' is defined but never used       no-unused-vars
+  11:36  warning  'api' is defined but never used       no-unused-vars
+  14:13  warning  'callback' is defined but never used  no-unused-vars
+  15:15  warning  'callback' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\modal-closing.ts
+  7:11  warning  'value' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\node-store.ts
+   8:20  warning  'node' is defined but never used  no-unused-vars
+  13:18  warning  'node' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\position\auto-update.ts
+  20:5  warning  'reference' is defined but never used  no-unused-vars
+  21:5  warning  'floating' is defined but never used   no-unused-vars
+  22:5  warning  'position' is defined but never used   no-unused-vars
+  29:5  warning  'reference' is defined but never used  no-unused-vars
+  30:5  warning  'callback' is defined but never used   no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\position\position-algorithm.d.ts
+  10:5  warning  'reference' is defined but never used  no-unused-vars
+  11:5  warning  'floating' is defined but never used   no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\position\position-floating.ts
+  17:20  warning  'reason' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\position\position-overlay.ts
+  12:20  warning  'reason' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\preferences.ts
+  14:14  warning  'msg' is defined but never used    no-unused-vars
+  25:31  warning  'value' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\resize-store.ts
+  23:18  warning  'args' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\shortcut.ts
+  8:14  warning  'event' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\store-subscribe.ts
+  16:16  warning  'value' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\sveltelib\theme.ts
+  17:21  warning  'theme' is defined but never used           no-unused-vars
+  28:40  warning  '_mutationsList' is defined but never used  no-unused-vars
+  28:40  warning  '_mutationsList' is defined but never used  @typescript-eslint/no-unused-vars
+  28:56  warning  '_observer' is defined but never used       no-unused-vars
+  28:56  warning  '_observer' is defined but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\bridgecommand.ts
+   8:26  warning  'command' is defined but never used   no-unused-vars
+   8:43  warning  'callback' is defined but never used  no-unused-vars
+   8:55  warning  'value' is defined but never used     no-unused-vars
+  21:63  warning  'value' is defined but never used     no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\cards.ts
+   5:5  warning  'New' is defined but never used            no-unused-vars
+   6:5  warning  'Learn' is defined but never used          no-unused-vars
+   7:5  warning  'Review' is defined but never used         no-unused-vars
+   8:5  warning  'Relearn' is defined but never used        no-unused-vars
+  13:5  warning  'New' is defined but never used            no-unused-vars
+  15:5  warning  'Learn' is defined but never used          no-unused-vars
+  17:5  warning  'Review' is defined but never used         no-unused-vars
+  18:5  warning  'DayLearn' is defined but never used       no-unused-vars
+  21:5  warning  'PreviewRepeat' is defined but never used  no-unused-vars
+  23:5  warning  'Suspended' is defined but never used      no-unused-vars
+  24:5  warning  'SchedBuried' is defined but never used    no-unused-vars
+  25:5  warning  'UserBuried' is defined but never used     no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\children-access.ts
+  90:13  warning  'element' is defined but never used  no-unused-vars
+  90:25  warning  'index' is defined but never used    no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\events.ts
+   4:79  error    'HTMLElementEventMap' is not defined      no-undef
+   5:28  error    'DocumentEventMap' is not defined         no-undef
+   6:26  error    'WindowEventMap' is not defined           no-undef
+   7:30  error    'FileReaderEventMap' is not defined       no-undef
+   8:29  error    'AnimationEventMap' is not defined        no-undef
+   9:31  error    'EventSourceEventMap' is not defined      no-undef
+  10:31  error    'AbortSignalEventMap' is not defined      no-undef
+  11:17  error    'AbstractWorker' is not defined           no-undef
+  11:34  error    'AbstractWorkerEventMap' is not defined   no-undef
+  17:15  warning  'this' is defined but never used          no-unused-vars
+  17:24  warning  'event' is defined but never used         no-unused-vars
+  18:15  error    'AddEventListenerOptions' is not defined  no-undef
+  20:51  error    'EventListener' is not defined            no-undef
+  21:67  error    'EventListener' is not defined            no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\keys.ts
+  124:56  warning  'event' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\progress.ts
+  9:16  warning  'progress' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\promise.ts
+  4:57  warning  'value' is defined but never used   no-unused-vars
+  5:19  warning  'object' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\runtime-require.ts
+  32:6  warning  'key' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\shadow-dom.d.ts
+  9:21  warning  'options' is defined but never used  no-unused-vars
+  9:31  error    'GetRootNodeOptions' is not defined  no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\shortcuts.ts
+   67:35  warning  't' is defined but never used      no-unused-vars
+  110:5   warning  'event' is defined but never used  no-unused-vars
+  122:16  warning  'event' is defined but never used  no-unused-vars
+  123:18  warning  'event' is defined but never used  no-unused-vars
+  155:16  warning  'event' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\lib\tslib\time.ts
+   14:5  warning  'Seconds' is defined but never used  no-unused-vars
+   15:5  warning  'Minutes' is defined but never used  no-unused-vars
+   16:5  warning  'Hours' is defined but never used    no-unused-vars
+   17:5  warning  'Days' is defined but never used     no-unused-vars
+   18:5  warning  'Months' is defined but never used   no-unused-vars
+   19:5  warning  'Years' is defined but never used    no-unused-vars
+  111:5  warning  '_' is defined but never used        no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\reviewer\answering.ts
+  43:24  warning  'states' is defined but never used      no-unused-vars
+  43:43  warning  'customData' is defined but never used  no-unused-vars
+  43:73  warning  'ctx' is defined but never used         no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\reviewer\lib.test.ts
+  122:95  warning  '_ctx' is defined but never used         no-unused-vars
+  122:95  warning  '_ctx' is defined but never used         @typescript-eslint/no-unused-vars
+  130:82  warning  '_customData' is defined but never used  no-unused-vars
+  130:82  warning  '_customData' is defined but never used  @typescript-eslint/no-unused-vars
+  130:95  warning  '_ctx' is defined but never used         no-unused-vars
+  130:95  warning  '_ctx' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\card-info\[cardId]\+page.ts
+   7:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:14  warning  'e' is defined but never used             no-unused-vars
+  10:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\card-info\[cardId]\[previousId]\+page.ts
+   8:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  11:14  warning  'e' is defined but never used             no-unused-vars
+  11:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\card-info\forgetting-curve.ts
+   30:5   warning  'Week' is defined but never used          no-unused-vars
+   31:5   warning  'Month' is defined but never used         no-unused-vars
+   32:5   warning  'Year' is defined but never used          no-unused-vars
+   33:5   warning  'AllTime' is defined but never used       no-unused-vars
+  190:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  334:20  warning  '_' is assigned a value but never used    no-unused-vars
+  334:20  warning  '_' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\change-notetype\lib.ts
+  118:5   warning  'Field' is defined but never used     no-unused-vars
+  119:5   warning  'Template' is defined but never used  no-unused-vars
+  127:27  warning  'val' is defined but never used       no-unused-vars
+  129:32  warning  'val' is defined but never used       no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\deck-options\lib.ts
+   71:39  warning  'value' is defined but never used  no-unused-vars
+   76:33  warning  'val' is defined but never used    no-unused-vars
+  402:14  warning  'err' is defined but never used    no-unused-vars
+  402:14  warning  'err' is defined but never used    @typescript-eslint/no-unused-vars
+  422:22  warning  'value' is defined but never used  no-unused-vars
+  430:18  warning  'value' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\deck-options\steps.ts
+  49:16  warning  '_' is assigned a value but never used  no-unused-vars
+  49:16  warning  '_' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\added.ts
+  103:9  warning  '_percent' is defined but never used  no-unused-vars
+  103:9  warning  '_percent' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\calendar.ts
+  74:25  warning  'd' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\difficulty.ts
+  86:50  warning  '_percent' is defined but never used  no-unused-vars
+  86:50  warning  '_percent' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\ease.ts
+  89:50  warning  '_percent' is defined but never used  no-unused-vars
+  89:50  warning  '_percent' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\future-due.ts
+  119:9  warning  '_percent' is defined but never used  no-unused-vars
+  119:9  warning  '_percent' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\graph-helpers.ts
+  16:5  warning  'Year' is defined but never used         no-unused-vars
+  17:5  warning  'All' is defined but never used          no-unused-vars
+  26:5  warning  'Month' is defined but never used        no-unused-vars
+  27:5  warning  'ThreeMonths' is defined but never used  no-unused-vars
+  28:5  warning  'Year' is defined but never used         no-unused-vars
+  29:5  warning  'AllTime' is defined but never used      no-unused-vars
+  95:5  warning  'type' is defined but never used         no-unused-vars
+  96:5  warning  'detail' is defined but never used       no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\histogram-graph.ts
+  22:9   warning  'bin' is defined but never used         no-unused-vars
+  23:9   warning  'cumulative' is defined but never used  no-unused-vars
+  24:9   warning  'percent' is defined but never used     no-unused-vars
+  26:16  warning  'data' is defined but never used        no-unused-vars
+  29:17  warning  'bin' is defined but never used         no-unused-vars
+  30:20  warning  'd' is defined but never used           no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\intervals.ts
+  24:5   warning  'Month' is defined but never used         no-unused-vars
+  25:5   warning  'Percentile50' is defined but never used  no-unused-vars
+  26:5   warning  'Percentile95' is defined but never used  no-unused-vars
+  27:5   warning  'All' is defined but never used           no-unused-vars
+  35:35  warning  '_k' is defined but never used            no-unused-vars
+  35:35  warning  '_k' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\retrievability.ts
+  93:50  warning  '_percent' is defined but never used  no-unused-vars
+  93:50  warning  '_percent' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\reviews.ts
+  59:5  warning  'Mature' is defined but never used    no-unused-vars
+  60:5  warning  'Young' is defined but never used     no-unused-vars
+  61:5  warning  'Relearn' is defined but never used   no-unused-vars
+  62:5  warning  'Learn' is defined but never used     no-unused-vars
+  63:5  warning  'Filtered' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\simulator.ts
+   39:5    warning  'time' is defined but never used          no-unused-vars
+   40:5    warning  'count' is defined but never used         no-unused-vars
+   41:5    warning  'memorized' is defined but never used     no-unused-vars
+   45:5    warning  'ratio' is defined but never used         no-unused-vars
+   46:5    warning  'time' is defined but never used          no-unused-vars
+   47:5    warning  'count' is defined but never used         no-unused-vars
+   48:5    warning  'memorized' is defined but never used     no-unused-vars
+   84:21   warning  'value' is defined but never used         no-unused-vars
+  105:10   warning  '_e' is defined but never used            no-unused-vars
+  105:10   warning  '_e' is defined but never used            @typescript-eslint/no-unused-vars
+  105:26   warning  '_d' is defined but never used            no-unused-vars
+  105:26   warning  '_d' is defined but never used            @typescript-eslint/no-unused-vars
+  140:21   warning  'value' is defined but never used         no-unused-vars
+  188:48   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  188:56   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  192:8    warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  193:15   warning  'n' is defined but never used             no-unused-vars
+  194:15   warning  'n' is defined but never used             no-unused-vars
+  195:23   warning  'e' is defined but never used             no-unused-vars
+  195:38   warning  'd' is defined but never used             no-unused-vars
+  196:20   warning  'n' is defined but never used             no-unused-vars
+  197:20   warning  'n' is defined but never used             no-unused-vars
+  208:53   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  212:112  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  228:48   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  292:46   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\tooltip-utils.svelte.ts
+  16:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:15  error    '$state' is not defined                   no-undef
+  42:42  warning  'msg' is defined but never used           no-unused-vars
+  42:55  warning  'x' is defined but never used             no-unused-vars
+  42:66  warning  'y' is defined but never used             no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\graphs\true-retention.ts
+  25:5  warning  'Young' is defined but never used    no-unused-vars
+  26:5  warning  'Mature' is defined but never used   no-unused-vars
+  27:5  warning  'All' is defined but never used      no-unused-vars
+  28:5  warning  'Summary' is defined but never used  no-unused-vars
+  32:5  warning  'Young' is defined but never used    no-unused-vars
+  33:5  warning  'Mature' is defined but never used   no-unused-vars
+  34:5  warning  'All' is defined but never used      no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\image-occlusion\add-or-update-note.svelte.ts
+  59:19  error  '$state' is not defined  no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\image-occlusion\mask-editor.ts
+   39:21  warning  'event' is defined but never used  no-unused-vars
+   60:21  warning  'event' is defined but never used  no-unused-vars
+  219:66  warning  'event' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\image-occlusion\review.ts
+  21:5  warning  'data' is defined but never used     no-unused-vars
+  22:5  warning  'context' is defined but never used  no-unused-vars
+  26:5  warning  'data' is defined but never used     no-unused-vars
+  27:5  warning  'context' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\image-occlusion\shapes\lib.ts
+  17:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\image-occlusion\shapes\to-cloze.ts
+  142:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  151:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\image-occlusion\tools\tool-polygon.ts
+  33:18  warning  'e' is defined but never used  no-unused-vars
+  33:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\image-occlusion\tools\tool-zoom.ts
+  180:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  182:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\import-anki-package\index.ts
+  29:12  warning  '_' is assigned a value but never used  no-unused-vars
+  29:12  warning  '_' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\import-csv\lib.ts
+  53:32  warning  'val' is defined but never used  no-unused-vars
+  54:35  warning  'val' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\import-page\types.ts
+  16:23  warning  'args' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\routes\tmp\_page.ts
+  5:13  warning  '_editor' is defined but never used    no-unused-vars
+  5:13  warning  '_editor' is defined but never used    @typescript-eslint/no-unused-vars
+  6:13  warning  '_reviewer' is defined but never used  no-unused-vars
+  6:13  warning  '_reviewer' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\src\hooks.client.js
+  2:44  warning  'event' is defined but never used    no-unused-vars
+  2:44  warning  'event' is defined but never used    @typescript-eslint/no-unused-vars
+  2:51  warning  'status' is defined but never used   no-unused-vars
+  2:51  warning  'status' is defined but never used   @typescript-eslint/no-unused-vars
+  2:59  warning  'message' is defined but never used  no-unused-vars
+  2:59  warning  'message' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\tools\markpure.ts
+  26:18  error  'process' is not defined  no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\tools\sql_format.ts
+  24:8   warning  '_tsx' is assigned a value but never used     no-unused-vars
+  24:8   warning  '_tsx' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  24:14  warning  '_script' is assigned a value but never used  no-unused-vars
+  24:14  warning  '_script' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  44:5   error    'process' is not defined                      no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\transform_ts.mjs
+  7:8   error  '_node' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  7:15  error  '_script' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\anki-main\ts\vite.config.ts
+   9:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:32  warning  '_options' is defined but never used      no-unused-vars
+   9:32  warning  '_options' is defined but never used      @typescript-eslint/no-unused-vars
+   9:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  13:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  13:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\components\common\Modal.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\components\global\GlobalPlayer.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                                   @typescript-eslint/ban-ts-comment
+    3:18  warning  'AnimatePresence' is defined but never used                                                                                     no-unused-vars
+    3:18  warning  'AnimatePresence' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+  119:6   warning  React Hook useEffect has missing dependencies: 'isPlaying' and 'youtubeId'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\components\navigation\CommandPalette.tsx
+  1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  4:18  warning  'AnimatePresence' is defined but never used                    no-unused-vars
+  4:18  warning  'AnimatePresence' is defined but never used                    @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\components\offline\OfflineIndicator.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\context\AuthContext.tsx
+  10:13  warning  'user' is defined but never used                                                                                                no-unused-vars
+  66:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\context\GamificationContext.tsx
+  10:11  warning  'amount' is defined but never used                                                                                              no-unused-vars
+  10:27  warning  'reason' is defined but never used                                                                                              no-unused-vars
+  15:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\context\NotificationContext.tsx
+    3:10  warning  'auth' is defined but never used                                                                                                no-unused-vars
+    3:10  warning  'auth' is defined but never used                                                                                                @typescript-eslint/no-unused-vars
+  117:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\context\UIContext.tsx
+   6:21  warning  'collapsed' is defined but never used                                                                                           no-unused-vars
+   9:21  warning  'e' is defined but never used                                                                                                   no-unused-vars
+  10:24  warning  'active' is defined but never used                                                                                              no-unused-vars
+  12:27  warning  'show' is defined but never used                                                                                                no-unused-vars
+  15:24  warning  'show' is defined but never used                                                                                                no-unused-vars
+  71:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\declarations.d.ts
+   2:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   7:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  12:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\ai\AIAssistant.tsx
+  1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  4:24  warning  'Sparkles' is defined but never used                           no-unused-vars
+  4:24  warning  'Sparkles' is defined but never used                           @typescript-eslint/no-unused-vars
+  4:58  warning  'Loader' is defined but never used                             no-unused-vars
+  4:58  warning  'Loader' is defined but never used                             @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\analytics\Analytics.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+    6:5   warning  'LineChart' is defined but never used                          no-unused-vars
+    6:5   warning  'LineChart' is defined but never used                          @typescript-eslint/no-unused-vars
+    6:16  warning  'Line' is defined but never used                               no-unused-vars
+    6:16  warning  'Line' is defined but never used                               @typescript-eslint/no-unused-vars
+   10:10  warning  'TrendingUp' is defined but never used                         no-unused-vars
+   10:10  warning  'TrendingUp' is defined but never used                         @typescript-eslint/no-unused-vars
+  122:23  warning  'k' is defined but never used                                  no-unused-vars
+  122:23  warning  'k' is defined but never used                                  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\auth\passwordreset\ResetPassword.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\auth\signUp\AuthWrapper.tsx
+  4:44  warning  'user' is defined but never used          no-unused-vars
+  4:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  4:72  warning  'onSuccess' is defined but never used     no-unused-vars
+  4:72  warning  'onSuccess' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\auth\signUp\SignUp.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+   30:10  warning  'success' is assigned a value but never used                   no-unused-vars
+   30:10  warning  'success' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  107:13  warning  'googleFullName' is assigned a value but never used            no-unused-vars
+  107:13  warning  'googleFullName' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  108:13  warning  'isGoogle' is assigned a value but never used                  no-unused-vars
+  108:13  warning  'isGoogle' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\auth\signUp\SignUpForm.tsx
+  23:16  warning  'data' is defined but never used   no-unused-vars
+  29:23  warning  'value' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\auth\signUp\modal\passwordM\GoogleUsernameModal.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\auth\signUp\modal\passwordM\Modal.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\auth\signUp\modal\verfM\EmailVerificationModal.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\calendar\MyTimetable.tsx
+    5:16  warning  'Bell' is defined but never used                                                                                                                                                                                         no-unused-vars
+    5:16  warning  'Bell' is defined but never used                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    5:31  warning  'X' is defined but never used                                                                                                                                                                                            no-unused-vars
+    5:31  warning  'X' is defined but never used                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+    5:67  warning  'CalendarIcon' is defined but never used                                                                                                                                                                                 no-unused-vars
+    5:67  warning  'CalendarIcon' is defined but never used                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    8:10  warning  'connectGoogleCalendar' is defined but never used                                                                                                                                                                        no-unused-vars
+    8:10  warning  'connectGoogleCalendar' is defined but never used                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    8:33  warning  'fetchUpcomingEvents' is defined but never used                                                                                                                                                                          no-unused-vars
+    8:33  warning  'fetchUpcomingEvents' is defined but never used                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   54:24  warning  'setGoogleEvents' is assigned a value but never used                                                                                                                                                                     no-unused-vars
+   54:24  warning  'setGoogleEvents' is assigned a value but never used                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   55:10  warning  'isSyncing' is assigned a value but never used                                                                                                                                                                           no-unused-vars
+   55:10  warning  'isSyncing' is assigned a value but never used                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   55:21  warning  'setIsSyncing' is assigned a value but never used                                                                                                                                                                        no-unused-vars
+   55:21  warning  'setIsSyncing' is assigned a value but never used                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   59:9   warning  'userEmail' is assigned a value but never used                                                                                                                                                                           no-unused-vars
+   59:9   warning  'userEmail' is assigned a value but never used                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  157:13  warning  'allDays' is assigned a value but never used                                                                                                                                                                             no-unused-vars
+  157:13  warning  'allDays' is assigned a value but never used                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  280:41  warning  Unexpected any. Specify a different type                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  298:9   warning  The 'allEvents' array makes the dependencies of useMemo Hook (at line 310) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'allEvents' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  749:17  warning  'ev' is defined but never used                                                                                                                                                                                           no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\calendar\YearlyCalendar.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                      @typescript-eslint/ban-ts-comment
+   50:6   warning  React Hook useEffect has a missing dependency: 'openEventModal'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  100:10  warning  'syncStatus' is assigned a value but never used                                                                    no-unused-vars
+  100:10  warning  'syncStatus' is assigned a value but never used                                                                    @typescript-eslint/no-unused-vars
+  109:5   error    Unreachable code                                                                                                   no-unreachable
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\chat\Chat.tsx
+     1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                        @typescript-eslint/ban-ts-comment
+     6:1   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+    28:3   warning  'Terminal' is defined but never used                                                                                 no-unused-vars
+    28:3   warning  'Terminal' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+    31:3   warning  'AlertCircle' is defined but never used                                                                              no-unused-vars
+    31:3   warning  'AlertCircle' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    44:3   warning  'Circle' is defined but never used                                                                                   no-unused-vars
+    44:3   warning  'Circle' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+    46:3   warning  'Moon' is defined but never used                                                                                     no-unused-vars
+    46:3   warning  'Moon' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+   101:10  warning  'error' is assigned a value but never used                                                                           no-unused-vars
+   101:10  warning  'error' is assigned a value but never used                                                                           @typescript-eslint/no-unused-vars
+   372:6   warning  React Hook useEffect has a missing dependency: 'subjects'. Either include it or remove the dependency array          react-hooks/exhaustive-deps
+   423:6   warning  React Hook useEffect has a missing dependency: 'subjects'. Either include it or remove the dependency array          react-hooks/exhaustive-deps
+   638:18  warning  '_' is defined but never used                                                                                        no-unused-vars
+   638:18  warning  '_' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+   834:9   warning  'formatTime' is assigned a value but never used                                                                      no-unused-vars
+   834:9   warning  'formatTime' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+   850:9   warning  'handleProfileClick' is assigned a value but never used                                                              no-unused-vars
+   850:9   warning  'handleProfileClick' is assigned a value but never used                                                              @typescript-eslint/no-unused-vars
+  1434:34  warning  'index' is defined but never used                                                                                    no-unused-vars
+  1434:34  warning  'index' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\chat\VirtualMessageList.tsx
+  6:15  warning  'msg' is defined but never used    no-unused-vars
+  6:23  warning  'index' is defined but never used  no-unused-vars
+  7:15  warning  'props' is defined but never used  no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\collaboration\InvitationModal.tsx
+  21:12  warning  'invitations' is assigned a value but never used  no-unused-vars
+  21:12  warning  'invitations' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  30:77  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\collaboration\Whiteboard.tsx
+   1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                @typescript-eslint/ban-ts-comment
+   4:35  warning  'set' is defined but never used                                                                              no-unused-vars
+   4:35  warning  'set' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+   6:18  warning  'Pen' is defined but never used                                                                              no-unused-vars
+   6:18  warning  'Pen' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+  36:8   warning  React Hook useEffect has a missing dependency: 'boardRef'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\collaboration\Workspace.tsx
+    1:1    error    Do not use "@ts-nocheck" because it alters compilation errors                                                                 @typescript-eslint/ban-ts-comment
+    5:10   warning  'Users' is defined but never used                                                                                             no-unused-vars
+    5:10   warning  'Users' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+    5:32   warning  'Video' is defined but never used                                                                                             no-unused-vars
+    5:32   warning  'Video' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+    5:39   warning  'Mic' is defined but never used                                                                                               no-unused-vars
+    5:39   warning  'Mic' is defined but never used                                                                                               @typescript-eslint/no-unused-vars
+    5:44   warning  'Share2' is defined but never used                                                                                            no-unused-vars
+    5:44   warning  'Share2' is defined but never used                                                                                            @typescript-eslint/no-unused-vars
+    5:108  warning  'Clock' is defined but never used                                                                                             no-unused-vars
+    5:108  warning  'Clock' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+    5:137  warning  'Type' is defined but never used                                                                                              no-unused-vars
+    5:137  warning  'Type' is defined but never used                                                                                              @typescript-eslint/no-unused-vars
+    5:203  warning  'X' is defined but never used                                                                                                 no-unused-vars
+    5:203  warning  'X' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+    5:299  warning  'Check' is defined but never used                                                                                             no-unused-vars
+    5:299  warning  'Check' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+    8:94   warning  'orderByChild' is defined but never used                                                                                      no-unused-vars
+    8:94   warning  'orderByChild' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+    8:108  warning  'equalTo' is defined but never used                                                                                           no-unused-vars
+    8:108  warning  'equalTo' is defined but never used                                                                                           @typescript-eslint/no-unused-vars
+    8:117  warning  'startAt' is defined but never used                                                                                           no-unused-vars
+    8:117  warning  'startAt' is defined but never used                                                                                           @typescript-eslint/no-unused-vars
+    8:126  warning  'endAt' is defined but never used                                                                                             no-unused-vars
+    8:126  warning  'endAt' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+    8:133  warning  'limitToFirst' is defined but never used                                                                                      no-unused-vars
+    8:133  warning  'limitToFirst' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+   13:81   warning  'onToggleFolder' is defined but never used                                                                                    no-unused-vars
+   13:81   warning  'onToggleFolder' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+   94:10   warning  'activeProjectId' is assigned a value but never used                                                                          no-unused-vars
+   94:10   warning  'activeProjectId' is assigned a value but never used                                                                          @typescript-eslint/no-unused-vars
+   94:27   warning  'setActiveProjectId' is assigned a value but never used                                                                       no-unused-vars
+   94:27   warning  'setActiveProjectId' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+   95:10   warning  'activeFileId' is assigned a value but never used                                                                             no-unused-vars
+   95:10   warning  'activeFileId' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+   95:24   warning  'setActiveFileId' is assigned a value but never used                                                                          no-unused-vars
+   95:24   warning  'setActiveFileId' is assigned a value but never used                                                                          @typescript-eslint/no-unused-vars
+   97:10   warning  'fileSystem' is assigned a value but never used                                                                               no-unused-vars
+   97:10   warning  'fileSystem' is assigned a value but never used                                                                               @typescript-eslint/no-unused-vars
+   97:22   warning  'setFileSystem' is assigned a value but never used                                                                            no-unused-vars
+   97:22   warning  'setFileSystem' is assigned a value but never used                                                                            @typescript-eslint/no-unused-vars
+   99:10   warning  'wsLoading' is assigned a value but never used                                                                                no-unused-vars
+   99:10   warning  'wsLoading' is assigned a value but never used                                                                                @typescript-eslint/no-unused-vars
+   99:21   warning  'setWsLoading' is assigned a value but never used                                                                             no-unused-vars
+   99:21   warning  'setWsLoading' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+  100:10   warning  'showInviteModal' is assigned a value but never used                                                                          no-unused-vars
+  100:10   warning  'showInviteModal' is assigned a value but never used                                                                          @typescript-eslint/no-unused-vars
+  100:27   warning  'setShowInviteModal' is assigned a value but never used                                                                       no-unused-vars
+  100:27   warning  'setShowInviteModal' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+  102:10   warning  'sidebarCollapsed' is assigned a value but never used                                                                         no-unused-vars
+  102:10   warning  'sidebarCollapsed' is assigned a value but never used                                                                         @typescript-eslint/no-unused-vars
+  102:28   warning  'setSidebarCollapsed' is assigned a value but never used                                                                      no-unused-vars
+  102:28   warning  'setSidebarCollapsed' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  103:10   warning  'onlineMembers' is assigned a value but never used                                                                            no-unused-vars
+  103:10   warning  'onlineMembers' is assigned a value but never used                                                                            @typescript-eslint/no-unused-vars
+  103:25   warning  'setOnlineMembers' is assigned a value but never used                                                                         no-unused-vars
+  103:25   warning  'setOnlineMembers' is assigned a value but never used                                                                         @typescript-eslint/no-unused-vars
+  104:10   warning  'notification' is assigned a value but never used                                                                             no-unused-vars
+  104:10   warning  'notification' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+  113:10   warning  'draggedFileId' is assigned a value but never used                                                                            no-unused-vars
+  113:10   warning  'draggedFileId' is assigned a value but never used                                                                            @typescript-eslint/no-unused-vars
+  113:25   warning  'setDraggedFileId' is assigned a value but never used                                                                         no-unused-vars
+  113:25   warning  'setDraggedFileId' is assigned a value but never used                                                                         @typescript-eslint/no-unused-vars
+  114:10   warning  'dragOverFolderId' is assigned a value but never used                                                                         no-unused-vars
+  114:10   warning  'dragOverFolderId' is assigned a value but never used                                                                         @typescript-eslint/no-unused-vars
+  114:28   warning  'setDragOverFolderId' is assigned a value but never used                                                                      no-unused-vars
+  114:28   warning  'setDragOverFolderId' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  124:10   warning  'editorContent' is assigned a value but never used                                                                            no-unused-vars
+  124:10   warning  'editorContent' is assigned a value but never used                                                                            @typescript-eslint/no-unused-vars
+  150:6    warning  React Hook useEffect has a missing dependency: 'activeFile'. Either include it or remove the dependency array                 react-hooks/exhaustive-deps
+  300:3    error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+  318:3    error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+  358:9    error    Duplicate key 'createdAt'                                                                                                     no-dupe-keys
+  394:3    error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+  446:3    error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+  540:41   error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render   react-hooks/rules-of-hooks
+  541:28   error    React Hook "useRef" is called conditionally. React Hooks must be called in the exact same order in every component render     react-hooks/rules-of-hooks
+  542:45   error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render   react-hooks/rules-of-hooks
+  559:3    error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+  568:22   warning  '_' is defined but never used                                                                                                 no-unused-vars
+  568:22   warning  '_' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+  594:3    error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+  607:25   error    'snap' is never reassigned. Use 'const' instead                                                                               prefer-const
+  710:9    warning  'setMemberInput' is assigned a value but never used                                                                           no-unused-vars
+  710:9    warning  'setMemberInput' is assigned a value but never used                                                                           @typescript-eslint/no-unused-vars
+  741:28   warning  'index' is defined but never used                                                                                             no-unused-vars
+  741:28   warning  'index' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\dashboard\Dashboard.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+    8:3   warning  'getAchievementById' is defined but never used                 no-unused-vars
+    8:3   warning  'getAchievementById' is defined but never used                 @typescript-eslint/no-unused-vars
+   26:10  warning  'recentSessions' is assigned a value but never used            no-unused-vars
+   26:10  warning  'recentSessions' is assigned a value but never used            @typescript-eslint/no-unused-vars
+   32:10  warning  'achievementsExpanded' is assigned a value but never used      no-unused-vars
+   32:10  warning  'achievementsExpanded' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   32:32  warning  'setAchievementsExpanded' is assigned a value but never used   no-unused-vars
+   32:32  warning  'setAchievementsExpanded' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  249:9   warning  'formatDate' is assigned a value but never used                no-unused-vars
+  249:9   warning  'formatDate' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  692:23  error    'rawProgress' is never reassigned. Use 'const' instead         prefer-const
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\flashcards\Flashcards.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                    @typescript-eslint/ban-ts-comment
+    2:38  warning  'useCallback' is defined but never used                                                                          no-unused-vars
+    2:38  warning  'useCallback' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    6:25  warning  'Card' is defined but never used                                                                                 no-unused-vars
+    6:25  warning  'Card' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+   32:12  warning  'showSettings' is assigned a value but never used                                                                no-unused-vars
+   32:12  warning  'showSettings' is assigned a value but never used                                                                @typescript-eslint/no-unused-vars
+   32:26  warning  'setShowSettings' is assigned a value but never used                                                             no-unused-vars
+   32:26  warning  'setShowSettings' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+   62:46  warning  Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+   64:73  warning  Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+   66:48  warning  Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+   89:8   warning  React Hook useEffect has a missing dependency: 'activeDeck'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+  115:8   warning  React Hook useEffect has a missing dependency: 'handleAnswer'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  261:13  error    'q' is never reassigned. Use 'const' instead                                                                     prefer-const
+  280:30  warning  'earnedCoins' is defined but never used                                                                          no-unused-vars
+  280:30  warning  'earnedCoins' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  280:43  warning  'unlocked' is defined but never used                                                                             no-unused-vars
+  280:43  warning  'unlocked' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  723:32  warning  'sub' is defined but never used                                                                                  no-unused-vars
+  723:32  warning  'sub' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\flashcards\ankiScheduler.ts
+    6:5   warning  'New' is defined but never used                    no-unused-vars
+    7:5   warning  'Learn' is defined but never used                  no-unused-vars
+    8:5   warning  'Review' is defined but never used                 no-unused-vars
+    9:5   warning  'Relearn' is defined but never used                no-unused-vars
+   13:5   warning  'New' is defined but never used                    no-unused-vars
+   14:5   warning  'Learn' is defined but never used                  no-unused-vars
+   15:5   warning  'Review' is defined but never used                 no-unused-vars
+   16:5   warning  'DayLearn' is defined but never used               no-unused-vars
+   17:5   warning  'Suspended' is defined but never used              no-unused-vars
+   18:5   warning  'SchedBuried' is defined but never used            no-unused-vars
+   19:5   warning  'UserBuried' is defined but never used             no-unused-vars
+   23:5   warning  'Again' is defined but never used                  no-unused-vars
+   24:5   warning  'Hard' is defined but never used                   no-unused-vars
+   25:5   warning  'Good' is defined but never used                   no-unused-vars
+   26:5   warning  'Easy' is defined but never used                   no-unused-vars
+  132:13  error    'c' is never reassigned. Use 'const' instead       prefer-const
+  273:29  warning  'card' is defined but never used                   no-unused-vars
+  273:29  warning  'card' is defined but never used                   @typescript-eslint/no-unused-vars
+  285:42  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  323:13  error    'counts' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\focus\FocusMode.tsx
+  1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  3:18  warning  'AnimatePresence' is defined but never used                    no-unused-vars
+  3:18  warning  'AnimatePresence' is defined but never used                    @typescript-eslint/no-unused-vars
+  4:10  warning  'Maximize2' is defined but never used                          no-unused-vars
+  4:10  warning  'Maximize2' is defined but never used                          @typescript-eslint/no-unused-vars
+  4:21  warning  'Minimize2' is defined but never used                          no-unused-vars
+  4:21  warning  'Minimize2' is defined but never used                          @typescript-eslint/no-unused-vars
+  4:35  warning  'Music' is defined but never used                              no-unused-vars
+  4:35  warning  'Music' is defined but never used                              @typescript-eslint/no-unused-vars
+  4:77  warning  'Coffee' is defined but never used                             no-unused-vars
+  4:77  warning  'Coffee' is defined but never used                             @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\grades\Grades.tsx
+   2:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+   5:43  warning  'update' is defined but never used                             no-unused-vars
+   5:43  warning  'update' is defined but never used                             @typescript-eslint/no-unused-vars
+  13:3   warning  'MoreVertical' is defined but never used                       no-unused-vars
+  13:3   warning  'MoreVertical' is defined but never used                       @typescript-eslint/no-unused-vars
+  34:10  warning  'foldersData' is assigned a value but never used               no-unused-vars
+  34:10  warning  'foldersData' is assigned a value but never used               @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\habits\HabitTracker.tsx
+   1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  97:14  warning  'today' is assigned a value but never used                     no-unused-vars
+  97:14  warning  'today' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\landing\LandingPage.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\leaderboard\Leaderboard.tsx
+   1:1  error    Do not use "@ts-nocheck" because it alters compilation errors                                                     @typescript-eslint/ban-ts-comment
+  85:6  warning  React Hook useEffect has a missing dependency: 'presetBanners'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\mindmap\MindMap.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  391:9   error    'newStore' is never reassigned. Use 'const' instead            prefer-const
+  589:14  warning  'err' is defined but never used                                no-unused-vars
+  589:14  warning  'err' is defined but never used                                @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\notes\StickyWall.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\notifications\NotificationManager.tsx
+  11:9  warning  'lastBreakTime' is assigned a value but never used  no-unused-vars
+  11:9  warning  'lastBreakTime' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\pomodoro\Pomdoro.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\pomodoro\TimerContext.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                                   @typescript-eslint/ban-ts-comment
+   10:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  367:6   warning  React Hook useEffect has a missing dependency: 'startPause'. Either include it or remove the dependency array                   react-hooks/exhaustive-deps
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\pomodoro\TimerWidget.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\profile\profile.tsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                        @typescript-eslint/ban-ts-comment
+   34:35  warning  'CalendarIcon' is defined but never used                                                                             no-unused-vars
+   34:35  warning  'CalendarIcon' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   34:49  warning  'Loader2' is defined but never used                                                                                  no-unused-vars
+   34:49  warning  'Loader2' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+   35:10  warning  'toast' is defined but never used                                                                                    no-unused-vars
+   35:10  warning  'toast' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+  154:7   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  156:7   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  160:9   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  177:19  warning  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  193:19  warning  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  203:41  warning  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  232:13  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  254:19  warning  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  280:14  warning  'err' is defined but never used                                                                                      no-unused-vars
+  280:14  warning  'err' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+  285:9   warning  'handleSignOut' is assigned a value but never used                                                                   no-unused-vars
+  285:9   warning  'handleSignOut' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+  295:3   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\resources\ResourceLibrary.tsx
+  1:1    error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  4:121  warning  'Eye' is defined but never used                                no-unused-vars
+  4:121  warning  'Eye' is defined but never used                                @typescript-eslint/no-unused-vars
+  6:38   warning  'set' is defined but never used                                no-unused-vars
+  6:38   warning  'set' is defined but never used                                @typescript-eslint/no-unused-vars
+  9:8    warning  'Modal' is defined but never used                              no-unused-vars
+  9:8    warning  'Modal' is defined but never used                              @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\settings\PricingModal.tsx
+  2:20  warning  'Star' is defined but never used  no-unused-vars
+  2:20  warning  'Star' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\settings\Settings.tsx
+  1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  4:27  warning  'Monitor' is defined but never used                            no-unused-vars
+  4:27  warning  'Monitor' is defined but never used                            @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\settings\SettingsPage.tsx
+    5:3   warning  'Mail' is defined but never used                                                                                                                                                                                                             no-unused-vars
+    5:3   warning  'Mail' is defined but never used                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+    5:9   warning  'Smartphone' is defined but never used                                                                                                                                                                                                       no-unused-vars
+    5:9   warning  'Smartphone' is defined but never used                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    5:46  warning  'LogOut' is defined but never used                                                                                                                                                                                                           no-unused-vars
+    5:46  warning  'LogOut' is defined but never used                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    6:3   warning  'Sun' is defined but never used                                                                                                                                                                                                              no-unused-vars
+    6:3   warning  'Sun' is defined but never used                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+    6:8   warning  'Moon' is defined but never used                                                                                                                                                                                                             no-unused-vars
+    6:8   warning  'Moon' is defined but never used                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+    6:29  warning  'X' is defined but never used                                                                                                                                                                                                                no-unused-vars
+    6:29  warning  'X' is defined but never used                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    6:32  warning  'Zap' is defined but never used                                                                                                                                                                                                              no-unused-vars
+    6:32  warning  'Zap' is defined but never used                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   59:10  warning  'verificationId' is assigned a value but never used                                                                                                                                                                                          no-unused-vars
+   59:10  warning  'verificationId' is assigned a value but never used                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   67:58  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+   95:6   warning  React Hook useEffect has a missing dependency: 'settings'. Either include it or remove the dependency array. You can also replace multiple useState variables with useReducer if 'setInitialSettings' needs the current value of 'settings'  react-hooks/exhaustive-deps
+  154:21  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  169:42  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  215:14  warning  'err' is defined but never used                                                                                                                                                                                                              no-unused-vars
+  215:14  warning  'err' is defined but never used                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  229:14  warning  'err' is defined but never used                                                                                                                                                                                                              no-unused-vars
+  229:14  warning  'err' is defined but never used                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  251:20  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  252:18  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  253:18  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  255:16  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  264:22  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  265:20  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  266:20  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  279:38  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  281:18  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  285:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  296:23  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  299:20  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  308:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  343:21  warning  Unexpected any. Specify a different type                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\shop\Shop.tsx
+    1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+   88:7  error  'toast' is not defined                                         no-undef
+  126:7  error  'toast' is not defined                                         no-undef
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\social\StudyBuddy.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\standup\DailyStandup.tsx
+  1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  3:18  warning  'AnimatePresence' is defined but never used                    no-unused-vars
+  3:18  warning  'AnimatePresence' is defined but never used                    @typescript-eslint/no-unused-vars
+  4:23  warning  'Plus' is defined but never used                               no-unused-vars
+  4:23  warning  'Plus' is defined but never used                               @typescript-eslint/no-unused-vars
+  4:29  warning  'X' is defined but never used                                  no-unused-vars
+  4:29  warning  'X' is defined but never used                                  @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\todo\tdlF.tsx
+     1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                                                                                                                                     @typescript-eslint/ban-ts-comment
+    18:80  warning  'Plus' is defined but never used                                                                                                                                                                                                  no-unused-vars
+    18:80  warning  'Plus' is defined but never used                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   256:6   warning  React Hook useCallback has missing dependencies: 'handleMouseMove' and 'stopResizing'. Either include them or remove the dependency array                                                                                         react-hooks/exhaustive-deps
+   266:6   warning  React Hook useCallback has missing dependencies: 'handleMouseMove' and 'stopResizing'. Either include them or remove the dependency array                                                                                         react-hooks/exhaustive-deps
+   305:23  warning  'setSearchQuery' is assigned a value but never used                                                                                                                                                                               no-unused-vars
+   305:23  warning  'setSearchQuery' is assigned a value but never used                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   311:10  warning  'isAddingSubfolder' is assigned a value but never used                                                                                                                                                                            no-unused-vars
+   311:10  warning  'isAddingSubfolder' is assigned a value but never used                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   313:10  warning  'selectedFolderId' is assigned a value but never used                                                                                                                                                                             no-unused-vars
+   313:10  warning  'selectedFolderId' is assigned a value but never used                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   313:28  warning  'setSelectedFolderId' is assigned a value but never used                                                                                                                                                                          no-unused-vars
+   313:28  warning  'setSelectedFolderId' is assigned a value but never used                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   388:13  error    Empty block statement                                                                                                                                                                                                             no-empty
+   394:13  error    Empty block statement                                                                                                                                                                                                             no-empty
+   529:9   warning  'requestNotificationPermission' is assigned a value but never used                                                                                                                                                                no-unused-vars
+   529:9   warning  'requestNotificationPermission' is assigned a value but never used                                                                                                                                                                @typescript-eslint/no-unused-vars
+   680:9   warning  'setFolderColor' is assigned a value but never used                                                                                                                                                                               no-unused-vars
+   680:9   warning  'setFolderColor' is assigned a value but never used                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   687:9   warning  'setFolderNotes' is assigned a value but never used                                                                                                                                                                               no-unused-vars
+   687:9   warning  'setFolderNotes' is assigned a value but never used                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   796:14  warning  'pushErr' is defined but never used                                                                                                                                                                                               no-unused-vars
+   796:14  warning  'pushErr' is defined but never used                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   918:9   warning  'addTagToTask' is assigned a value but never used                                                                                                                                                                                 no-unused-vars
+   918:9   warning  'addTagToTask' is assigned a value but never used                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   918:31  warning  'taskId' is defined but never used                                                                                                                                                                                                no-unused-vars
+   918:31  warning  'taskId' is defined but never used                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   918:39  warning  'label' is defined but never used                                                                                                                                                                                                 no-unused-vars
+   918:39  warning  'label' is defined but never used                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   928:11  warning  'folderColor' is assigned a value but never used                                                                                                                                                                                  no-unused-vars
+   928:11  warning  'folderColor' is assigned a value but never used                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   931:11  warning  'title' is assigned a value but never used                                                                                                                                                                                        no-unused-vars
+   931:11  warning  'title' is assigned a value but never used                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   935:13  error    Empty block statement                                                                                                                                                                                                             no-empty
+  1005:9   warning  'progress' is assigned a value but never used                                                                                                                                                                                     no-unused-vars
+  1005:9   warning  'progress' is assigned a value but never used                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  1036:8   warning  React Hook useEffect has missing dependencies: 'task?.color', 'task?.description', 'task?.dueDate', 'task?.isActive', 'task?.priority', 'task?.tags', and 'task?.text'. Either include them or remove the dependency array        react-hooks/exhaustive-deps
+  1084:37  error    React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                                                       react-hooks/rules-of-hooks
+  1087:5   error    React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                                                      react-hooks/rules-of-hooks
+  1096:8   warning  React Hook useEffect has an unnecessary dependency: 'userId'. Either exclude it or remove the dependency array. Outer scope values like 'userId' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+  1108:25  warning  'e' is defined but never used                                                                                                                                                                                                     no-unused-vars
+  1108:25  warning  'e' is defined but never used                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  1404:14  warning  'err' is defined but never used                                                                                                                                                                                                   no-unused-vars
+  1404:14  warning  'err' is defined but never used                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\todo\tdlL.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\features\update\UpdateNotification.tsx
+  1:1   error    Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+  4:34  warning  'AlertCircle' is defined but never used                        no-unused-vars
+  4:34  warning  'AlertCircle' is defined but never used                        @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\layout\AppLayout.tsx
+   4:10  warning  'User' is defined but never used                  no-unused-vars
+   4:10  warning  'User' is defined but never used                  @typescript-eslint/no-unused-vars
+   7:7   warning  'LandingPage' is assigned a value but never used  no-unused-vars
+   7:7   warning  'LandingPage' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  43:10  warning  'auth' is defined but never used                  no-unused-vars
+  43:10  warning  'auth' is defined but never used                  @typescript-eslint/no-unused-vars
+  44:10  warning  'onAuthStateChanged' is defined but never used    no-unused-vars
+  44:10  warning  'onAuthStateChanged' is defined but never used    @typescript-eslint/no-unused-vars
+  44:30  warning  'signOut' is defined but never used               no-unused-vars
+  44:30  warning  'signOut' is defined but never used               @typescript-eslint/no-unused-vars
+  50:35  warning  'signOut' is assigned a value but never used      no-unused-vars
+  50:35  warning  'signOut' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  54:5   warning  'isMobile' is assigned a value but never used     no-unused-vars
+  54:5   warning  'isMobile' is assigned a value but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\Rejus Zuzevicius\Documents\GitHub\unifystudy\unifystudy\src\layout\Sidebar.tsx
+    1:38  warning  'useRef' is defined but never used                 no-unused-vars
+    1:38  warning  'useRef' is defined but never used                 @typescript-eslint/no-unused-vars
+    1:46  warning  'useMemo' is defined but never used                no-unused-vars
+    1:46  warning  'useMemo' is defined but never used                @typescript-eslint/no-unused-vars
+   20:3   warning  'AlertCircle' is defined but never used            no-unused-vars
+   20:3   warning  'AlertCircle' is defined but never used            @typescript-eslint/no-unused-vars
+   21:3   warning  'Paperclip' is defined but never used              no-unused-vars
+   21:3   warning  'Paperclip' is defined but never used              @typescript-eslint/no-unused-vars
+   22:3   warning  'File' is defined but never used                   no-unused-vars
+   22:3   warning  'File' is defined but never used                   @typescript-eslint/no-unused-vars
+   23:3   warning  'MoreVertical' is defined but never used           no-unused-vars
+   23:3   warning  'MoreVertical' is defined but never used           @typescript-eslint/no-unused-vars
+  313:9   warning  'generalItems' is assigned a value but never used  no-unused-vars
+  313:9   warning  'generalItems' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  321:9   warning  'toolsItems' is assigned a value but never used    no-unused-vars
+  321:9   warning  'toolsItems' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+✖ 906 problems (146 errors, 760 warnings)
+  6 errors and 0 warnings potentially fixable with the `--fix` option.
+

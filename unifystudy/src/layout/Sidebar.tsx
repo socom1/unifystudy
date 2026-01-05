@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 // Force rebuild
 import { Link, useLocation } from "react-router-dom";
@@ -17,10 +17,6 @@ import {
   Settings,
   User as UserIcon, // Rename to avoid conflict with User type
   MessageSquare,
-  AlertCircle,
-  Paperclip,
-  File,
-  MoreVertical,
   BrainCircuit,
   Library,
   Focus,
@@ -87,27 +83,33 @@ const NavItem: React.FC<NavItemProps> = ({ item, location, isCollapsed, isMobile
   );
 };
 
-interface SidebarContentProps {
-  user: User | null;
-  isCollapsed: boolean;
-  isMobile: boolean;
-  location: { pathname: string };
-  unreadCount: number;
-  isFocusMode: boolean;
-  onFocusToggle: () => void;
-  onSignOut: () => Promise<void>;
-}
-
-const SidebarContent = React.memo<SidebarContentProps>(({
+const SidebarContent = React.memo(({
   user,
-  isCollapsed,
-  isMobile,
   location,
   unreadCount,
-  isFocusMode,
-  onFocusToggle,
   onSignOut
+}: {
+  user: User | null;
+  location: { pathname: string };
+  unreadCount: number;
+  onSignOut: () => Promise<void>;
 }) => {
+  const { 
+    isNavCollapsed, 
+    focusModeActive,
+    setFocusModeActive 
+  } = useUI();
+
+  // Mobile check hook locally if not in context
+  const [localIsMobile, setLocalIsMobile] = useState(window.innerWidth < 1082);
+  useEffect(() => {
+      const handler = () => setLocalIsMobile(window.innerWidth < 1082);
+      window.addEventListener('resize', handler);
+      return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  const isCollapsed = isNavCollapsed;
+  const isMobileState = localIsMobile;
 
   const renderNavItem = (item: NavItemConfig) => (
     <NavItem
@@ -115,13 +117,12 @@ const SidebarContent = React.memo<SidebarContentProps>(({
       item={item}
       location={location}
       isCollapsed={isCollapsed}
-      isMobile={isMobile}
+      isMobile={isMobileState}
     />
   );
 
   return (
     <>
-      {/* Navigation Links */}
       <nav className="sidebar-nav">
         {/* DASHBOARD */}
         <div className="nav-section">
@@ -130,7 +131,7 @@ const SidebarContent = React.memo<SidebarContentProps>(({
 
         {/* PRODUCTIVITY Section */}
         <div className="nav-section">
-          {(!isCollapsed || isMobile) && <div className="section-label">PRODUCTIVITY</div>}
+          {(!isCollapsed || isMobileState) && <div className="section-label">PRODUCTIVITY</div>}
           {renderNavItem({ icon: Timer, label: "Pomodoro", to: "/pomodoro" })}
           {renderNavItem({ icon: Calendar, label: "Timetable", to: "/timetable" })}
           {renderNavItem({ icon: CheckSquare, label: "To-Do", to: "/todo" })}
@@ -140,43 +141,43 @@ const SidebarContent = React.memo<SidebarContentProps>(({
             item={{ iconElement: <CalendarRange size={22} />, label: "Yearly Calendar", to: "/calendar" }}
             location={location}
             isCollapsed={isCollapsed}
-            isMobile={isMobile}
+            isMobile={isMobileState}
           />
         </div>
 
         {/* STUDY & COLLAB Section */}
         <div className="nav-section">
-          {(!isCollapsed || isMobile) && <div className="section-label">STUDY & COLLAB</div>}
+          {(!isCollapsed || isMobileState) && <div className="section-label">STUDY & COLLAB</div>}
 
           <NavItem
             item={{ iconElement: <Zap size={22} />, label: "Flashcards", to: "/flashcards" }}
             location={location}
             isCollapsed={isCollapsed}
-            isMobile={isMobile}
+            isMobile={isMobileState}
           />
           <NavItem
             item={{ iconElement: <BrainCircuit size={22} />, label: "Mind Map", to: "/mindmap" }}
             location={location}
             isCollapsed={isCollapsed}
-            isMobile={isMobile}
+            isMobile={isMobileState}
           />
           <NavItem
             item={{ iconElement: <Library size={22} />, label: "Resource Library", to: "/resources" }}
             location={location}
             isCollapsed={isCollapsed}
-            isMobile={isMobile}
+            isMobile={isMobileState}
           />
           <NavItem
             item={{ iconElement: <Users size={22} />, label: "Collaborative Workspace", to: "/workspace" }}
             location={location}
             isCollapsed={isCollapsed}
-            isMobile={isMobile}
+            isMobile={isMobileState}
           />
           <NavItem
             item={{ iconElement: <GraduationCap size={22} />, label: "Find Study Buddy", to: "/buddy" }}
             location={location}
             isCollapsed={isCollapsed}
-            isMobile={isMobile}
+            isMobile={isMobileState}
           />
 
           {renderNavItem({ icon: MessageSquare, label: "Chat", to: "/chat", badge: unreadCount })}
@@ -184,18 +185,18 @@ const SidebarContent = React.memo<SidebarContentProps>(({
 
         {/* PROGRESS Section */}
         <div className="nav-section">
-          {(!isCollapsed || isMobile) && <div className="section-label">PROGRESS</div>}
+          {(!isCollapsed || isMobileState) && <div className="section-label">PROGRESS</div>}
           <NavItem
             item={{ iconElement: <BarChart2 size={22} />, label: "Analytics", to: "/analytics" }}
             location={location}
             isCollapsed={isCollapsed}
-            isMobile={isMobile}
+            isMobile={isMobileState}
           />
           <NavItem
             item={{ iconElement: <Activity size={22} />, label: "Habit Tracker", to: "/habits" }}
             location={location}
             isCollapsed={isCollapsed}
-            isMobile={isMobile}
+            isMobile={isMobileState}
           />
 
           {renderNavItem({ icon: GraduationCap, label: "Grades", to: "/grades" })}
@@ -205,31 +206,31 @@ const SidebarContent = React.memo<SidebarContentProps>(({
 
         {/* SETTINGS Section */}
         <div className="nav-section">
-          {(!isCollapsed || isMobile) && <div className="section-label">SETTINGS</div>}
+          {(!isCollapsed || isMobileState) && <div className="section-label">SETTINGS</div>}
           <Link
             to="#"
-            className={`nav-item ${isFocusMode ? 'active' : ''}`}
+            className={`nav-item ${focusModeActive ? 'active' : ''}`}
             onClick={(e) => {
               e.preventDefault();
-              onFocusToggle();
+              setFocusModeActive(!focusModeActive);
             }}
-            title={isCollapsed && !isMobile ? "Focus Mode" : ""}
+            title={isCollapsed && !isMobileState ? "Focus Mode" : ""}
           >
             <div className="nav-icon-wrapper">
               <Focus size={22} />
             </div>
-            {(!isCollapsed || isMobile) && <span className="nav-label">Focus Mode</span>}
+            {(!isCollapsed || isMobileState) && <span className="nav-label">Focus Mode</span>}
           </Link>
 
           <Link
             to="/settings"
             className={`nav-item ${location.pathname === '/settings' ? 'active' : ''}`}
-            title={isCollapsed && !isMobile ? "Settings" : ""}
+            title={isCollapsed && !isMobileState ? "Settings" : ""}
           >
             <div className="nav-icon-wrapper">
               <Settings size={22} />
             </div>
-            {(!isCollapsed || isMobile) && <span className="nav-label">Settings</span>}
+            {(!isCollapsed || isMobileState) && <span className="nav-label">Settings</span>}
           </Link>
         </div>
       </nav>
@@ -246,14 +247,14 @@ const SidebarContent = React.memo<SidebarContentProps>(({
                   <UserIcon size={20} />
                 )}
               </div>
-              {(!isCollapsed || isMobile) && (
+              {(!isCollapsed || isMobileState) && (
                 <div className="user-details">
                   <span className="user-name">{user.displayName || "Student"}</span>
                   <span className="user-role">Pro Plan</span>
                 </div>
               )}
             </Link>
-            {(!isCollapsed || isMobile) && (
+            {(!isCollapsed || isMobileState) && (
               <button onClick={onSignOut} className="logout-btn" title="Sign Out">
                 <LogOut size={20} />
               </button>
@@ -265,7 +266,7 @@ const SidebarContent = React.memo<SidebarContentProps>(({
               <div className="nav-icon-wrapper">
                 <LogOut size={20} />
               </div>
-              {(!isCollapsed || isMobile) && <span>Sign In</span>}
+              {(!isCollapsed || isMobileState) && <span>Sign In</span>}
             </Link>
           </div>
         )}
@@ -277,60 +278,36 @@ const SidebarContent = React.memo<SidebarContentProps>(({
 export default function Sidebar() {
   const { user, signOut } = useAuth();
   const {
-    isNavCollapsed: isCollapsed,
-    setNavCollapsed: setIsCollapsed,
-    isMobile,
-    focusModeActive: isFocusMode,
-    toggleFocusMode: onFocusToggle
+    isNavCollapsed,
+    setIsNavCollapsed,
   } = useUI();
-
-  const onSignOut = signOut;
-
-  const location = useLocation();
-  // const [isCollapsed, setIsCollapsed] = useState(false); // REMOVED: Controlled by Context
-  const { unreadCount } = useNotification();
-
-
-  // Mobile Detection
-  // const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // REMOVED: Passed by AppS
+  
+  // Local Mobile State
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1082);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  
   useEffect(() => {
-    // const handleResize = () => { ... } // Replaced by AppS logic
-    if (window.innerWidth >= 768) {
-      setIsMobileMenuOpen(false);
-    }
+    const handleResize = () => {
+        setIsMobile(window.innerWidth < 1082);
+        if (window.innerWidth >= 1082) {
+             setIsMobileMenuOpen(false);
+        }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Close mobile menu on route change
+  const location = useLocation();
+  const { unreadCount } = useNotification();
+
+  // Close menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-
-
-  // Section-organized menu items
-  const generalItems = [
-    { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
-    { icon: Timer, label: "Pomodoro", to: "/pomodoro" },
-    { icon: Calendar, label: "Timetable", to: "/timetable" },
-    { icon: CheckSquare, label: "To-Do", to: "/todo" },
-    { icon: StickyNote, label: "Notes", to: "/notes" },
-  ];
-
-  const toolsItems = [
-    { icon: GraduationCap, label: "Grades", to: "/grades" },
-    { icon: Trophy, label: "Leaderboard", to: "/leaderboard" },
-    { icon: ShoppingBag, label: "Shop", to: "/shop" },
-    { icon: MessageSquare, label: "Chat", to: "/chat", badge: unreadCount },
-  ];
-
-
-
   if (isMobile) {
     return (
       <>
-        {/* Mobile Top Bar */}
         <div className="mobile-top-bar">
           <div className="logo-container">
             <div className="logo-icon">&gt;_</div>
@@ -344,7 +321,6 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* Mobile Drawer */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <>
@@ -364,15 +340,10 @@ export default function Sidebar() {
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
               >
                 <div className="drawer-header">
-                  {/* User Profile at Top */}
                   {user ? (
                     <div className="mobile-user-profile">
                       <div className="avatar-large">
-                        {user.photoURL ? (
-                          <img src={user.photoURL} alt="User" />
-                        ) : (
-                          <UserIcon size={32} />
-                        )}
+                        {user.photoURL ? <img src={user.photoURL} alt="User" /> : <UserIcon size={32} />}
                       </div>
                       <div className="user-info-large">
                         <span className="user-name-large">{user.displayName || "Student"}</span>
@@ -385,22 +356,14 @@ export default function Sidebar() {
                       <span className="logo-text">UnifyStudy</span>
                     </div>
                   )}
-
-                  {/* Internal Close Button Removed - handled by Top Bar Toggle */}
                 </div>
 
                 <SidebarContent
                   user={user}
-                  isCollapsed={false}
-                  isMobile={true}
                   location={location}
                   unreadCount={unreadCount}
-                  isFocusMode={isFocusMode}
-                  onFocusToggle={onFocusToggle}
-                  onSignOut={onSignOut}
+                  onSignOut={signOut}
                 />
-
-
               </motion.div>
             </>
           )}
@@ -410,31 +373,25 @@ export default function Sidebar() {
   }
 
   return (
-    <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
-      {/* Header / Logo */}
+    <div className={`sidebar ${isNavCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
         <div className="logo-container">
-          {/* Terminal-style logo */}
           <div className="logo-icon">&gt;_</div>
-          {!isCollapsed && <span className="logo-text">UnifyStudy</span>}
+          {!isNavCollapsed && <span className="logo-text">UnifyStudy</span>}
         </div>
         <button
           className="collapse-btn"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => setIsNavCollapsed(!isNavCollapsed)}
         >
-          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {isNavCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
       </div>
 
       <SidebarContent
         user={user}
-        isCollapsed={isCollapsed}
-        isMobile={false}
         location={location}
         unreadCount={unreadCount}
-        isFocusMode={isFocusMode}
-        onFocusToggle={onFocusToggle}
-        onSignOut={onSignOut}
+        onSignOut={signOut}
       />
     </div>
   );

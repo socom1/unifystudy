@@ -1,62 +1,65 @@
 // @ts-nocheck
+import { toast } from "sonner";
 import React, { useState, useEffect } from "react";
 import { db, auth } from "@/services/firebaseConfig";
 import { ref, onValue, update, runTransaction } from "firebase/database";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useGamification } from "@/context/GamificationContext";
 import { THEMES } from "@/constants/themes";
+import { ShoppingBag, Star, Download, Sparkles, Layout, Palette, Image as ImageIcon, Check } from "lucide-react";
+
+// Import real assets
+import NeonPreview from "@/assets/shop/neon-pack.svg";
+import ThreeDPreview from "@/assets/shop/3d-pack.svg";
+import HandDrawnPreview from "@/assets/shop/hand-drawn.svg";
+import CosmosBanner from "@/assets/shop/cosmos-banner.svg";
+import CircuitBanner from "@/assets/shop/circuit-banner.svg";
+import WavesBanner from "@/assets/shop/waves-banner.svg";
+
 import "./Shop.scss";
 
+// Cleaned up inventory as requested
 const PROFILE_TAGS = [
   { id: "scholar", name: "🎓 Scholar", description: "For the dedicated learner", price: 150, color: "#6c5ce7" },
-  { id: "grinder", name: "⚡ Grinder", description: "Non-stop hustle", price: 250, color: "#ff0055" },
+  { id: "champion", name: "🏆 Champion", description: "Top performer", price: 500, color: "#ffd700" },
   { id: "night-owl", name: "🦉 Night Owl", description: "Studies past midnight", price: 200, color: "#4b6c82" },
   { id: "early-bird", name: "🌅 Early Bird", description: "Starts before dawn", price: 200, color: "#e17055" },
-  { id: "champion", name: "🏆 Champion", description: "Top performer", price: 500, color: "#ffd700" },
-  { id: "zen-master", name: "🧘 Zen Master", description: "Focused and calm", price: 300, color: "#00b894" },
+  { id: "coffee-club", name: "☕ Coffee Club", description: "Fueled by caffeine", price: 100, color: "#6f4e37" },
+  { id: "verified", name: "✅ Verified", description: "Official status", price: 1000, color: "#00b894" },
 ];
 
 const ICON_SETS = [
-  { id: "default", name: "Classic", description: "Standard icon pack", price: 0, preview: "📚" },
-  { id: "minimalist", name: "Minimalist Pro", description: "Clean, distraction-free", price: 1500, preview: "○" },
-  { id: "neon", name: "Cyber Glow", description: "High-contrast neon", price: 2500, preview: "◆" },
-  { id: "gold", name: "Luxury Gold", description: "Exclusive gold finish", price: 5000, preview: "⚜️" },
-  { id: "retro", name: "Retro Pixel", description: "8-bit nostalgia", price: 1200, preview: "▣" },
+  { id: "neon", name: "Neon Glow", description: "High-contrast neon style", price: 2500, preview: NeonPreview, type: "pack" },
+  { id: "3d-pack", name: "3D Render", description: "Modern 3D style icons", price: 3000, preview: ThreeDPreview, type: "pack" },
+  { id: "hand-drawn", name: "Hand Drawn", description: "Sketchy, organic look", price: 1800, preview: HandDrawnPreview, type: "pack" },
 ];
 
 const BANNERS = [
-  { id: "default", name: "Default", type: "gradient", price: 0, preview: "#667eea" },
-  // Emoji Banners
-  { id: "rocket", name: "🚀 Rocket", type: "emoji", price: 50, preview: "🚀" },
-  { id: "laptop", name: "💻 Laptop", type: "emoji", price: 50, preview: "💻" },
-  { id: "moon", name: "🌙 Moon", type: "emoji", price: 75, preview: "🌙" },
-  { id: "lightning", name: "⚡ Lightning", type: "emoji", price: 75, preview: "⚡" },
-  { id: "fire", name: "🔥 Fire", type: "emoji", price: 100, preview: "🔥" },
-  { id: "star", name: "⭐ Star", type: "emoji", price: 100, preview: "⭐" },
-  { id: "brain", name: "🧠 Brain", type: "emoji", price: 120, preview: "🧠" },
-  { id: "trophy", name: "🏆 Trophy", type: "emoji", price: 150, preview: "🏆" },
-  // Solid Banners (formerly gradients)
-  { id: "sunset", name: "Sunset", type: "gradient", price: 100, preview: "#f5576c" },
-  { id: "ocean", name: "Ocean", type: "gradient", price: 100, preview: "#4facfe" },
-  { id: "forest", name: "Forest", type: "gradient", price: 100, preview: "#43e97b" },
-  { id: "aurora", name: "Aurora", type: "gradient", price: 150, preview: "#6c5ce7" },
+  { id: "cosmos", name: "Cosmos", type: "svg", price: 500, preview: CosmosBanner },
+  { id: "circuit", name: "Circuit", type: "svg", price: 450, preview: CircuitBanner },
+  { id: "waves", name: "Teal Waves", type: "svg", price: 350, preview: WavesBanner },
   { id: "cyber", name: "Cyberpunk", type: "gradient", price: 200, preview: "#00d4ff" },
   { id: "matrix", name: "Matrix", type: "gradient", price: 200, preview: "#00ff41" },
+  { id: "sunset", name: "Sunset", type: "gradient", price: 200, preview: "#f5576c" },
 ];
 
 export default function Shop() {
   const { level } = useGamification();
   const [coins, setCoins] = useState(0);
+  const [userId, setUserId] = useState(null);
+  const [activeTab, setActiveTab] = useState("all");
+
+  // Inventory State
   const [unlockedThemes, setUnlockedThemes] = useState(["default"]);
   const [unlockedTags, setUnlockedTags] = useState([]);
   const [unlockedIcons, setUnlockedIcons] = useState(["default"]);
   const [unlockedBanners, setUnlockedBanners] = useState(["default"]);
+  
+  // Equipped State
   const [currentTheme, setCurrentTheme] = useState("default");
-  const [equippedTag, setEquippedTag] = useState(null);
+  const [equippedTag, setEquippedTag] = useState([]);
   const [currentIconSet, setCurrentIconSet] = useState("default");
   const [currentBanner, setCurrentBanner] = useState("default");
-  const [userId, setUserId] = useState(null);
-  const [activeTab, setActiveTab] = useState("themes"); // "themes" | "tags" | "icons" | "banners"
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((u) => setUserId(u ? u.uid : null));
@@ -74,10 +77,14 @@ export default function Shop() {
         setUnlockedTags(data.unlockedTags || []);
         setUnlockedIcons(data.unlockedIcons || ["default"]);
         setUnlockedBanners(data.unlockedBanners || ["default"]);
-        setCurrentTheme(data.settings?.theme || "default");
-        setEquippedTag(data.settings?.profileTag || null);
-        setCurrentIconSet(data.settings?.iconSet || "default");
-        setCurrentBanner(data.settings?.banner || "default");
+        
+        const settings = data.settings || {};
+        const customization = settings.customization || {};
+
+        setCurrentTheme(settings.theme || "default");
+        setEquippedTag(customization.profileTags || []); 
+        setCurrentIconSet(settings.iconSet || "default");
+        setCurrentBanner(customization.profileBanner || "default");
       }
     });
     return () => unsub();
@@ -85,10 +92,11 @@ export default function Shop() {
 
   const buyItem = async (item, type) => {
     if (coins < item.price) {
-      toast.error("Not enough Lumens!");
+      toast.error("Not enough Lumens!", { icon: "💎" });
       return;
     }
-    if (!confirm(`Buy ${item.name} for ${item.price} Lumens?`)) return;
+    
+    if (!confirm(`Purchase ${item.name} for ${item.price} Lumens?`)) return;
 
     try {
       await runTransaction(ref(db, `users/${userId}`), (user) => {
@@ -98,285 +106,166 @@ export default function Shop() {
             
             if (type === "theme") {
               if (!user.unlockedThemes) user.unlockedThemes = ["default"];
-              if (!user.unlockedThemes.includes(item.id)) {
-                user.unlockedThemes.push(item.id);
-              }
+              if (!user.unlockedThemes.includes(item.id)) user.unlockedThemes.push(item.id);
             } else if (type === "tag") {
               if (!user.unlockedTags) user.unlockedTags = [];
-              if (!user.unlockedTags.includes(item.id)) {
-                user.unlockedTags.push(item.id);
-              }
+              if (!user.unlockedTags.includes(item.id)) user.unlockedTags.push(item.id);
             } else if (type === "icon") {
               if (!user.unlockedIcons) user.unlockedIcons = ["default"];
-              if (!user.unlockedIcons.includes(item.id)) {
-                user.unlockedIcons.push(item.id);
-              }
+              if (!user.unlockedIcons.includes(item.id)) user.unlockedIcons.push(item.id);
             } else if (type === "banner") {
               if (!user.unlockedBanners) user.unlockedBanners = ["default"];
-              if (!user.unlockedBanners.includes(item.id)) {
-                user.unlockedBanners.push(item.id);
-              }
+              if (!user.unlockedBanners.includes(item.id)) user.unlockedBanners.push(item.id);
             }
           }
         }
         return user;
       });
+      toast.success(`Purchased ${item.name}!`, { icon: "🎉" });
     } catch (error) {
       console.error("Purchase failed:", error);
       toast.error("Purchase failed. Please try again.");
     }
   };
 
-  const equipTheme = (themeId) => {
-    update(ref(db, `users/${userId}/settings`), { theme: themeId });
-    document.body.className = `theme-${themeId}`;
+  const equipItem = async (type, id) => {
+    if (!userId) return;
+    
+    try {
+        if (type === 'theme') {
+            await update(ref(db, `users/${userId}/settings`), { theme: id });
+             await update(ref(db, `users/${userId}/settings/customization`), { theme: id });
+            document.documentElement.setAttribute('data-theme', id);
+        } else if (type === 'banner') {
+            await update(ref(db, `users/${userId}/settings/customization`), { profileBanner: id });
+        } else if (type === 'icon') {
+            await update(ref(db, `users/${userId}/settings`), { iconSet: id });
+        } else if (type === 'tag') {
+            toast.info("Go to Profile to manage active tags!");
+            return;
+        }
+        toast.success("Equipped!");
+    } catch(e) {
+        console.error(e);
+        toast.error("Failed to equip item.");
+    }
   };
 
-  const equipTag = (tagId) => {
-    update(ref(db, `users/${userId}/settings`), { profileTag: tagId });
-  };
+  const renderItemCard = (item, type, isUnlocked, isEquipped) => (
+    <motion.div 
+      layout
+      key={`${type}-${item.id}`} 
+      className={`marketplace-card ${isEquipped ? 'equipped' : ''} ${isUnlocked ? 'owned' : ''}`}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+    >
+        <div className={`card-preview preview-${type}`} style={{
+            background: type === 'theme' ? item.color : 
+                        type === 'banner' && item.type === 'gradient' ? item.preview : 'var(--bg-2)'
+        }}>
+           {/* SVG / Image asset rendering */}
+           {type === 'icon' && item.preview && (
+              <img src={item.preview} alt={item.name} className="asset-preview" />
+           )}
+           {type === 'icon' && !item.preview && (
+              <span className="icon-display">📚</span>
+           )}
+           
+           {/* Banner SVG Rendering */}
+           {type === 'banner' && item.type === 'svg' && (
+              <img src={item.preview} alt={item.name} className="asset-preview banner-asset" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+           )}
 
-  const equipIconSet = (iconSetId) => {
-    update(ref(db, `users/${userId}/settings`), { iconSet: iconSetId });
-  };
-
-  const equipBanner = (bannerId) => {
-    update(ref(db, `users/${userId}/settings`), { banner: bannerId });
-  };
+           {type === 'tag' && <span className="tag-display" style={{borderColor: item.color}}>{item.name.split(' ')[0]}</span>}
+             
+           {isEquipped && <div className="status-badge"><Check size={12} /> Active</div>}
+        </div>
+        
+        <div className="card-content">
+            <div className="card-header">
+                <h3>{item.name}</h3>
+                <span className="item-type-badge">{type}</span>
+            </div>
+            <p className="description">{item.description || `${type} item`}</p>
+            
+            <div className="card-footer">
+                {!isUnlocked ? (
+                    <button className="btn-buy" onClick={() => buyItem(item, type)}>
+                        <span className="price">{item.price}</span>
+                        <span className="currency-icon">💡</span>
+                    </button>
+                ) : (
+                    <button className="btn-equip" disabled={isEquipped} onClick={() => equipItem(type, item.id)}>
+                        {isEquipped ? "Equipped" : "Equip"}
+                    </button>
+                )}
+            </div>
+        </div>
+    </motion.div>
+  );
 
   return (
-    <div className="shop-root">
-      <header className="shop-header">
-        <h1>Shop</h1>
-        <div className="coin-balance">
-          <div className="level-badge" style={{marginRight: '1rem', padding: '4px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold', border: '1px solid var(--glass-border)' }}>
-             ⭐ Level {level}
-          </div>
-          <span className="icon">💡</span>
-          <span className="amount">{coins}</span>
+    <div className="shop-marketplace">
+      <header className="marketplace-header">
+        <div className="header-content">
+            <div className="title-section">
+                <h1>Marketplace</h1>
+                <p>Updated Marketplace Inventory</p>
+            </div>
+            
+            <div className="balance-card">
+                <div className="lumens-display">
+                    <Sparkles className="icon-sparkle" size={20} />
+                    <span className="amount">{coins}</span>
+                    <span className="label">Lumens</span>
+                </div>
+            </div>
         </div>
       </header>
 
-      <div className="shop-tabs">
-        <button 
-          className={activeTab === "themes" ? "active" : ""}
-          onClick={() => setActiveTab("themes")}
-        >
-          🎨 Themes
-        </button>
-        <button 
-          className={activeTab === "tags" ? "active" : ""}
-          onClick={() => setActiveTab("tags")}
-        >
-          🏷️ Profile Tags
-        </button>
-        <button 
-          className={activeTab === "icons" ? "active" : ""}
-          onClick={() => setActiveTab("icons")}
-        >
-          ✨ Icon Sets
-        </button>
-        <button 
-          className={activeTab === "banners" ? "active" : ""}
-          onClick={() => setActiveTab("banners")}
-        >
-          🎨 Banners
-        </button>
-      </div>
+      {/* --- Responsive Navigation that wraps --- */}
+      <nav className="marketplace-nav">
+         <button className={activeTab === 'all' ? 'active' : ''} onClick={() => setActiveTab('all')}>
+            <Star size={18} /> All
+         </button>
+         <button className={activeTab === 'themes' ? 'active' : ''} onClick={() => setActiveTab('themes')}>
+            <Palette size={18} /> Themes
+         </button>
+         <button className={activeTab === 'icons' ? 'active' : ''} onClick={() => setActiveTab('icons')}>
+            <Layout size={18} /> Icon Sets
+         </button>
+         <button className={activeTab === 'banners' ? 'active' : ''} onClick={() => setActiveTab('banners')}>
+            <ImageIcon size={18} /> Banners
+         </button>
+         <button className={activeTab === 'tags' ? 'active' : ''} onClick={() => setActiveTab('tags')}>
+            <ShoppingBag size={18} /> Tags
+         </button>
+      </nav>
 
-      {activeTab === "themes" && (
-        <div className="items-grid">
-          {THEMES.map(theme => {
-            const isUnlocked = unlockedThemes.includes(theme.id);
-            const isEquipped = currentTheme === theme.id;
-
-            return (
-              <motion.div 
-                key={theme.id} 
-                className={`item-card ${isEquipped ? 'equipped' : ''}`}
-                whileHover={{ y: -5 }}
-              >
-                <div className="preview theme-preview" style={{ background: theme.color }}>
-                  {isEquipped && <span className="badge">Equipped</span>}
-                </div>
-                <div className="info">
-                  <h3>{theme.name}</h3>
-                  <div className="price">
-                    {isUnlocked ? "Owned" : `${theme.price} Lumens`}
-                  </div>
-                </div>
-                <div className="actions">
-                  {isUnlocked ? (
-                    <button 
-                      className="equip-btn" 
-                      disabled={isEquipped}
-                      onClick={() => equipTheme(theme.id)}
-                    >
-                      {isEquipped ? "Active" : "Equip"}
-                    </button>
-                  ) : (
-                    <button 
-                      className="buy-btn"
-                      onClick={() => buyItem(theme, "theme")}
-                    >
-                      Buy
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {activeTab === "tags" && (
-        <div className="items-grid">
-          {PROFILE_TAGS.map(tag => {
-            const isUnlocked = unlockedTags.includes(tag.id);
-            const isEquipped = equippedTag === tag.id;
-
-            return (
-              <motion.div 
-                key={tag.id} 
-                className={`item-card ${isEquipped ? 'equipped' : ''}`}
-                whileHover={{ y: -5 }}
-              >
-                <div className="preview tag-preview" style={{ borderColor: tag.color }}>
-                  <span style={{ fontSize: '3rem' }}>{tag.name.split(' ')[0]}</span>
-                  {isEquipped && <span className="badge">Equipped</span>}
-                </div>
-                <div className="info">
-                  <h3>{tag.name}</h3>
-                  <p className="description">{tag.description}</p>
-                  <div className="price">
-                    {isUnlocked ? "Owned" : `${tag.price} Lumens`}
-                  </div>
-                </div>
-                <div className="actions">
-                  {isUnlocked ? (
-                    <button 
-                      className="equip-btn" 
-                      disabled={isEquipped}
-                      onClick={() => equipTag(tag.id)}
-                    >
-                      {isEquipped ? "Active" : "Equip"}
-                    </button>
-                  ) : (
-                    <button 
-                      className="buy-btn"
-                      onClick={() => buyItem(tag, "tag")}
-                    >
-                      Buy
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {activeTab === "icons" && (
-        <div className="items-grid">
-          {ICON_SETS.map(iconSet => {
-            const isUnlocked = unlockedIcons.includes(iconSet.id);
-            const isEquipped = currentIconSet === iconSet.id;
-
-            return (
-              <motion.div 
-                key={iconSet.id} 
-                className={`item-card ${isEquipped ? 'equipped' : ''}`}
-                whileHover={{ y: -5 }}
-              >
-                <div className="preview icon-preview">
-                  <span style={{ fontSize: '4rem' }}>{iconSet.preview}</span>
-                  {isEquipped && <span className="badge">Equipped</span>}
-                </div>
-                <div className="info">
-                  <h3>{iconSet.name}</h3>
-                  <p className="description">{iconSet.description}</p>
-                  <div className="price">
-                    {isUnlocked ? "Owned" : `${iconSet.price} Lumens`}
-                  </div>
-                </div>
-                <div className="actions">
-                  {isUnlocked ? (
-                    <button 
-                      className="equip-btn" 
-                      disabled={isEquipped}
-                      onClick={() => equipIconSet(iconSet.id)}
-                    >
-                      {isEquipped ? "Active" : "Equip"}
-                    </button>
-                  ) : (
-                    <button 
-                      className="buy-btn"
-                      onClick={() => buyItem(iconSet, "icon")}
-                    >
-                      Buy
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {activeTab === "banners" && (
-        <div className="items-grid">
-          {BANNERS.map(banner => {
-            const isUnlocked = unlockedBanners.includes(banner.id);
-            const isEquipped = currentBanner === banner.id;
-
-            return (
-              <motion.div 
-                key={banner.id} 
-                className={`item-card ${isEquipped ? 'equipped' : ''}`}
-                whileHover={{ y: -5 }}
-              >
-                <div 
-                  className="preview banner-preview" 
-                  style={{
-                    background: banner.type === 'gradient' ? banner.preview : '#1e1e1e',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: banner.type === 'emoji' ? '5rem' : '1rem'
-                  }}
-                >
-                  {banner.type === 'emoji' ? banner.preview : ''}
-                  {isEquipped && <span className="badge">Equipped</span>}
-                </div>
-                <div className="info">
-                  <h3>{banner.name}</h3>
-                  <div className="price">
-                    {isUnlocked ? "Owned" : `${banner.price} Lumens`}
-                  </div>
-                </div>
-                <div className="actions">
-                  {isUnlocked ? (
-                    <button 
-                      className="equip-btn" 
-                      disabled={isEquipped}
-                      onClick={() => equipBanner(banner.id)}
-                    >
-                      {isEquipped ? "Active" : "Equip"}
-                    </button>
-                  ) : (
-                    <button 
-                      className="buy-btn"
-                      onClick={() => buyItem(banner, "banner")}
-                    >
-                      Buy
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
+      <main className="marketplace-content">
+         <motion.div className="grid-layout" layout>
+             <AnimatePresence>
+                {(activeTab === 'all' || activeTab === 'themes') && THEMES
+                    .filter(i => i.id !== 'default')
+                    .map(i => renderItemCard(i, 'theme', unlockedThemes.includes(i.id), currentTheme === i.id))}
+                
+                {(activeTab === 'all' || activeTab === 'icons') && ICON_SETS
+                    .filter(i => i.id !== 'default')
+                    .map(i => renderItemCard(i, 'icon', unlockedIcons.includes(i.id), currentIconSet === i.id))}
+                
+                {(activeTab === 'all' || activeTab === 'banners') && BANNERS
+                    .filter(i => i.id !== 'default')
+                    .map(i => renderItemCard(i, 'banner', unlockedBanners.includes(i.id), currentBanner === i.id))}
+                
+                {(activeTab === 'all' || activeTab === 'tags') && PROFILE_TAGS.map(i => {
+                    const isEquipped = Array.isArray(equippedTag) && equippedTag.includes(i.id);
+                    return renderItemCard(i, 'tag', unlockedTags.includes(i.id), isEquipped);
+                })}
+             </AnimatePresence>
+         </motion.div>
+      </main>
     </div>
   );
 }
+

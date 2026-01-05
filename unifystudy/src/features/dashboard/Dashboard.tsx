@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/services/firebaseConfig";
 import { ref, onValue, push, set } from "firebase/database";
@@ -10,9 +10,58 @@ import {
 } from "@/utils/achievements";
 import { toast } from "sonner";
 import { useGamification } from "@/context/GamificationContext";
+import { 
+  Lightbulb, 
+  GraduationCap, 
+  Star, 
+  Flame, 
+  Calendar, 
+  CheckCircle2, 
+  Quote, 
+  Trophy,
+  Zap,
+  Clock,
+  ArrowRight,
+  BookOpen,
+  Award,
+  Medal,
+  Target,
+  Sparkles,
+  ZapOff
+} from "lucide-react";
 import "./Dashboard.scss";
 
+const ACHIEVEMENT_ICONS = {
+  "first-steps": <BookOpen size={20} color="var(--color-primary)" />,
+  "getting-started": <Clock size={20} color="var(--color-primary)" />,
+  "dedicated-learner": <BookOpen size={20} color="var(--color-primary)" />,
+  "scholar": <GraduationCap size={20} color="var(--color-primary)" />,
+  "master-student": <Trophy size={20} color="var(--color-primary)" />,
+  "on-fire": <Flame size={20} color="#ff6b35" />,
+  "unstoppable": <Zap size={20} color="#ffbe0b" />,
+  "diamond-streak": <Sparkles size={20} color="#00d2d3" />,
+  "focused": <Target size={20} color="#ff9f43" />,
+  "iron-will": <Award size={20} color="#54a0ff" />,
+  "legendary": <Medal size={20} color="#e58e26" />
+};
+
+const STUDY_TIPS = [
+  "Take a 5-minute break every 25 minutes to stay focused.",
+  "Teach what you've learned to someone else to reinforce understanding.",
+  "Use active recall: test yourself instead of just re-reading.",
+  "Sleep is crucial for memory consolidation. Get 7-9 hours.",
+  "Break big tasks into small, manageable chunks.",
+  "Stay hydrated! Your brain needs water to function well.",
+  "Eliminate distractions. Put your phone in another room.",
+  "Use mnemonics to remember complex lists or concepts.",
+  "Vary your study locations to improve retention.",
+  "Review your notes within 24 hours of taking them.",
+  "Listen to instrumental music to help focus.",
+  "Set a specific goal for each study session."
+];
+
 export default function Dashboard({ user }) {
+  const navigate = useNavigate();
   const { xp, level, progress } = useGamification();
   const [stats, setStats] = useState({
     tasksDue: 0,
@@ -32,6 +81,14 @@ export default function Dashboard({ user }) {
   const [achievementsExpanded, setAchievementsExpanded] = useState(false);
   const [weeklyActivity, setWeeklyActivity] = useState([]);
   const [urgentTasks, setUrgentTasks] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [todaysTip, setTodaysTip] = useState("");
+
+  useEffect(() => {
+    // Select study tip based on day of year
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+    setTodaysTip(STUDY_TIPS[dayOfYear % STUDY_TIPS.length]);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -45,13 +102,13 @@ export default function Dashboard({ user }) {
       const today = new Date().toISOString().split("T")[0];
       const allTasks = [];
 
-      Object.values(data).forEach((folder) => {
+      Object.entries(data).forEach(([folderId, folder]) => {
         if (folder.tasks) {
-          Object.values(folder.tasks).forEach((task) => {
+          Object.entries(folder.tasks).forEach(([taskId, task]) => {
             if (!task.isActive) {
               activeCount++;
               if (task.dueDate === today) dueCount++;
-              allTasks.push(task);
+              allTasks.push({ ...task, id: taskId, folderId });
             }
           });
         }
@@ -88,21 +145,26 @@ export default function Dashboard({ user }) {
         if (data.grades) {
           let sum = 0;
           let count = 0;
-          Object.values(data.grades).forEach((sub) => {
-            if (sub.assessments) {
-              let totalW = 0;
-              let totalS = 0;
-              Object.values(sub.assessments).forEach((a) => {
-                totalS += (a.score / a.total) * 100 * a.weight;
-                totalW += a.weight;
-              });
-              if (totalW > 0) {
-                sum += totalS / totalW;
-                count++;
+          const subNames = [];
+          Object.entries(data.grades).forEach(([key, sub]) => {
+              // Extract subject name (key or name property)
+              subNames.push(sub.name || key);
+
+              if (sub.assessments) {
+                let totalW = 0;
+                let totalS = 0;
+                Object.values(sub.assessments).forEach((a) => {
+                  totalS += (a.score / a.total) * 100 * a.weight;
+                  totalW += a.weight;
+                });
+                if (totalW > 0) {
+                  sum += totalS / totalW;
+                  count++;
+                }
               }
-            }
           });
           if (count > 0) gpa = (sum / count).toFixed(1) + "%";
+          setSubjects(subNames);
         }
 
         setStats((prev) => ({
@@ -147,28 +209,46 @@ export default function Dashboard({ user }) {
         setWeeklyActivity(last7Days);
 
         // Calculate streak
-        // ... (streak logic remains same) ...
+        // Logic: Streak is contiguous days ending today or yesterday.
+        // If last session was before yesterday, streak is 0.
         let currentStreak = 0;
-        let lastDate = null;
+        const lastDate = null;
+        
+        // Ensure sorted descending
+        const sortedSessions = [...sessions].sort((a,b) => b.timestamp - a.timestamp);
+        
+        // 1. Check if we have any sessions
+        if (sortedSessions.length > 0) {
+            const today = new Date().toDateString();
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toDateString();
+            const lastSessionDate = new Date(sortedSessions[0].timestamp).toDateString();
 
-        for (const session of sessions) {
-          const sessionDate = new Date(session.timestamp).toDateString();
-          if (!lastDate) {
-            lastDate = sessionDate;
-            currentStreak = 1;
-          } else {
-            const dayDiff = Math.floor(
-              (new Date(lastDate) - new Date(sessionDate)) /
-                (1000 * 60 * 60 * 24)
-            );
-            if (dayDiff === 1) {
-              currentStreak++;
-              lastDate = sessionDate;
-            } else if (dayDiff > 1) {
-              break;
+            // If last session wasn't today or yesterday, streak is broken -> 0
+            if (lastSessionDate === today || lastSessionDate === yesterdayStr) {
+                // Count backwards
+                let streakCount = 0;
+                const checkDate = new Date(lastSessionDate);
+                
+                // Naive approach: check existence of session for each previous day
+                // Better approach: Iterate sessions and check continuity
+                
+                const currentDatePointer = new Date(lastSessionDate);
+                
+                // Create a Set of session dates for easy lookup
+                const sessionDates = new Set(
+                    sortedSessions.map(s => new Date(s.timestamp).toDateString())
+                );
+                
+                while (sessionDates.has(currentDatePointer.toDateString())) {
+                    streakCount++;
+                    currentDatePointer.setDate(currentDatePointer.getDate() - 1);
+                }
+                currentStreak = streakCount;
             }
-          }
         }
+        
         setStreak(currentStreak);
       }
     });
@@ -266,11 +346,12 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (allTasksForOpt.length > 0 && rawEvents.length >= 0) {
         import("@/utils/scheduleOptimizer").then(({ optimizeSchedule }) => {
-            const suggestions = optimizeSchedule(allTasksForOpt, rawEvents);
+            // Pass subjects to optimizer
+            const suggestions = optimizeSchedule(allTasksForOpt, rawEvents, subjects);
             setScheduleSuggestions(suggestions);
         });
     }
-  }, [allTasksForOpt, rawEvents]);
+  }, [allTasksForOpt, rawEvents, subjects]);
 
   const handleAcceptSuggestion = async (suggestion) => {
       if (!user) return;
@@ -338,7 +419,7 @@ export default function Dashboard({ user }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="stat-icon-box lumens">💡</div>
+              <div className="stat-icon-box lumens"><Lightbulb size={24} /></div>
               <div className="stat-info">
                 <span className="stat-label">Lumens Balance</span>
                 <span className="stat-value">{stats.lumens}</span>
@@ -356,7 +437,7 @@ export default function Dashboard({ user }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="stat-icon-box gpa">🎓</div>
+              <div className="stat-icon-box gpa"><GraduationCap size={24} /></div>
               <div className="stat-info">
                 <span className="stat-label">Overall GPA</span>
                 <span className="stat-value">{stats.gpa}</span>
@@ -372,7 +453,7 @@ export default function Dashboard({ user }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="stat-icon-box rank">⭐</div>
+              <div className="stat-icon-box rank"><Star size={24} /></div>
               <div className="stat-info" style={{ width: '100%' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className="stat-label">Level {level}</span>
@@ -410,8 +491,7 @@ export default function Dashboard({ user }) {
           >
             <div className="hero-content">
               <div className="hero-header">
-                <span className="hero-logo">⏱️</span>
-                <span className="hero-badge">New Session</span>
+                <span className="hero-logo"><Clock size={24} color="#a78bfa" /></span>
               </div>
               <h2>Ready to Focus?</h2>
               <p>
@@ -453,15 +533,15 @@ export default function Dashboard({ user }) {
         <div className="main-chart-area span-2">
           <div className="section-header">
             <h3>Weekly Activity</h3>
-            <div className="streak-badge">🔥 {streak} Day Streak</div>
+            <div className="streak-badge"><Flame size={16} fill="orange" stroke="orange" /> {streak} Day Streak</div>
           </div>
 
           <div className="activity-chart">
             {weeklyActivity.map((day, i) => {
               const maxMinutes = Math.max(
                 ...weeklyActivity.map((d) => d.minutes),
-                1 // Use 1 to ensure some scale, but effectively fill height
-              );
+                60 // Ensure at least 60m scale
+              ) * 1.2; // Add 20% headroom
               const heightPercent = (day.minutes / maxMinutes) * 100;
 
               return (
@@ -491,7 +571,7 @@ export default function Dashboard({ user }) {
           {scheduleSuggestions.length > 0 && (
             <div className="widget-card smart-plan-widget" style={{ borderColor: 'var(--color-secondary)' }}>
                 <div className="widget-header">
-                    <h3>✨ Smart Plan</h3>
+                    <h3><Zap size={18} fill="var(--color-secondary)" style={{marginRight:8}}/> Smart Plan</h3>
                 </div>
                 <div className="suggestions-list">
                     {scheduleSuggestions.map((s, i) => (
@@ -523,7 +603,12 @@ export default function Dashboard({ user }) {
             <div className="tasks-list-compact">
               {urgentTasks.length > 0 ? (
                 urgentTasks.map((task, i) => (
-                  <div key={i} className="task-row">
+                  <div 
+                    key={i} 
+                    className="task-row clickable" 
+                    onClick={() => navigate('/todo', { state: { taskId: task.id, folderId: task.folderId } })}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div
                       className={`priority-dot ${task.priority || "low"}`}
                     ></div>
@@ -577,7 +662,7 @@ export default function Dashboard({ user }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <div className="quote-icon">💭</div>
+          <div className="quote-icon"><Quote size={24} /></div>
           <div className="quote-content">
             <p className="quote-text">
               "The secret of getting ahead is getting started."
@@ -596,9 +681,9 @@ export default function Dashboard({ user }) {
           <div className="widget-header">
             <h3>Recent Achievements</h3>
             <button 
-              className="link" 
+              className="view-all-btn"
               onClick={() => setShowAchievementsModal(true)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-muted)' }}
             >
               View All
             </button>
@@ -610,7 +695,9 @@ export default function Dashboard({ user }) {
                 .map((achievement, i) => (
                   <div key={i} className="achievement-mini">
                     <span className="achievement-icon-mini">
-                      {achievement.icon}
+                    <span className="achievement-icon-mini">
+                      {ACHIEVEMENT_ICONS[achievement.id] || <Trophy size={20} />}
+                    </span>
                     </span>
                     <div className="achievement-info-mini">
                       <span className="achievement-name-mini">
@@ -637,12 +724,11 @@ export default function Dashboard({ user }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
         >
-          <div className="tip-icon">💡</div>
+          <div className="tip-icon"><Lightbulb size={24} /></div>
           <div className="tip-content">
             <h4>Study Tip</h4>
             <p>
-              Take a 5-minute break every 25 minutes to stay focused and retain
-              information better.
+              {todaysTip}
             </p>
           </div>
         </motion.div>
@@ -689,7 +775,7 @@ export default function Dashboard({ user }) {
                 {ACHIEVEMENTS.map((achievement) => {
                   const unlocked = unlockedAchievements.includes(achievement.id);
                   // Ensure progress is a number (handle object case)
-                  let rawProgress = achievementProgress[achievement.id] || 0;
+                  const rawProgress = achievementProgress[achievement.id] || 0;
                   const progress = typeof rawProgress === 'object' ? (rawProgress.current || 0) : rawProgress;
                   
                   return (
@@ -705,7 +791,9 @@ export default function Dashboard({ user }) {
                       }}
                     >
                       <div className="ach-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '2rem', filter: unlocked ? 'none' : 'grayscale(1)' }}>{achievement.icon}</span>
+                        <span style={{ fontSize: '2rem', filter: unlocked ? 'none' : 'grayscale(1)' }}>
+                            {ACHIEVEMENT_ICONS[achievement.id] || <Trophy size={24} />}
+                        </span>
                         <div>
                           <div style={{ fontWeight: 'bold' }}>{achievement.name}</div>
                           <div style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{achievement.desc}</div>

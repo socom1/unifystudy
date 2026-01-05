@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Lock, Bell, Shield, Database, HelpCircle,
-  Mail, Smartphone, Globe, Download, Trash2, LogOut,
-  Sun, Moon, Monitor, Save, X, Zap, Plus, X as XIcon, Calendar as CalendarIcon
+  Smartphone, Globe, Download, Trash2, LogOut,
+  Monitor, Save, X, Zap, Plus, X as XIcon, Calendar as CalendarIcon
 } from 'lucide-react';
 import { auth, db } from '@/services/firebaseConfig';
 import { ref, onValue, update } from 'firebase/database';

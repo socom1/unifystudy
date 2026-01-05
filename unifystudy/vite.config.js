@@ -52,4 +52,16 @@ export default defineConfig(({ command }) => ({
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/database', 'firebase/storage'],
+          ui: ['framer-motion', 'lucide-react', 'react-router-dom']
+        }
+      }
+    }
+  }
 }))

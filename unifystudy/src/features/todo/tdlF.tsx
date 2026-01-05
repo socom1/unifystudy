@@ -5,6 +5,7 @@
 // users/{uid}/folders/{folderId} and users/{uid}/folders/{folderId}/tasks/{taskId}
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { db, auth } from "@/services/firebaseConfig";
 import {
@@ -208,6 +209,28 @@ export default function TdlF() {
     const unsub = auth.onAuthStateChanged((u) => setUserId(u ? u.uid : null));
     return () => unsub();
   }, []);
+
+  /* --- Navigation State Handling --- */
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.folderId && location.state?.taskId) {
+        // Switch to folder view
+        setActiveView("folder");
+        // Set folder
+        setCurrentFolderId(location.state.folderId);
+        // Open task details
+        setSelectedTaskId(location.state.taskId);
+        
+        // Mobile handling
+        if (isMobile) {
+            setShowFolderDetailMobile(true);
+        }
+        
+        // Clear state to avoid reopening on refresh
+        window.history.replaceState({}, document.title);
+    }
+  }, [location.state, isMobile]);
 
 
 
@@ -1035,7 +1058,7 @@ export default function TdlF() {
       setPriority(task?.priority || "low");
     }, [taskId]);
 
-    if (!task) return null;
+
 
     const save = async () => {
       await updateTask(taskId, {
@@ -1094,6 +1117,8 @@ export default function TdlF() {
             }
         });
     }, [userId]);
+
+    if (!task) return null;
 
     return (
       <div className="panel-inner detailWrap">

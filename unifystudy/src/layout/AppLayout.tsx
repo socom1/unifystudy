@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { User } from "@/types";
+
 import InvitationModal from "@/features/collaboration/InvitationModal";
 
 const LandingPage = React.lazy(() => import("@/features/landing/LandingPage"));
@@ -39,19 +39,22 @@ import Sidebar from "@/layout/Sidebar";
 import AuthWrapper from "@/features/auth/signUp/AuthWrapper";
 import PageLoader from "@/components/ui/PageLoader";
 import NotificationManager from "@/features/notifications/NotificationManager";
+import PatchNotesModal from "@/components/PatchNotesModal/PatchNotesModal";
+import { getLatestReleaseNote } from "@/data/releaseNotes";
+import UserProfileModal from "@/features/profile/UserProfileModal";
 
 import { auth, db } from "@/services/firebaseConfig";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+
 import { ref, onValue } from "firebase/database";
 import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
 
 const AppLayout = () => {
-  const { user, loading, setUser, signOut } = useAuth();
-
+  const { user, loading, setUser } = useAuth();
+  
   const {
     isNavCollapsed,
-    isMobile,
+    setIsNavCollapsed, // Use setter from context
     focusModeActive,
     setFocusModeActive,
     showCommandPalette,
@@ -62,24 +65,53 @@ const AppLayout = () => {
   const location = useLocation();
 
   const [showStandup, setShowStandup] = useState(true);
+  const [showPatchNotes, setShowPatchNotes] = useState(false);
+  const [iconSet, setIconSet] = useState("default"); // Local state for Icon Set
+  const latestRelease = getLatestReleaseNote();
 
-  // Theme Persistence
-  // Keep this here or move to a separate ThemeContext/Provider later
+  useEffect(() => {
+    // Check for version update
+    const storedVersion = localStorage.getItem('app_version');
+    if (storedVersion !== latestRelease.version) {
+       setShowPatchNotes(true);
+    }
+  }, []);
+
+  const handleClosePatchNotes = () => {
+    localStorage.setItem('app_version', latestRelease.version);
+    setShowPatchNotes(false);
+  };
+
+  // Theme & Icon Set Persistence
   useEffect(() => {
     if (user) {
+      // Theme
       const themeRef = ref(db, `users/${user.uid}/settings/customization/theme`);
-      const unsub = onValue(themeRef, (snapshot) => {
+      const unsubTheme = onValue(themeRef, (snapshot) => {
         const theme = snapshot.val();
         if (theme) {
           document.documentElement.setAttribute('data-theme', theme);
         }
       });
-      return () => unsub();
+
+      // Icon Set
+      const iconRef = ref(db, `users/${user.uid}/settings/iconSet`);
+      const unsubIcon = onValue(iconRef, (snapshot) => {
+        const iconSetVal = snapshot.val();
+        if (iconSetVal) {
+           document.documentElement.setAttribute('data-icon-set', iconSetVal);
+           setIconSet(iconSetVal);
+        }
+      });
+
+      return () => {
+        unsubTheme();
+        unsubIcon();
+      };
     }
   }, [user]);
 
   // Keyboard Shortcut for Command Palette
-  // Moved logic to consume context
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -112,6 +144,8 @@ const AppLayout = () => {
     <TimerProvider>
       <div className="app-layout">
         <InvitationModal />
+        
+        {/* Use Context State for Sidebar */}
         <Sidebar />
 
         <div className={`main-content ${isNavCollapsed ? 'collapsed' : ''}`}>
@@ -231,7 +265,7 @@ const AppLayout = () => {
                 } />
 
                 <Route path="/settings" element={
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size scrollable">
                     <SettingsPage />
                   </motion.div>
                 } />
@@ -251,6 +285,12 @@ const AppLayout = () => {
           <OfflineIndicator />
           {user && showMusicPlayer && <GlobalPlayer />}
           <UpdateNotification />
+          
+          <PatchNotesModal 
+            isOpen={showPatchNotes} 
+            onClose={handleClosePatchNotes} 
+            releaseNote={latestRelease} 
+          />
 
           <AnimatePresence>
             {focusModeActive && (
@@ -265,6 +305,7 @@ const AppLayout = () => {
           </AnimatePresence>
 
           <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} user={user} />
+          <UserProfileModal />
         </div>
       </div>
     </TimerProvider>
