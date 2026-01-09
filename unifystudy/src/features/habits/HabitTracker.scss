@@ -10,6 +10,12 @@
   color: var(--color-text);
   overflow: hidden;
 
+  @media (max-width: 1082px) {
+    margin-top: 100px !important;
+    height: calc(100% - 100px) !important;
+    overflow-y: auto !important; // Ensure scrolling if needed, though grid usually handles it
+  }
+
   .habits-header {
     display: flex;
     justify-content: space-between;

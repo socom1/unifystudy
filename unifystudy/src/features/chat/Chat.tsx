@@ -151,6 +151,7 @@ const Chat = () => {
 
   // Mobile State
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // New state for mobile menu
+  const [channelSearch, setChannelSearch] = useState(""); // Channel Search
 
   const [replyingTo, setReplyingTo] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null); // ID of message being edited
@@ -162,6 +163,14 @@ const Chat = () => {
     { id: "history", name: "history" },
     { id: "cs", name: "computer-science" },
   ];
+  
+  // Filter channels based on search
+  const filteredSubjects = subjects.filter(s => s.name.toLowerCase().includes(channelSearch.toLowerCase()));
+  const filteredUniChannels = uniChannels.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
+  const filteredCollabChannels = collabChannels.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
+  const filteredPrivateChannels = privateChannels.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
+  const filteredDirectMessages = directMessages.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
+  const showGlobal = "global-chat".includes(channelSearch.toLowerCase());
 
   // Irish University Domains (Updated for Students)
   const uniDomains = {
@@ -928,21 +937,8 @@ const Chat = () => {
     <div className="chat-layout">
       {/* Profile Card Modal Removed - Uses Global UIContext */}
 
-      <div className="typing-indicator-area" style={{ 
-          padding: '0 1rem', 
-          height: '20px', 
-          fontSize: '0.8rem', 
-          color: 'var(--color-muted)',
-          fontStyle: 'italic',
-          display: 'flex',
-          alignItems: 'center'
-      }}>
-        {typingUsers.length > 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
-            </motion.div>
-        )}
-      </div>
+      {/* Profile Card Modal Removed - Uses Global UIContext */}
+
 
       {/* User Picker Modal */}
       <AnimatePresence>
@@ -1096,6 +1092,14 @@ const Chat = () => {
         )}
       </AnimatePresence>
 
+      {/* Mobile Backdrop */}
+      {mobileMenuOpen && (
+        <div 
+          className="chat-backdrop" 
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Left Sidebar - Channels */}
       <div className={`chat-sidebar ${mobileMenuOpen ? "open" : ""}`}>
         {" "}
@@ -1103,7 +1107,12 @@ const Chat = () => {
         <div className="sidebar-header">
           <div className="search-bar">
             <Search size={16} />
-            <input type="text" placeholder="Search..." />
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              value={channelSearch}
+              onChange={(e) => setChannelSearch(e.target.value)}
+            />
           </div>
           {/* Mobile Close Button */}
           <div
@@ -1114,24 +1123,31 @@ const Chat = () => {
           </div>
         </div>
         <div className="channels-list">
-          <div className="section-label">PUBLIC</div>
-          <div
-            className={`channel-item ${
-              activeChannel === "global" ? "active" : ""
-            }`}
-            onClick={() => {
-              setActiveChannel("global");
-              setActiveChannelName("global-chat");
-            }}
-          >
-            <Hash size={18} />
-            <span>global-chat</span>
-            {unreadChannels["global"] > 0 && (
-              <span className="channel-badge">{unreadChannels["global"]}</span>
-            )}
-          </div>
+          {showGlobal && (
+            <>
+              <div className="section-label">PUBLIC</div>
+              <div
+                className={`channel-item ${
+                  activeChannel === "global" ? "active" : ""
+                }`}
+                onClick={() => {
+                  setActiveChannel("global");
+                  setActiveChannelName("global-chat");
+                }}
+              >
+                <Hash size={18} />
+                <span>global-chat</span>
+                {unreadChannels["global"] > 0 && (
+                  <span className="channel-badge">{unreadChannels["global"]}</span>
+                )}
+              </div>
+            </>
+          )}
 
-       <div className="section-label mt-4">UNIVERSITY</div>
+       {(channelSearch === "" || filteredUniChannels.length > 0) && (
+         <div className="section-label mt-4">UNIVERSITY</div>
+       )}
+       {channelSearch === "" && (  
           <button 
              onClick={verifyUniversity}
              style={{ 
@@ -1152,18 +1168,21 @@ const Chat = () => {
           >
              <GraduationCap size={14} /> Verify Email
           </button>
+       )}
 
           {/* Collaborative Works */}
-        <div className="section-label" style={{ marginTop: '1.5rem' }}>
-            <span>COLLABORATIVE WORKS</span>
-        </div>
+        {(channelSearch === "" || filteredCollabChannels.length > 0) && (
+            <div className="section-label" style={{ marginTop: '1.5rem' }}>
+                <span>COLLABORATIVE WORKS</span>
+            </div>
+        )}
         
-        {collabChannels.length === 0 && (
+        {collabChannels.length === 0 && channelSearch === "" && (
             <div style={{ padding: '0 1rem', fontSize: '0.8rem', opacity: 0.5 }}>
                 No pending works.
             </div>
         )}
-             {collabChannels.map(ch => (
+             {filteredCollabChannels.map(ch => (
                  <div
                     key={ch.id}
                     className={`channel-item ${activeChannel === ch.id ? "active" : ""}`}
@@ -1181,7 +1200,7 @@ const Chat = () => {
              ))}
 
           
-          {uniChannels.map((uni) => (
+          {filteredUniChannels.map((uni) => (
             <div
               key={uni.id}
               className={`channel-item ${activeChannel === uni.id ? "active" : ""}`}
@@ -1198,8 +1217,8 @@ const Chat = () => {
             </div>
           ))}
 
-          <div className="section-label mt-4">SUBJECTS</div>
-          {subjects.map((sub) => (
+          {(channelSearch === "" || filteredSubjects.length > 0) && <div className="section-label mt-4">SUBJECTS</div>}
+          {filteredSubjects.map((sub) => (
             <div
               key={sub.id}
               className={`channel-item ${
@@ -1226,12 +1245,14 @@ const Chat = () => {
               alignItems: "center",
             }}
           >
-            <span>PRIVATE</span>
-            <Plus
-              size={14}
-              style={{ cursor: "pointer" }}
-              onClick={() => setShowCreateChannel(true)}
-            />
+            {(channelSearch === "" || filteredPrivateChannels.length > 0) && <span>PRIVATE</span>}
+            {channelSearch === "" && (
+                <Plus
+                size={14}
+                style={{ cursor: "pointer" }}
+                onClick={() => setShowCreateChannel(true)}
+                />
+            )}
           </div>
 
           {showCreateChannel && (
@@ -1246,7 +1267,7 @@ const Chat = () => {
             </div>
           )}
 
-          {privateChannels.map((pc) => (
+          {filteredPrivateChannels.map((pc) => (
             <div
               key={pc.id}
               className={`channel-item ${
@@ -1265,14 +1286,14 @@ const Chat = () => {
             </div>
           ))}
 
-          {directMessages.length > 0 && (
+          {(directMessages.length > 0 && (channelSearch === "" || filteredDirectMessages.length > 0)) && (
               <div className="section-label mt-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>DIRECT MESSAGES</span>
-                  <Plus size={14} style={{ cursor: 'pointer' }} onClick={() => setShowUserPicker(true)} />
+                  {channelSearch === "" && <Plus size={14} style={{ cursor: 'pointer' }} onClick={() => setShowUserPicker(true)} />}
               </div>
           )}
 
-          {directMessages.map((dm) => (
+          {filteredDirectMessages.map((dm) => (
              <div
                key={dm.id}
                className={`channel-item ${activeChannel === dm.id ? "active" : ""}`}

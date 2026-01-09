@@ -244,7 +244,20 @@ const SidebarContent = React.memo(({
                 {user.photoURL ? (
                   <img src={user.photoURL} alt="User" />
                 ) : (
-                  <UserIcon size={20} />
+                  <div style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'white'
+                  }}>
+                    {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                  </div>
                 )}
               </div>
               {(!isCollapsed || isMobileState) && (
@@ -343,7 +356,24 @@ export default function Sidebar() {
                   {user ? (
                     <div className="mobile-user-profile">
                       <div className="avatar-large">
-                        {user.photoURL ? <img src={user.photoURL} alt="User" /> : <UserIcon size={32} />}
+                        {user.photoURL ? ( 
+                          <img src={user.photoURL} alt="User" /> 
+                        ) : (
+                          <div style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px',
+                            fontWeight: 600,
+                            color: 'white'
+                          }}>
+                            {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                          </div>
+                        )}
                       </div>
                       <div className="user-info-large">
                         <span className="user-name-large">{user.displayName || "Student"}</span>

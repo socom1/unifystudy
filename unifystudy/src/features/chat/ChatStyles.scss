@@ -5,6 +5,7 @@
   background-color: var(--bg-1);
   color: var(--color-text);
   overflow: hidden;
+  position: relative; // Ensure absolute children define offset from here
 
   // Sidebar Styles
   .chat-sidebar {
@@ -767,8 +768,11 @@
 
 
 // Mobile Responsive
-@media (max-width: 768px) {
+@media (max-width: 1082px) {
   .chat-layout {
+    margin-top: 100px !important; // Force visibility
+    height: calc(100% - 100px) !important; // Prevent overflow
+
     .chat-sidebar {
       position: absolute;
       top: 0;
@@ -785,10 +789,37 @@
       }
     }
 
+    .chat-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 99; // Below sidebar (100) but above content
+      backdrop-filter: blur(2px);
+      animation: fadeIn 0.2s ease;
+    }
+
     .chat-main {
       .chat-header {
         .mobile-menu-btn {
-          display: block;
+          display: flex !important; // Force display
+          align-items: center;
+          justify-content: center;
+          margin-right: 12px;
+          color: var(--color-muted); // Softer color
+          background: transparent; // Clean look
+          border: none; // No border
+          padding: 8px;
+          flex-shrink: 0;
+          z-index: 50;
+          cursor: pointer;
+          transition: color 0.2s;
+
+          &:hover {
+             color: var(--color-text);
+          }
         }
       }
     }

@@ -129,7 +129,6 @@
   }
 }
 
-
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -240,11 +239,7 @@
 
     h1 {
       margin-bottom: 1rem;
-      background: linear-gradient(
-        to right,
-        var(--color-primary),
-        var(--color-secondary)
-      );
+      background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
       background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -358,11 +353,7 @@
     h1 {
       font-size: 24px;
       margin: 0;
-      background: linear-gradient(
-        to right,
-        var(--color-primary),
-        var(--color-secondary)
-      );
+      background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
       background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -384,6 +375,9 @@
       &:hover {
         background: var(--color-secondary);
       }
+    }
+    @media (max-width: 1085px) {
+      margin-top: 100px;
     }
   }
 
@@ -456,8 +450,6 @@
       border-radius: 16px;
     }
   }
-
-
 }
 
 .workspace-container {
@@ -748,28 +740,29 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      
+
       /* Whiteboard & PDF override */
-      &:has(.whiteboard-container), &:has(.pdf-viewer) {
-          background: var(--bg-1);
-          padding: 0;
-          overflow: hidden;
+      &:has(.whiteboard-container),
+      &:has(.pdf-viewer) {
+        background: var(--bg-1);
+        padding: 0;
+        overflow: hidden;
       }
 
       .no-file-selected {
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          color: var(--color-muted);
-          gap: 16px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-muted);
+        gap: 16px;
       }
-      
+
       .pdf-viewer {
-          width: 100%;
-          height: 100%;
-          border: none;
+        width: 100%;
+        height: 100%;
+        border: none;
       }
 
       .rich-text-container {
@@ -793,43 +786,54 @@
           position: sticky;
           top: 10px;
           z-index: 50;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
           margin-bottom: 20px; /* Space for toolbar */
-          
-          .workspace-page {
-              background: white;
-              width: 100%;
-              max-width: 850px; /* A4 width approx */
-              min-height: 1100px; /* A4 height approx */
-              padding: 50px;
-              box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-              color: #000; /* Force black text on white paper */
-              border-radius: 2px;
-              position: relative;
-              
-              .page-number {
-                  position: absolute;
-                  bottom: 20px;
-                  right: 20px;
-                  color: #888;
-                  font-size: 12px;
-                  pointer-events: none;
-              }
 
-              .rich-text-editor {
-                  min-height: 1000px;
-                  outline: none;
-                  font-size: 16px;
-                  line-height: 1.6;
-                  
-                  h1, h2, h3 { color: #000; margin-bottom: 0.5em; }
-                  p { margin-bottom: 1em; }
-                  ul, ol { margin-left: 20px; margin-bottom: 1em; }
+          .workspace-page {
+            background: white;
+            width: 100%;
+            max-width: 850px; /* A4 width approx */
+            min-height: 1100px; /* A4 height approx */
+            padding: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: #000; /* Force black text on white paper */
+            border-radius: 2px;
+            position: relative;
+
+            .page-number {
+              position: absolute;
+              bottom: 20px;
+              right: 20px;
+              color: #888;
+              font-size: 12px;
+              pointer-events: none;
+            }
+
+            .rich-text-editor {
+              min-height: 1000px;
+              outline: none;
+              font-size: 16px;
+              line-height: 1.6;
+
+              h1,
+              h2,
+              h3 {
+                color: #000;
+                margin-bottom: 0.5em;
               }
+              p {
+                margin-bottom: 1em;
+              }
+              ul,
+              ol {
+                margin-left: 20px;
+                margin-bottom: 1em;
+              }
+            }
           }
 
           button {
-             /* ... existing toolbar styles ... */
+            /* ... existing toolbar styles ... */
             border: none;
             color: var(--color-text);
             padding: 6px;
@@ -867,77 +871,94 @@
                 height: 24px;
                 border-radius: 4px;
                 cursor: pointer;
-                border: 1px solid rgba(0,0,0,0.1);
-                
-                &:hover { transform: scale(1.1); }
+                border: 1px solid rgba(0, 0, 0, 0.1);
+
+                &:hover {
+                  transform: scale(1.1);
+                }
               }
             }
           }
         }
-        
+
         .workspace-document {
-             display: flex;
-             flex-direction: column;
-             gap: 20px;
-             align-items: center;
-             width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          align-items: center;
+          width: 100%;
         }
-        
+
         .page-controls {
-            width: 794px; /* Match A4 */
-            max-width: 100%;
-            background: transparent;
-            border: none;
-            padding: 0;
-            margin-bottom: 10px;
-            
-            .new-page-btn {
-                background: var(--color-primary);
-                color: white;
-                border-radius: 6px;
-                font-size: 12px;
-                padding: 6px 12px;
-                &:hover { opacity: 0.9; }
+          width: 794px; /* Match A4 */
+          max-width: 100%;
+          background: transparent;
+          border: none;
+          padding: 0;
+          margin-bottom: 10px;
+
+          .new-page-btn {
+            background: var(--color-primary);
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            padding: 6px 12px;
+            &:hover {
+              opacity: 0.9;
             }
+          }
         }
 
         .workspace-page {
-            width: 794px; /* A4 Width */
-            min-height: 1123px; /* A4 Height */
-            background: white;
-            color: #333;
-            padding: 96px 72px; /* Standard Margins */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            position: relative;
-            font-family: 'Calibri', 'Arial', sans-serif;
-            
-            .page-number {
-                position: absolute;
-                bottom: 30px;
-                right: 40px;
-                left: auto;
-                background: transparent;
-                box-shadow: none;
-                color: #aaa;
-                font-size: 12px;
-                padding: 0;
-            }
+          width: 794px; /* A4 Width */
+          min-height: 1123px; /* A4 Height */
+          background: white;
+          color: #333;
+          padding: 96px 72px; /* Standard Margins */
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          position: relative;
+          font-family: "Calibri", "Arial", sans-serif;
 
-            .rich-text-editor { 
-                outline: none;
-                min-height: 100%;
-                font-size: 11pt;
-                line-height: 1.5;
-                
-                p { margin-bottom: 1em; }
-                h1 { font-size: 2em; margin-bottom: 0.5em; color: #111; }
-                h2 { font-size: 1.5em; margin-bottom: 0.5em; color: #222; }
-                ul, ol { margin-left: 20px; margin-bottom: 1em; }
+          .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            left: auto;
+            background: transparent;
+            box-shadow: none;
+            color: #aaa;
+            font-size: 12px;
+            padding: 0;
+          }
+
+          .rich-text-editor {
+            outline: none;
+            min-height: 100%;
+            font-size: 11pt;
+            line-height: 1.5;
+
+            p {
+              margin-bottom: 1em;
             }
+            h1 {
+              font-size: 2em;
+              margin-bottom: 0.5em;
+              color: #111;
+            }
+            h2 {
+              font-size: 1.5em;
+              margin-bottom: 0.5em;
+              color: #222;
+            }
+            ul,
+            ol {
+              margin-left: 20px;
+              margin-bottom: 1em;
+            }
+          }
         }
       }
     }
-
 
     .chat-sidebar {
       width: 300px;

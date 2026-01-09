@@ -10,6 +10,12 @@
   color: var(--color-text);
   overflow: hidden;
 
+  @media (max-width: 1082px) {
+    margin-top: 100px !important;
+    height: calc(100% - 100px) !important;
+    overflow-y: auto !important;
+  }
+
   .mobile-back-btn {
     background: transparent;
     border: none;
@@ -497,9 +503,17 @@
     }
   }
   /* Mobile Responsive */
-  @media (max-width: 768px) {
+  /* Mobile Responsive */
+  @media (max-width: 1082px) {
       padding: 1rem;
       
+      .grades-header {
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        
+        h1 { font-size: 1.5rem; }
+      }
+
       .grades-container {
          /* Mobile: Stacked Logic handled by React Conditional Rendering */
          /* But we ensure Full Width for whatever is rendered */
@@ -507,14 +521,31 @@
          .subjects-sidebar {
              width: 100%; /* Full width when active */
              border-right: none;
+             height: 100%;
          }
          
          .assessments-panel {
-             padding: 1rem;
-             
+             padding: 0;
+             border: none;
+             background: transparent;
+             height: 100%;
+
              .subject-dashboard {
+                 height: 100%;
+                 gap: 1rem;
+
+                 .panel-header {
+                    background: var(--bg-2);
+                    padding: 1rem;
+                    border-radius: 12px;
+                    border: 1px solid var(--glass-border);
+                    margin-bottom: 0.5rem;
+                 }
+
                  .dashboard-grid {
                      flex-direction: column; /* Stack Grid on Mobile */
+                     height: auto;
+                     padding-bottom: 2rem;
                  }
              }
          }

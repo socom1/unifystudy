@@ -8,6 +8,18 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.0.1',
+    title: 'UnifyStudy 1.0.1 - Patch Notes',
+    description: 'A major polish update focusing on mobile responsiveness, layout consistency, and app stability.',
+    features: [
+      '� Mobile Experience: Fixed header overlaps in Analytics, Shop, Leaderboard, and Habits',
+      '🎓 Grades Update: New master-detail navigation for easier mobile access',
+      '🔧 Layout Fixes: Fixed scrolling in Settings and centered the Pomodoro timer',
+      '🐛 Bug Fixes: Resolved critical startup crashes and Chat layout glitches'
+    ],
+    date: '2026-01-09'
+  },
+  {
     version: '1.0.0',
     title: 'UnifyStudy 1.0 - Official Release',
     description: 'We\'ve added smart navigation, refined the timetable, and fixed key interactions for a seamless experience.',

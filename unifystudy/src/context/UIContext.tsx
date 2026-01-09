@@ -22,6 +22,9 @@ interface UIContextType {
   selectedUserId: string | null;
   openProfile: (userId: string) => void;
   closeProfile: () => void;
+
+  // Layout
+  isMobile: boolean;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -32,6 +35,17 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showMusicPlayer, setShowMusicPlayer] = useState(true);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile Check
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia("(max-width: 1082px)").matches);
+    };
+    checkMobile(); // Check on mount
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const toggleNav = () => setIsNavCollapsed((prev) => !prev);
   
@@ -56,6 +70,7 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     selectedUserId,
     openProfile,
     closeProfile,
+    isMobile,
   };
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

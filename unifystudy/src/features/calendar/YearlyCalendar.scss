@@ -284,8 +284,8 @@
 
       .day {
         background: var(--bg-1);
-        min-height: 60px; // Reduced from 80px
-        padding: 0.5rem; // Reduced padding
+        min-height: 40px; // Reduced from 80px
+        padding: 0.25rem; // Reduced padding
         position: relative;
         cursor: pointer;
         transition: background 0.2s;

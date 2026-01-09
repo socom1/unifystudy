@@ -280,11 +280,12 @@ const AppLayout = () => {
           <TimerWidget />
           {user && <NotificationManager user={user} />}
 
-          {/* Daily Standup Local State replacement - keeping simple for now or move to UI Context if needed */}
-          {user && showStandup && <DailyStandup user={user} onClose={() => setShowStandup(false)} />}
-          <OfflineIndicator />
-          {user && showMusicPlayer && <GlobalPlayer />}
-          <UpdateNotification />
+          <Suspense fallback={null}>
+            {user && showStandup && <DailyStandup user={user} onClose={() => setShowStandup(false)} />}
+            <OfflineIndicator />
+            {user && showMusicPlayer && <GlobalPlayer />}
+            <UpdateNotification />
+          </Suspense>
           
           <PatchNotesModal 
             isOpen={showPatchNotes} 

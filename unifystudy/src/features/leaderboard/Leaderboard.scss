@@ -4,6 +4,12 @@
   background: var(--bg-1);
   position: relative;
   overflow: hidden;
+  
+  @media (max-width: 1082px) {
+    margin-top: 100px !important;
+    height: calc(100% - 100px) !important;
+    overflow-y: auto !important;
+  }
 
   // Background glow
   &::before {

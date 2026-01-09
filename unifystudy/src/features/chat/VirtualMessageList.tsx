@@ -21,7 +21,7 @@ const VirtualMessageList = <T,>({
     <div style={{ height: '100%', width: '100%' }}>
       <Virtuoso
         ref={virtuosoRef}
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: '100%', width: '100%', overscrollBehavior: 'contain' }}
         totalCount={messages.length}
         itemContent={(index) => renderRow(messages[index], index)}
         initialTopMostItemIndex={messages.length > 0 ? messages.length - 1 : 0}
