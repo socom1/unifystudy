@@ -204,7 +204,24 @@ function TodoTreeItem({
 
 export default function TdlF() {
   /* --- Auth / responsive --- */
+  /* --- Auth / responsive --- */
   const [userId, setUserId] = useState(null);
+  
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 900 : true
+  );
+  const [isLargeScreen, setIsLargeScreen] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= 1000 : false
+  );
+  
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { addXP } = useGamification();
+  
+  // Resizable state
+  const [sidebarWidth, setSidebarWidth] = useState(260);
+  const [rightPanelWidth, setRightPanelWidth] = useState(320);
+  const draggingRef = useRef(null); // 'sidebar' | 'rightPanel' | null
+
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((u) => setUserId(u ? u.uid : null));
     return () => unsub();
@@ -232,24 +249,6 @@ export default function TdlF() {
     }
   }, [location.state, isMobile]);
 
-
-
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 900 : true
-  );
-  const [isLargeScreen, setIsLargeScreen] = useState(
-    typeof window !== "undefined" ? window.innerWidth >= 1000 : false
-  );
-  
-  
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { addXP } = useGamification();
-  
-  // Resizable state
-  const [sidebarWidth, setSidebarWidth] = useState(260);
-  const [rightPanelWidth, setRightPanelWidth] = useState(320);
-  const draggingRef = useRef(null); // 'sidebar' | 'rightPanel' | null
-
   useEffect(() => {
     const onResize = () => {
       const w = window.innerWidth;
@@ -267,26 +266,6 @@ export default function TdlF() {
   /* --- Resizing Logic --- */
   // Use refs for start positions to avoid closure staleness without re-binding
   const resizeStart = useRef({ x: 0, w: 0 });
-
-  const startResizingSidebar = useCallback((e) => {
-    e.preventDefault();
-    draggingRef.current = 'sidebar';
-    resizeStart.current = { x: e.clientX, w: sidebarWidth };
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", stopResizing);
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none"; 
-  }, [sidebarWidth]);
-
-  const startResizingRightPanel = useCallback((e) => {
-    e.preventDefault();
-    draggingRef.current = 'rightPanel';
-    resizeStart.current = { x: e.clientX, w: rightPanelWidth };
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", stopResizing);
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-  }, [rightPanelWidth]);
 
   const handleMouseMove = useCallback((e) => {
     if (!draggingRef.current) return;
@@ -310,6 +289,26 @@ export default function TdlF() {
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
   }, [handleMouseMove]);
+
+  const startResizingSidebar = useCallback((e) => {
+    e.preventDefault();
+    draggingRef.current = 'sidebar';
+    resizeStart.current = { x: e.clientX, w: sidebarWidth };
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", stopResizing);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none"; 
+  }, [sidebarWidth, handleMouseMove, stopResizing]);
+
+  const startResizingRightPanel = useCallback((e) => {
+    e.preventDefault();
+    draggingRef.current = 'rightPanel';
+    resizeStart.current = { x: e.clientX, w: rightPanelWidth };
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", stopResizing);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, [rightPanelWidth, handleMouseMove, stopResizing]);
 
 
   /* --- data & selection --- */

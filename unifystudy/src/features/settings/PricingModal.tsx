@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check, X, Star, Crown, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import './SettingsPage.scss';
+import './PricingModal.scss';
 
 import { createPortal } from 'react-dom';
 

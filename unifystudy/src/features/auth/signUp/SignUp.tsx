@@ -15,16 +15,45 @@ import {
 } from "firebase/auth";
 import { auth, googleProvider } from "@/services/firebaseConfig";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import GoogleUsernameModal from "./modal/passwordM/GoogleUsernameModal";
 import EmailVerificationModal from "./modal/verfM/EmailVerificationModal";
 import SignUpForm from "./SignUpForm";
-import "./signup.css";
+import "./signup.scss";
+// Helper to map Firebase errors to user-friendly messages
+const getFriendlyErrorMessage = (error) => {
+  const code = error.code;
+  if (!code) return error.message || "An unexpected error occurred.";
+
+  switch (code) {
+    case "auth/invalid-email":
+      return "Invalid email address format.";
+    case "auth/user-not-found":
+    case "auth/invalid-credential": // Newer Firebase versions use this
+      return "No account found with this email.";
+    case "auth/wrong-password":
+      return "Incorrect password. Please try again.";
+    case "auth/email-already-in-use":
+      return "An account already exists with this email.";
+    case "auth/weak-password":
+      return "Password should be at least 6 characters.";
+    case "auth/too-many-requests":
+      return "Too many attempts. Please try again later.";
+    case "auth/popup-closed-by-user":
+      return "Sign-in cancelled.";
+    case "auth/network-request-failed":
+      return "Network error. Check your connection.";
+    default:
+      // Return cleaned up message if code not found
+      return error.message.replace("Firebase: ", "").replace(` (${code})`, "");
+  }
+};
 
 export default function SignUp({ onLoginSuccess }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(location.pathname === "/login");
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -91,13 +120,60 @@ export default function SignUp({ onLoginSuccess }) {
       }
     } catch (err) {
       setIsBlockingUI(false);
-      setError(err.message);
+      setError(getFriendlyErrorMessage(err));
     }
   };
+
+  // Listen for Deep Link Token (Electron)
+  useEffect(() => {
+    if (window.require) {
+      const { ipcRenderer } = window.require('electron');
+      
+      const handleAuthSuccess = async (event, token) => {
+        try {
+            console.log("Received token from deep link");
+            const { GoogleAuthProvider, signInWithCredential } = await import("firebase/auth");
+            const credential = GoogleAuthProvider.credential(token);
+            
+            await setPersistence(auth, keepLoggedIn ? browserLocalPersistence : browserSessionPersistence);
+            const result = await signInWithCredential(auth, credential);
+            
+            // Proceed with user logic
+            const user = result.user;
+            if (!user.displayName) {
+                setGoogleUser(user);
+                setShowGoogleUsernameModal(true);
+                setIsBlockingUI(true);
+            } else {
+                if (onLoginSuccess) onLoginSuccess(user);
+                navigate("/profile");
+            }
+        } catch (err) {
+            console.error(err);
+            setError(getFriendlyErrorMessage(err));
+        }
+      };
+
+      ipcRenderer.on('google-auth-success', handleAuthSuccess);
+      
+      return () => {
+        ipcRenderer.removeListener('google-auth-success', handleAuthSuccess);
+      };
+    }
+  }, [keepLoggedIn, onLoginSuccess, navigate]);
 
   const handleGoogleSignIn = async () => {
     setError("");
     setSuccess("");
+
+    // ELECTRON CHECK
+    if (window.require) {
+        const { shell } = window.require('electron');
+        // Open the Auth Bridge in default browser
+        // TODO: In production, change this to your hosted URL
+        shell.openExternal("http://localhost:5173/desktop-auth");
+        return;
+    }
 
     try {
       await setPersistence(auth, keepLoggedIn ? browserLocalPersistence : browserSessionPersistence);
@@ -119,7 +195,7 @@ export default function SignUp({ onLoginSuccess }) {
         navigate("/profile");
       }
     } catch (err) {
-      setError(err.message);
+      setError(getFriendlyErrorMessage(err));
     }
   };
 
@@ -138,7 +214,7 @@ export default function SignUp({ onLoginSuccess }) {
 
       navigate("/profile");
     } catch (err) {
-      setError(err.message);
+      setError(getFriendlyErrorMessage(err));
     }
   };
 

@@ -4,10 +4,37 @@ import { subscribeToLeaderboard } from "@/services/leaderboardService";
 import { useUI } from "@/context/UIContext"; // Import Global Context
 import "./Leaderboard.scss";
 
+interface LeaderboardUser {
+  uid: string;
+  isAnonymous: boolean;
+  name: string;
+  photoURL?: string | null;
+  tag: string;
+  score: number;
+  rawTime: number;
+  rawCurrency: number;
+}
+
+interface LeaderboardDataVal {
+  settings?: {
+    anonymousMode?: boolean;
+    customization?: {
+      profileTag?: string;
+    };
+  };
+  displayName?: string;
+  photoURL?: string;
+  currency?: number;
+  stats?: {
+    totalStudyTime?: number;
+  };
+  study_sessions?: Record<string, { duration: number; timestamp: number }>;
+}
+
 export default function Leaderboard() {
   const [timeRange, setTimeRange] = useState("all"); // 'all', 'monthly', 'weekly'
   const [sortBy, setSortBy] = useState("time"); // 'time', 'currency'
-  const [leaders, setLeaders] = useState([]);
+  const [leaders, setLeaders] = useState<LeaderboardUser[]>([]);
   
   const { openProfile } = useUI(); // Use global profile opener
 
@@ -20,7 +47,9 @@ export default function Leaderboard() {
   ];
 
   useEffect(() => {
-    const unsubscribe = subscribeToLeaderboard((data) => {
+    // subscribeToLeaderboard expects a callback receiving 'data'
+    // 'data' is the whole public_leaderboard object: Record<string, LeaderboardDataVal>
+    const unsubscribe = subscribeToLeaderboard((data: any) => {
       
       if (data) {
         const now = Date.now();
@@ -28,14 +57,17 @@ export default function Leaderboard() {
         const oneWeek = 7 * oneDay;
         const oneMonth = 30 * oneDay;
 
-        const arr = Object.entries(data).map(([uid, val]) => {
+        // data is { uid: val, uid2: val2 ... }
+        const typedData = data as Record<string, LeaderboardDataVal>;
+
+        const arr = Object.entries(typedData).map(([uid, val]) => {
           let time = 0;
           const isAnonymous = val.settings?.anonymousMode === true;
           // ... (existing logic)
           const profileTag = val.settings?.customization?.profileTag || "";
 
           // Base user object
-          const userObj = {
+          const userObj: LeaderboardUser = {
             uid,
             isAnonymous,
             name: isAnonymous ? "Anonymous Student" : (val.displayName || "Unknown Student"),
@@ -56,7 +88,7 @@ export default function Leaderboard() {
               const sessions = val.study_sessions ? Object.values(val.study_sessions) : [];
               const cutoff = timeRange === 'weekly' ? now - oneWeek : now - oneMonth;
               
-              sessions.forEach(s => {
+              sessions.forEach((s) => {
                 if (s.timestamp >= cutoff) {
                   time += (s.duration || 0);
                 }
@@ -81,10 +113,10 @@ export default function Leaderboard() {
     };
   }, [timeRange, sortBy]);
 
-  const formatScore = (val) => {
+  const formatScore = (val: number) => {
     if (sortBy === 'currency') return `💡 ${val}`;
     const h = Math.floor(val / 60);
-    const m = val % 60;
+    const m = Math.floor(val % 60);
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
@@ -157,7 +189,7 @@ export default function Leaderboard() {
                     <div className="avatar-placeholder-q">?</div>
                   ) : (
                     <img 
-                      src={user.photoURL} 
+                      src={user.photoURL || undefined} 
                       alt={user.name} 
                     />
                   )}

@@ -180,13 +180,13 @@ const ResourceLibrary = ({ user }) => {
                 transition={{ duration: 0.8 }}
             >
                 <div style={{ 
-                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', 
+                    background: 'var(--bg-1)', 
                     padding: '2rem', 
                     borderRadius: '24px', 
                     boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                    border: '1px solid rgba(255,255,255,0.2)'
+                    border: '1px solid var(--color-primary)'
                 }}>
-                    <Folder size={64} style={{ marginBottom: '1rem', opacity: 0.9 }} />
+                    <Folder size={64} style={{ marginBottom: '1rem', opacity: 0.9, color: 'var(--color-primary)' }} />
                     <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem', letterSpacing: '-0.02em' }}>Coming Soon</h1>
                     <p style={{ fontSize: '1.2rem', opacity: 0.8, maxWidth: '400px', lineHeight: '1.6' }}>
                         We're building a powerful resource library for you to store and organize your study materials. Stay tuned!

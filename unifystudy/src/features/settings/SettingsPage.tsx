@@ -20,6 +20,7 @@ import {
 import { toast } from 'sonner';
 import { useUI } from '@/context/UIContext';
 import { connectGoogleCalendar, fetchUpcomingEvents } from "@/services/googleCalendar";
+import { version } from '../../../package.json';
 import './SettingsPage.scss';
 
 export default function SettingsPage() {
@@ -740,7 +741,7 @@ export default function SettingsPage() {
             <div className="section-body">
               <div className="about-row">
                 <span>Version</span>
-                <span>1.0.0</span>
+                <span>{version}</span>
               </div>
               <div className="about-row">
                 <span>Build</span>

@@ -4,9 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import InvitationModal from "@/features/collaboration/InvitationModal";
 
-const LandingPage = React.lazy(() => import("@/features/landing/LandingPage"));
 const Dashboard = React.lazy(() => import("@/features/dashboard/Dashboard"));
 const SignUp = React.lazy(() => import("@/features/auth/signUp/SignUp"));
+const DesktopAuth = React.lazy(() => import("@/features/auth/DesktopAuth"));
 const Profile = React.lazy(() => import("@/features/profile/profile"));
 const ResetPassword = React.lazy(() => import("@/features/auth/passwordreset/ResetPassword"));
 const TdlOVERALL = React.lazy(() => import("@/features/todo/tdlF"));
@@ -133,6 +133,8 @@ const AppLayout = () => {
       <div className="app-layout">
         <Routes>
           <Route path="/signup" element={<SignUp onLoginSuccess={setUser} />} />
+          <Route path="/login" element={<SignUp onLoginSuccess={setUser} />} />
+          <Route path="/desktop-auth" element={<DesktopAuth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<AuthWrapper onSuccess={setUser} />} />
         </Routes>

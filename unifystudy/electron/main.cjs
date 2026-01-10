@@ -1,4 +1,10 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+
+// Handle creating/removing shortcuts on Windows when installing/uninstalling
+if (require('electron-squirrel-startup')) {
+  app.quit();
+}
+
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const isDev = !app.isPackaged;
@@ -34,7 +40,7 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    icon: path.join(__dirname, '../public/sidebar-icon.png'), // App icon
+    icon: path.join(__dirname, '../public/favicon.ico'), // App icon
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -99,16 +105,72 @@ ipcMain.on('install-update', () => {
   autoUpdater.quitAndInstall();
 });
 
-app.whenReady().then(() => {
-  createSplashWindow();
-  createWindow();
+// Register Custom Protocol
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('unifystudy', process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient('unifystudy');
+}
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+// Force Single Instance Lock
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (BrowserWindow.getAllWindows().length > 0) {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win.isMinimized()) win.restore();
+      win.focus();
+      
+      // Handle Deep Link on Windows
+      const deepLink = commandLine.find((arg) => arg.startsWith('unifystudy://'));
+      if (deepLink) {
+         handleDeepLink(win, deepLink);
+      }
     }
   });
-});
+
+  // Handle Deep Link on macOS
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+    if (BrowserWindow.getAllWindows().length > 0) {
+        const win = BrowserWindow.getAllWindows()[0];
+        handleDeepLink(win, url);
+    }
+  });
+
+  app.whenReady().then(() => {
+    createSplashWindow();
+    createWindow();
+  
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  });
+}
+
+function handleDeepLink(win, url) {
+    // Format: unifystudy://auth/callback?token=XYZ
+    try {
+        const urlObj = new URL(url);
+        const token = urlObj.searchParams.get('token');
+        if (token) {
+            win.webContents.send('google-auth-success', token);
+            // Bring to front
+            if (win.isMinimized()) win.restore();
+            win.focus();
+        }
+    } catch (e) {
+        console.error('Deep link parse error:', e);
+    }
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

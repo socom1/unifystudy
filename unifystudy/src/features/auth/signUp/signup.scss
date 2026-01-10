@@ -1,4 +1,4 @@
-@import "../index//LandingPage.scss"; /* Signup form styled to landing page */
+/* src/landing/LandingPage.scss removed */
 
 $bg: #0c1214;
 $panel: #0f1516;
@@ -33,7 +33,9 @@ h1 {
 
 .signup-container {
   max-width: 420px;
-  margin: 4rem auto;
+  margin: 2rem auto; /* Reduced from 4rem */
+  max-height: 90vh; /* Prevent overflowing screen */
+  overflow-y: auto; /* Allow scrolling if content is too tall */
   background: rgba(12, 18, 20, 0.85);
   backdrop-filter: blur(12px);
   color: #e8f3f7;
@@ -64,10 +66,12 @@ h1 {
     line-height: 0.1em;
   }
 
+
   .form-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    
     label {
       color: $muted;
       font-weight: 600;
@@ -75,27 +79,69 @@ h1 {
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    input {
-      background: rgba(0, 0, 0, 0.2);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 0.8rem 1rem;
-      border-radius: 10px;
-      font-size: 1rem;
-      transition: all 0.2s;
 
-      &:focus {
-        outline: none;
-        border-color: $accent-2;
-        background: rgba(0, 0, 0, 0.4);
-        box-shadow: 0 0 0 4px rgba(143, 210, 255, 0.1);
-      }
+    /* Icon Wrapper Layout */
+    .input-icon-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            color: $muted;
+            pointer-events: none; /* Let clicks pass through */
+        }
+
+        /* Password Toggle Button */
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            background: transparent;
+            border: none;
+            color: $muted;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            margin: 0;
+            
+            &:hover {
+                color: $accent-2;
+                transform: none;
+                box-shadow: none;
+            }
+        }
+
+        input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.8rem 1rem 0.8rem 3rem; /* Left padding for icon */
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.2s;
+
+            &:focus {
+                outline: none;
+                border-color: $accent-2;
+                background: rgba(0, 0, 0, 0.4);
+                box-shadow: 0 0 0 4px rgba(143, 210, 255, 0.1);
+            }
+            
+            &.input-error {
+                border-color: var(--danger);
+            }
+        }
     }
-    .pass {
-      margin-top: 0.6rem;
+
+    .field-error {
+        color: var(--danger);
+        font-size: 0.8rem;
     }
   }
-  button {
+  
+  button.submit-btn { /* Specific class from JSX */
     background: var(--accent);
     color: #000;
     font-weight: 700;

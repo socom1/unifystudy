@@ -59,6 +59,11 @@
     /* Padding to prevent hover clipping */
     padding-bottom: 2rem;
 
+    @media (max-width: 768px) {
+       grid-template-columns: 1fr;
+       gap: 1rem;
+    }
+
     .deck-card {
       background: var(--bg-2);
       border: 1px solid var(--glass-border);
@@ -193,6 +198,10 @@
         transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
         cursor: pointer;
 
+        @media (max-width: 768px) {
+           height: 280px; 
+        }
+
         &.flipped {
           transform: rotateY(180deg);
         }
@@ -213,6 +222,11 @@
           font-size: 1.5rem;
           font-weight: 500;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+          @media (max-width: 768px) {
+             padding: 1.5rem;
+             font-size: 1.2rem;
+          }
 
           &.back {
             transform: rotateY(180deg);

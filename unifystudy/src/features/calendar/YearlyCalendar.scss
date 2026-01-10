@@ -16,11 +16,24 @@
     align-items: center;
     margin-bottom: 2rem;
     padding: 0 0.5rem;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
 
     .controls {
       display: flex;
       align-items: center;
       gap: 1.5rem;
+
+      @media (max-width: 768px) {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
 
       h1 {
         font-size: 2.5rem;
@@ -29,6 +42,11 @@
         letter-spacing: -0.02em;
         color: var(--color-text);
         min-width: 300px;
+
+        @media (max-width: 768px) {
+          font-size: 1.8rem;
+          min-width: auto;
+        }
       }
 
       button {
@@ -121,23 +139,27 @@
         display: none; 
         position: absolute;
         right: 1.5rem;
-        top: 50%; 
-        transform: translateY(-50%);
+        top: 2rem; /* Was 50% - top aligns better with header on mobile */
+        /* transform: translateY(-50%); Removed to stick to top */
         background: var(--color-primary);
         color: white;
         border: none;
         border-radius: 50%;
-        width: 48px;
-        height: 48px;
+        width: 44px; /* Slightly smaller */
+        height: 44px;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
-        z-index: 90;
+        z-index: 150; /* Ensure above content */
 
         @media (max-width: 1024px) {
           display: flex;
         }
+      }
+
+      @media (max-width: 768px) {
+        padding: 0.75rem; /* Reduced padding on mobile */
       }
     }
 
@@ -159,8 +181,9 @@
         top: 0;
         right: 0;
         bottom: 0;
-        width: 320px;
-        z-index: 100;
+        width: 100%; /* Full width on small mobile */
+        max-width: 320px;
+        z-index: 200; /* Above everything */
         box-shadow: -10px 0 30px rgba(0,0,0,0.2);
         transform: translateX(110%); // Hide by default
         background: var(--bg-1);
@@ -271,6 +294,12 @@
       border-radius: 16px;
       overflow: hidden;
 
+      // Mobile: Allow grid to scroll horizontally if needed, or squash it?
+      // Better: shrink text.
+      @media (max-width: 768px) {
+        border-radius: 12px;
+      }
+
       .day-label {
         background: var(--bg-2);
         padding: 1rem;
@@ -280,6 +309,11 @@
         font-size: 0.85rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+
+        @media (max-width: 768px) {
+          padding: 0.5rem;
+          font-size: 0.7rem;
+        }
       }
 
       .day {
@@ -293,6 +327,11 @@
         flex-direction: column;
         justify-content: space-between;
         outline: 1px solid var(--glass-border);
+
+        @media (max-width: 768px) {
+          min-height: 30px; /* Even smaller on mobile */
+          padding: 2px;
+        }
 
         &:hover {
           background: var(--bg-2);

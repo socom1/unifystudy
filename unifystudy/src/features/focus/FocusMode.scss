@@ -12,7 +12,8 @@
     /* Background handled by motion variants, fallback here */
     background: radial-gradient(circle at 50% 50%, #1a202c 0%, #0f172a 100%); 
     color: #e2e8f0;
-    overflow: hidden; /* Ensure orb doesn't scroll */
+    overflow-y: auto; /* Allow scrolling on small screens */
+    overflow-x: hidden;
 }
 
 /* Glassy Texture for background to give blur something to eat */
@@ -134,6 +135,7 @@
     z-index: 1; /* Below content, above background */
     filter: blur(80px); /* Enhance blur for softness */
     mix-blend-mode: screen; /* Make it glow */
+    position: fixed; /* Keep orb fixed during scroll */
 }
 
 .pomodoro-wrapper-zen {
@@ -144,6 +146,7 @@
     width: 100%;
     display: flex;
     justify-content: center;
+    flex-wrap: wrap; /* Allow wrapping */
 
     /* Override Pomodoro Styles for Zen Mode context */
     .timer {

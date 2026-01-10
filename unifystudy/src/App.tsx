@@ -1,4 +1,4 @@
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -6,6 +6,8 @@ import { UIProvider } from "./context/UIContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { GamificationProvider } from "./context/GamificationContext";
 import ErrorBoundary from "./components/common/ErrorBoundary";
+
+
 
 import { Toaster } from "sonner";
 
