@@ -8,6 +8,18 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.0.2',
+    title: 'UnifyStudy 1.0.2 - Visual Polish Update',
+    description: 'Refining the visual experience with themed components, improved responsiveness, and better chat interactions.',
+    features: [
+      '🎨 Theming: Loading screens and popups now perfectly match your selected theme',
+      '🧘 Zen Mode: Fixed layout responsiveness for smaller windows',
+      '👥 Chat UI: Bigger, cleaner User Picker for easier connections',
+      '🐛 Polish: Consistent spinners and version display updates'
+    ],
+    date: '2026-01-10'
+  },
+  {
     version: '1.0.1',
     title: 'UnifyStudy 1.0.1 - Patch Notes',
     description: 'A major polish update focusing on mobile responsiveness, layout consistency, and app stability.',
