@@ -104,7 +104,7 @@ export default function Analytics() {
                 totalWeight += a.weight;
             });
             const avg = totalWeight ? (totalWeighted / totalWeight) : 0;
-            return { subject: sub.name, score: Math.round(avg) };
+            return { subject: sub.name, score: parseFloat(avg.toFixed(1)) };
         });
     }, [grades]);
 
@@ -127,7 +127,7 @@ export default function Analytics() {
     const totalStudyTime = useMemo(() => studySessions.reduce((acc, curr) => acc + curr.duration, 0), [studySessions]);
     const avgScore = useMemo(() => {
         if (!subjectPerformanceData.length) return 0;
-        return Math.round(subjectPerformanceData.reduce((acc, curr) => acc + curr.score, 0) / subjectPerformanceData.length);
+        return parseFloat((subjectPerformanceData.reduce((acc, curr) => acc + curr.score, 0) / subjectPerformanceData.length).toFixed(1));
     }, [subjectPerformanceData]);
 
 
@@ -153,7 +153,7 @@ export default function Analytics() {
                      <div className="stats-summary">
                          <div className="stat-item">
                              <span className="label">Total Minutes</span>
-                             <span className="value">{totalStudyTime} min</span>
+                             <span className="value">{Math.round(totalStudyTime)} min</span>
                          </div>
                          <div className="stat-item">
                              <span className="label">Avg Daily</span>
@@ -166,7 +166,7 @@ export default function Analytics() {
                             <BarChart data={dailyStudyData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--glass-border)" vertical={false} />
                                 <XAxis dataKey="date" stroke="var(--color-muted)" tick={{fontSize: 12}} />
-                                <YAxis stroke="var(--color-muted)" tick={{fontSize: 12}} />
+                                <YAxis stroke="var(--color-muted)" tick={{fontSize: 12}} allowDecimals={false} />
                                 <Tooltip 
                                     contentStyle={{backgroundColor: 'var(--bg-2)', borderColor: 'var(--glass-border)', borderRadius: '8px'}}
                                     itemStyle={{color: 'var(--color-text)'}}
@@ -205,7 +205,7 @@ export default function Analytics() {
                     <div className="stats-summary">
                         <div className="stat-item">
                              <span className="label">Class GPA</span>
-                             <span className="value">{avgScore}%</span>
+                             <span className="value">{Number(avgScore).toFixed(1)}%</span>
                          </div>
                     </div>
                     <div className="chart-container">

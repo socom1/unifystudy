@@ -42,15 +42,26 @@ li {
   overflow: hidden;
 }
 
+html, body {
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-1); /* Fallback */
+  color: var(--color-text);
+  overflow: hidden; /* Prevent global scroll */
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 html {
-  background-color: var(--color-bg);
   background-image: var(--bg-image);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  color: var(--color-text);
-  height: 100vh;
-  width: 100vw;
   transition: all 0.5s ease-in-out;
 }
 

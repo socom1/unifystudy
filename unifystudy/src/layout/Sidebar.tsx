@@ -26,7 +26,8 @@ import {
   X,
   Zap,
   BarChart2,
-  Activity
+  Activity,
+  Sparkles
 } from "lucide-react";
 import "./Sidebar.scss";
 import { User } from "@/types";
@@ -143,6 +144,12 @@ const SidebarContent = React.memo(({
             isCollapsed={isCollapsed}
             isMobile={isMobileState}
           />
+          <NavItem
+            item={{ iconElement: <Sparkles size={22} />, label: "Nova Assistant", to: "/nova" }}
+            location={location}
+            isCollapsed={isCollapsed}
+            isMobile={isMobileState}
+          />
         </div>
 
         {/* STUDY & COLLAB Section */}
@@ -173,12 +180,7 @@ const SidebarContent = React.memo(({
             isCollapsed={isCollapsed}
             isMobile={isMobileState}
           />
-          <NavItem
-            item={{ iconElement: <GraduationCap size={22} />, label: "Find Study Buddy", to: "/buddy" }}
-            location={location}
-            isCollapsed={isCollapsed}
-            isMobile={isMobileState}
-          />
+
 
           {renderNavItem({ icon: MessageSquare, label: "Chat", to: "/chat", badge: unreadCount })}
         </div>

@@ -1,9 +1,11 @@
+@charset "UTF-8";
 /* profile_terminal.scss
    Developer dashboard + glass UI for profile page
    Drop into your project and import in profile.jsx
 */
 .profile-root {
-  min-height: 100vh;
+  height: 100%; /* Changed from min-height: 100vh to ensure container fits parent */
+  overflow-y: auto; /* Enable scrolling within the profile view */
   padding: 2rem;
   background: var(--bg-1);
   color: var(--color-text, #c9d1d9);
@@ -11,6 +13,43 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+}
+
+/* ... existing styles ... */
+.tag-option {
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+}
+.tag-option input[type=checkbox] {
+  display: none; /* Hide the default checkbox */
+}
+.tag-option:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.tag-option.selected {
+  background: linear-gradient(90deg, rgba(var(--color-primary-rgb), 0.2), rgba(var(--color-secondary-rgb), 0.2));
+  color: var(--color-text);
+  border-color: var(--color-secondary);
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(var(--color-primary-rgb), 0.2);
+}
+.tag-option.selected::before {
+  content: "✓";
+  font-weight: bold;
+  color: var(--color-secondary);
 }
 
 .profile-grid {
@@ -24,14 +63,12 @@
 /* Card base */
 .profile-card,
 .panel {
-  background: var(--glass-bg, rgba(22, 27, 34, 0.8));
+  background: var(--bg-2);
   border-radius: 12px;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
   padding: 2rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   width: 100%;
-  -webkit-backdrop-filter: blur(12px);
-          backdrop-filter: blur(12px);
 }
 
 /* Sections grid for panels */
@@ -445,7 +482,6 @@
 }
 .banner-option.selected {
   border-color: var(--color-secondary);
-  box-shadow: 0 0 20px rgba(143, 210, 255, 0.3);
 }
 
 .tags-grid {

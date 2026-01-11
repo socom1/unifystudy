@@ -604,7 +604,16 @@ export default function ProfilePage() {
                     key={theme.id}
                     className={`banner-option ${selectedTheme === theme.id ? "selected" : ""
                       }`}
-                    style={{ background: theme.color, color: (theme.id === 'light' || theme.id === 'cute') ? '#000' : '#fff' }}
+                    style={{ 
+                        background: theme.color, 
+                        color: (theme.id === 'light' || theme.id === 'cute') ? '#000' : '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        lineHeight: 1.2,
+                        padding: '4px'
+                    }}
                     onClick={() => {
                       setSelectedTheme(theme.id);
                       document.documentElement.setAttribute('data-theme', theme.id);
@@ -620,9 +629,20 @@ export default function ProfilePage() {
                   <motion.div
                     key={theme.id}
                     className="banner-option locked"
-                    style={{ background: '#222', opacity: 0.6, cursor: 'not-allowed', border: '1px dashed #555' }}
+                    style={{ 
+                        background: '#222', 
+                        opacity: 0.6, 
+                        cursor: 'not-allowed', 
+                        border: '1px dashed #555',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        lineHeight: 1.2,
+                        padding: '4px'
+                    }}
                   >
-                    🔒 {theme.name}
+                    {theme.name}
                   </motion.div>
                 ))}
               </div>

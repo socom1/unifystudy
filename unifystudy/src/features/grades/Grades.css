@@ -1,312 +1,526 @@
+/* Grades.scss (Refactored to Subject Master Hub) */
 .grades-root {
-  height: 100vh;
-  background: var(--bg-1);
-  color: var(--color-text, #fff);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  font-family: "Fira Code", monospace;
-}
-
-.grades-header {
-  padding: 1.5rem 2rem;
-  background: var(--glass-bg, rgba(12, 18, 20, 0.8));
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-}
-.grades-header .header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.grades-header .header-content h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -1px;
-  color: var(--color-text, #fff);
-}
-.grades-header .header-content .gpa-badge {
-  background: rgba(var(--color-primary-rgb), 0.1);
-  border: 1px solid var(--color-primary);
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-.grades-header .header-content .gpa-badge .label {
-  font-size: 0.7rem;
-  color: var(--color-primary);
-  text-transform: uppercase;
-  font-weight: 700;
-}
-.grades-header .header-content .gpa-badge .value {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--color-text, #fff);
-}
-
-.grades-container {
-  flex: 1;
-  display: flex;
+  height: 100%;
   width: 100%;
+  padding: 1rem 2rem;
+  background-color: var(--bg-1);
+  color: var(--color-text);
   overflow: hidden;
+  /* Header */
+  /* Container */
+  /* Mobile Responsive */
+  /* Mobile Responsive */
 }
-
-/* SIDEBAR */
-.subjects-sidebar {
-  width: 325px;
-  background: var(--glass-bg, rgba(15, 20, 25, 0.5));
-  border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
-  gap: 1.5rem;
+@media (max-width: 1082px) {
+  .grades-root {
+    margin-top: 100px !important;
+    height: calc(100% - 100px) !important;
+    overflow-y: auto !important;
+  }
 }
-.subjects-sidebar .add-subject-form {
-  display: flex;
-  gap: 0.5rem;
-}
-.subjects-sidebar .add-subject-form input {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
-  border-radius: 8px;
-  padding: 0.6rem;
-  color: var(--color-text, #fff);
-  font-size: 0.9rem;
-}
-.subjects-sidebar .add-subject-form input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-.subjects-sidebar .add-subject-form button {
-  background: var(--color-primary);
+.grades-root .mobile-back-btn {
+  background: transparent;
   border: none;
-  border-radius: 8px;
-  width: 60px;
-  color: var(--bg-1, #000);
-  font-weight: 700;
+  color: var(--color-text);
   cursor: pointer;
-  font-size: 1.2rem;
-  transition: ease-in-out 0.2s;
-}
-.subjects-sidebar .add-subject-form button:hover {
-  filter: brightness(1.1);
-  transition: ease-in-out 0.2s;
-}
-.subjects-sidebar .subjects-list {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-.subjects-sidebar .subject-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-  padding: 1rem;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.subjects-sidebar .subject-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateX(4px);
-}
-.subjects-sidebar .subject-card.active {
-  background: rgba(var(--color-primary-rgb), 0.15);
-  border-color: var(--color-primary);
-}
-.subjects-sidebar .subject-card .sub-info h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text, #fff);
-}
-.subjects-sidebar .subject-card .sub-info .sub-avg {
-  font-size: 0.8rem;
-  color: var(--color-muted);
-  margin-top: 4px;
-  display: block;
-}
-.subjects-sidebar .subject-card .delete-btn {
-  background: none;
-  border: none;
-  color: var(--color-muted);
-  cursor: pointer;
-  font-size: 1.2rem;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.subjects-sidebar .subject-card .delete-btn:hover {
-  color: #ff4d4d;
-}
-.subjects-sidebar .subject-card:hover .delete-btn {
-  opacity: 1;
-}
-
-/* MAIN PANEL */
-.assessments-panel {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-.assessments-panel .empty-selection {
-  flex: 1;
+  margin-right: 0.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-muted);
-  font-size: 1.2rem;
+  transition: all 0.2s;
 }
-.assessments-panel .panel-header {
+.grades-root .mobile-back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(-2px);
+}
+.grades-root .mobile-back-btn:active {
+  transform: scale(0.95);
+}
+.grades-root .grades-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 1rem;
 }
-.assessments-panel .panel-header h2 {
-  font-size: 2rem;
-  margin: 0;
-  color: var(--color-text, #fff);
-}
-.assessments-panel .panel-header .stats {
+.grades-root .grades-header .header-content {
   display: flex;
+  align-items: center;
   gap: 2rem;
+  width: 100%;
 }
-.assessments-panel .panel-header .stats .stat {
+.grades-root .grades-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-text), var(--color-primary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+.grades-root .grades-header .gpa-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  color: #10b981;
+}
+.grades-root .grades-header .gpa-badge .label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+.grades-root .grades-header .gpa-badge .value {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.grades-root .grades-container {
+  display: flex;
+  gap: 1.5rem;
+  height: 100%;
+  overflow: hidden;
+  /* Sidebar */
+  /* Main Dashboard */
+}
+.grades-root .grades-container .subjects-sidebar {
+  width: 280px;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  gap: 1rem;
+  background: var(--bg-2);
+  border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid var(--glass-border);
 }
-.assessments-panel .panel-header .stats .stat .label {
-  font-size: 0.75rem;
+.grades-root .grades-container .subjects-sidebar .add-subject-form {
+  display: flex;
+  gap: 0.5rem;
+}
+.grades-root .grades-container .subjects-sidebar .add-subject-form input {
+  flex: 1;
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+.grades-root .grades-container .subjects-sidebar .add-subject-form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.grades-root .grades-container .subjects-sidebar .add-subject-form .add-subject-btn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.grades-root .grades-container .subjects-sidebar .add-subject-form .add-subject-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+.grades-root .grades-container .subjects-sidebar .subjects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+.grades-root .grades-container .subjects-sidebar .subjects-list .subject-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-1);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.grades-root .grades-container .subjects-sidebar .subjects-list .subject-card:hover {
+  background: var(--bg-hover);
+  transform: translateX(2px);
+}
+.grades-root .grades-container .subjects-sidebar .subjects-list .subject-card.active {
+  background: rgba(var(--color-primary-rgb), 0.1);
+  border-color: var(--color-primary);
+}
+.grades-root .grades-container .subjects-sidebar .subjects-list .subject-card.active .sub-icon {
+  color: var(--color-primary);
+}
+.grades-root .grades-container .subjects-sidebar .subjects-list .subject-card .sub-icon {
   color: var(--color-muted);
-  text-transform: uppercase;
 }
-.assessments-panel .panel-header .stats .stat .val {
+.grades-root .grades-container .subjects-sidebar .subjects-list .subject-card .sub-info {
+  display: flex;
+  flex-direction: column;
+}
+.grades-root .grades-container .subjects-sidebar .subjects-list .subject-card .sub-info h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.grades-root .grades-container .subjects-sidebar .subjects-list .subject-card .sub-info .sub-avg {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+.grades-root .grades-container .assessments-panel {
+  flex: 1;
+  background: var(--bg-2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid var(--glass-border);
+  overflow-y: auto;
+}
+.grades-root .grades-container .assessments-panel .empty-selection {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+  gap: 1rem;
+}
+.grades-root .grades-container .assessments-panel .empty-selection p {
+  font-size: 1.2rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .panel-header .mobile-back-btn.panel-back {
+  width: 32px;
+  height: 32px;
+  margin-right: 0.5rem;
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .panel-header .mobile-back-btn.panel-back:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  transform: none;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .panel-header .title-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .panel-header .title-group h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--color-text);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .panel-header .title-group .grade-pill {
+  background: var(--color-primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .panel-header .delete-sub-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .panel-header .delete-sub-btn:hover {
+  background: #ef4444;
+  color: white;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card {
+  background: var(--bg-1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid var(--glass-border);
+  /* Assessment List Styling */
+  /* Linked List Styling (Tasks/Events) */
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .card-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-muted);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .card-header .score-big {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-primary);
 }
-.assessments-panel .assessments-list {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  margin-bottom: 2rem;
-}
-.assessments-panel .assessment-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .card-header .icon-btn-small {
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-}
-.assessments-panel .assessment-item .a-info {
-  flex: 1;
-}
-.assessments-panel .assessment-item .a-info h4 {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--color-text, #fff);
-}
-.assessments-panel .assessment-item .a-info .a-date {
-  font-size: 0.75rem;
-  color: var(--color-muted);
-}
-.assessments-panel .assessment-item .a-score {
-  text-align: right;
-}
-.assessments-panel .assessment-item .a-score .score-val {
-  display: block;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--color-text, #fff);
-}
-.assessments-panel .assessment-item .a-score .percentage {
-  font-size: 0.8rem;
-  color: var(--color-muted);
-}
-.assessments-panel .assessment-item .a-weight {
-  font-size: 0.8rem;
-  color: var(--color-muted);
-  background: rgba(255, 255, 255, 0.05);
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-.assessments-panel .assessment-item .del-btn {
-  background: none;
-  border: none;
-  color: var(--color-muted);
+  justify-content: center;
   cursor: pointer;
-  font-size: 1.2rem;
+  transition: 0.2s;
 }
-.assessments-panel .assessment-item .del-btn:hover {
-  color: #ff4d4d;
-}
-.assessments-panel .add-assessment-form {
-  background: var(--glass-bg, rgba(15, 20, 25, 0.6));
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.assessments-panel .add-assessment-form input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
-  padding: 0.8rem;
-  border-radius: 8px;
-  color: var(--color-text, #fff);
-  font-family: inherit;
-}
-.assessments-panel .add-assessment-form input:focus {
-  outline: none;
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .card-header .icon-btn-small:hover {
+  color: var(--color-primary);
   border-color: var(--color-primary);
 }
-.assessments-panel .add-assessment-form .row {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-.assessments-panel .add-assessment-form .row input {
-  flex: 1;
-}
-.assessments-panel .add-assessment-form .row.weight-row {
-  justify-content: flex-end;
-}
-.assessments-panel .add-assessment-form .row.weight-row label {
-  color: var(--color-muted);
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .empty-msg, .grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .empty-linked {
   font-size: 0.9rem;
-}
-.assessments-panel .add-assessment-form .row.weight-row input {
-  flex: 0 0 100px;
-}
-.assessments-panel .add-assessment-form button[type=submit] {
-  background: var(--color-primary);
-  color: var(--bg-1, #000);
-  border: none;
-  padding: 0.8rem;
+  color: var(--color-muted);
+  font-style: italic;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
-  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .link-action {
+  background: rgba(var(--color-primary-rgb), 0.1);
+  color: var(--color-primary);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.2);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: 0.2s;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .link-action:hover {
+  background: var(--color-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list .assessment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--bg-2);
+  border-radius: 8px;
+  transition: 0.2s;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list .assessment-row:hover {
+  background: var(--bg-hover);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list .assessment-row .a-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list .assessment-row .a-info .a-name {
+  font-weight: 500;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list .assessment-row .a-info .a-weight-tag {
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--color-muted);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list .assessment-row .a-score {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: monospace;
+  font-size: 1rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list .assessment-row .a-score .a-del {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: 0.2s;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .assessments-list .assessment-row:hover .a-del {
+  opacity: 1;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade {
+  display: flex;
+  gap: 0.5rem;
   margin-top: 0.5rem;
 }
-.assessments-panel .add-assessment-form button[type=submit]:hover {
-  filter: brightness(1.1);
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade input {
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: var(--color-text);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade input::-moz-placeholder {
+  color: var(--color-muted);
+  opacity: 0.5;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade input::placeholder {
+  color: var(--color-muted);
+  opacity: 0.5;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade input:first-child {
+  flex: 1;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade .score-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade .score-inputs input {
+  width: 60px;
+  text-align: center;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade button {
+  background: var(--color-secondary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .quick-add-grade button:hover {
+  opacity: 0.9;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list .linked-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-2);
+  border-radius: 8px;
+  align-items: flex-start;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list .linked-item .li-icon {
+  margin-top: 3px;
+  color: var(--color-muted);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list .linked-item .li-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list .linked-item .li-content .li-title {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list .linked-item .li-content .li-meta {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list .linked-item.event.holiday {
+  border-left: 3px solid #10b981;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list .linked-item.event.exam {
+  border-left: 3px solid #ef4444;
+}
+.grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid .dashboard-card .linked-list .linked-item.task {
+  border-left: 3px solid #f59e0b;
+}
+@media (max-width: 1082px) {
+  .grades-root {
+    padding: 1rem;
+  }
+  .grades-root .grades-header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .grades-root .grades-header h1 {
+    font-size: 1.5rem;
+  }
+  .grades-root .grades-container {
+    /* Mobile: Stacked Logic handled by React Conditional Rendering */
+    /* But we ensure Full Width for whatever is rendered */
+  }
+  .grades-root .grades-container .subjects-sidebar {
+    width: 100%; /* Full width when active */
+    border-right: none;
+    height: 100%;
+  }
+  .grades-root .grades-container .assessments-panel {
+    padding: 0;
+    border: none;
+    background: transparent;
+    height: 100%;
+  }
+  .grades-root .grades-container .assessments-panel .subject-dashboard {
+    height: 100%;
+    gap: 1rem;
+  }
+  .grades-root .grades-container .assessments-panel .subject-dashboard .panel-header {
+    background: var(--bg-2);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    margin-bottom: 0.5rem;
+  }
+  .grades-root .grades-container .assessments-panel .subject-dashboard .dashboard-grid {
+    flex-direction: column; /* Stack Grid on Mobile */
+    height: auto;
+    padding-bottom: 2rem;
+  }
 }/*# sourceMappingURL=Grades.css.map */

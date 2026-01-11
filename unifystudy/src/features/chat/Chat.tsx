@@ -52,7 +52,8 @@ import {
   MinusCircle,
   Moon,
   Clock,
-  CheckSquare
+  CheckSquare,
+  Settings
 } from "lucide-react";
 import "./ChatStyles.scss";
 import PageLoader from "@/components/ui/PageLoader";
@@ -128,10 +129,13 @@ const Chat = () => {
   const [activeChannelName, setActiveChannelName] = useState("global-chat");
   const [privateChannels, setPrivateChannels] = useState([]);
   const [uniChannels, setUniChannels] = useState([]); // New state for Uni channels
+  const [courseChannels, setCourseChannels] = useState([]); // Course Group Chats
   const [collabChannels, setCollabChannels] = useState([]); // Collaborative Works
   const [directMessages, setDirectMessages] = useState([]);
   const [showCreateChannel, setShowCreateChannel] = useState(false);
+  const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
+  const [newCourseName, setNewCourseName] = useState("");
 
   // DM State
   const [showUserPicker, setShowUserPicker] = useState(false);
@@ -141,6 +145,7 @@ const Chat = () => {
 
   // Rename State
   const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
   const [renameValue, setRenameValue] = useState("");
 
   // Notifications & Mentions
@@ -164,9 +169,59 @@ const Chat = () => {
     { id: "cs", name: "computer-science" },
   ];
   
+  const createCourseChannel = async () => {
+    if (!newCourseName.trim() || !user) return;
+    
+    // Default to the first verified university if available
+    const userUni = uniChannels.length > 0 ? uniChannels[0] : null;
+    if (!userUni) {
+        toast.error("You must join a university channel first.");
+        return;
+    }
+
+    const code = newCourseName.trim().toUpperCase().replace(/\s+/g, '');
+    if (code.length < 3) {
+        toast.error("Course code must be at least 3 characters (e.g. CS101)");
+        return;
+    }
+
+    try {
+      const channelId = `course_${userUni.id}_${code}`;
+      const channelRef = ref(db, `channels/${channelId}/metadata`);
+      const snapshot = await get(channelRef);
+
+      if (snapshot.exists()) {
+           // Channel exists, just join
+           await set(ref(db, `users/${user.uid}/channels/${channelId}`), true);
+           toast.success(`Joined existing course: ${code}`);
+      } else {
+           // Create new
+           await set(ref(db, `channels/${channelId}/metadata`), {
+                name: code,
+                createdBy: user.uid,
+                type: "course",
+                universityId: userUni.id,
+                participants: { [user.uid]: true },
+                createdAt: serverTimestamp(),
+            });
+            await set(ref(db, `users/${user.uid}/channels/${channelId}`), true);
+            toast.success(`Created course: ${code}`);
+      }
+
+      setNewCourseName("");
+      setShowCreateCourse(false);
+      setActiveChannel(channelId);
+      setActiveChannelName(code);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to join/create course channel");
+    }
+  };
+
   // Filter channels based on search
   const filteredSubjects = subjects.filter(s => s.name.toLowerCase().includes(channelSearch.toLowerCase()));
   const filteredUniChannels = uniChannels.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
+  const filteredCourseChannels = courseChannels.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
   const filteredCollabChannels = collabChannels.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
   const filteredPrivateChannels = privateChannels.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
   const filteredDirectMessages = directMessages.filter(c => c.name.toLowerCase().includes(channelSearch.toLowerCase()));
@@ -197,26 +252,36 @@ const Chat = () => {
       }
 
       // Check for secondary email first
-      let emailToCheck = user.email;
-      const settingsSnap = await get(ref(db, `users/${user.uid}/settings/secondaryEmail`));
-      if (settingsSnap.exists() && settingsSnap.val()) {
-          emailToCheck = settingsSnap.val();
+      const emailsToCheck = [user.email];
+      const settingsSnap = await get(ref(db, `users/${user.uid}/settings/additionalEmails`));
+      if (settingsSnap.exists() && Array.isArray(settingsSnap.val())) {
+          emailsToCheck.push(...settingsSnap.val());
       }
       
-      const domain = emailToCheck.split('@')[1];
-      const uni = uniDomains[domain];
+      let matchedUni = null;
+      let matchedDomain = null;
 
-      if (uni) {
+      for (const email of emailsToCheck) {
+          if (!email) continue;
+          const domain = email.split('@')[1];
+          if (uniDomains[domain]) {
+              matchedUni = uniDomains[domain];
+              matchedDomain = domain;
+              break;
+          }
+      }
+
+      if (matchedUni) {
           // Verify and Join
           try {
-             const channelId = uni.id;
+             const channelId = matchedUni.id;
              // Set Channel Metadata (if not exists)
              await set(ref(db, `channels/${channelId}/metadata`), {
-                 name: uni.name,
+                 name: matchedUni.name,
                  createdBy: 'system',
                  type: 'university',
-                 icon: uni.icon,
-                 verifiedDomain: domain
+                 icon: matchedUni.icon,
+                 verifiedDomain: matchedDomain
              });
 
              // Add User to Channel
@@ -224,21 +289,21 @@ const Chat = () => {
              
              // Update User Verification Status
              await set(ref(db, `users/${user.uid}/universityVerified`), {
-                 uniId: uni.id,
-                 uniName: uni.name,
-                 domain: domain,
+                 uniId: matchedUni.id,
+                 uniName: matchedUni.name,
+                 domain: matchedDomain,
                  verifiedAt: serverTimestamp()
              });
 
-             toast.success(`Welcome to the ${uni.name} channel! 🎓`);
+             toast.success(`Welcome to the ${matchedUni.name} channel! 🎓`);
              setActiveChannel(channelId);
-             setActiveChannelName(uni.name);
+             setActiveChannelName(matchedUni.name);
           } catch (err) {
               console.error(err);
               toast.error("Error joining university channel.");
           }
       } else {
-          toast.error("Your email domain isn't recognized as a supported Irish University. Please use your official college email.");
+          toast.error("None of your emails (primary or additional) match a supported Irish University domain.");
       }
   };
 
@@ -293,6 +358,11 @@ const Chat = () => {
                         const filtered = prev.filter((p) => p.id !== cid);
                         return [...filtered, { id: cid, ...meta }];
                      });
+                  } else if (meta.type === "course") {
+                      setCourseChannels((prev) => {
+                          const filtered = prev.filter((p) => p.id !== cid);
+                          return [...filtered, { id: cid, ...meta }];
+                      });
                   } else if (meta.type === "collaboration") {
                       setCollabChannels((prev) => {
                           const filtered = prev.filter((p) => p.id !== cid);
@@ -923,15 +993,42 @@ const Chat = () => {
   const isPrivateOrDM =
     activeChannel !== "global" && !subjects.find((s) => s.id === activeChannel);
 
+  const currentChannel = 
+      uniChannels.find(c => c.id === activeChannel) ||
+      courseChannels.find(c => c.id === activeChannel) ||
+      collabChannels.find(c => c.id === activeChannel) ||
+      privateChannels.find(c => c.id === activeChannel);
+
+  const canManage = currentChannel && currentChannel.createdBy === user?.uid;
+
+  const handleDeleteChannel = async () => {
+    if (!activeChannel || !canManage) return;
+    if (!window.confirm("Are you sure you want to delete this channel? This cannot be undone.")) return;
+
+    try {
+        const participants = currentChannel.participants || {};
+        const updates = {};
+        updates[`channels/${activeChannel}`] = null; // Delete actual channel data
+        
+        Object.keys(participants).forEach(uid => {
+            updates[`users/${uid}/channels/${activeChannel}`] = null;
+        });
+
+        await update(ref(db), updates);
+
+        toast.success("Channel deleted");
+        setActiveChannel("global");
+        setShowManageModal(false);
+    } catch (err) {
+        console.error(err);
+        toast.error("Failed to delete channel");
+    }
+  };
+
   // Filter users based on search
   const filteredUsers = allUsers.filter((u) =>
     u.displayName.toLowerCase().includes(userSearch.toLowerCase())
   );
-
-  // Profile Card State Removed
-  // const [selectedUserProfile, setSelectedUserProfile] = useState(null);
-  // handleProfileClick removed
-  // handleStartDirectChat removed
 
   return (
     <div className="chat-layout">
@@ -1200,22 +1297,78 @@ const Chat = () => {
              ))}
 
           
-          {filteredUniChannels.map((uni) => (
-            <div
-              key={uni.id}
-              className={`channel-item ${activeChannel === uni.id ? "active" : ""}`}
-              onClick={() => {
-                setActiveChannel(uni.id);
-                setActiveChannelName(uni.name);
-              }}
-            >
-              <span style={{ marginRight: '6px' }}>{uni.icon}</span>
-              <span className="channel-name-truncate">{uni.name}</span>
-               {unreadChannels[uni.id] > 0 && (
-                <span className="channel-badge">{unreadChannels[uni.id]}</span>
-              )}
+       {/* UNIVERSITY SECTION - Grouped */}
+       {(uniChannels.length > 0) && (
+           <>
+            <div className="section-label mt-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ textTransform: 'uppercase' }}>
+                    {uniChannels[0].name.replace(' (Student)', '').replace(' Student', '')}
+                </span>
+                <Plus 
+                    size={14} 
+                    style={{ cursor: 'pointer' }} 
+                    onClick={() => setShowCreateCourse(true)} 
+                    title="Add Course by Code"
+                />
             </div>
-          ))}
+
+            {/* Main University Channels */}
+            {filteredUniChannels.map((uni) => (
+                <div
+                key={uni.id}
+                className={`channel-item ${activeChannel === uni.id ? "active" : ""}`}
+                onClick={() => {
+                    setActiveChannel(uni.id);
+                    setActiveChannelName(uni.name);
+                }}
+                >
+                <div className="channel-icon-wrapper" style={{marginRight: 6}}>
+                    <span style={{ fontSize: '1.1em' }}>{uni.icon}</span>
+                </div>
+                {/* Always display as "Global Chat" for the main university channel in this view */}
+                <span className="channel-name-truncate">Global Chat</span>
+                {unreadChannels[uni.id] > 0 && (
+                    <span className="channel-badge">{unreadChannels[uni.id]}</span>
+                )}
+                </div>
+            ))}
+
+            {/* Course Channels */}
+            {showCreateCourse && (
+                <div className="create-channel-input">
+                <input
+                    autoFocus
+                    placeholder="Enter Course Code (e.g. CS101)"
+                    value={newCourseName}
+                    onChange={(e) => setNewCourseName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && createCourseChannel()}
+                />
+                </div>
+            )}
+
+            {filteredCourseChannels.length > 0 && (
+                <div style={{ marginTop: '4px', marginBottom: '8px' }}>
+                    {filteredCourseChannels.map(ch => (
+                        <div
+                            key={ch.id}
+                            className={`channel-item ${activeChannel === ch.id ? "active" : ""}`}
+                            onClick={() => {
+                                setActiveChannel(ch.id);
+                                setActiveChannelName(ch.name);
+                            }}
+                            style={{ paddingLeft: '24px' }} // Indent courses slightly
+                        >
+                             <div className="channel-icon-wrapper" style={{marginRight: 6, display: 'flex', alignItems: 'center'}}>
+                                <Hash size={13} className="text-secondary" />
+                             </div>
+                             <span>{ch.name}</span>
+                             {unreadChannels[ch.id] > 0 && <span className="channel-badge">{unreadChannels[ch.id]}</span>}
+                        </div>
+                    ))}
+                </div>
+            )}
+           </>
+       )}
 
           {(channelSearch === "" || filteredSubjects.length > 0) && <div className="section-label mt-4">SUBJECTS</div>}
           {filteredSubjects.map((sub) => (
@@ -1364,7 +1517,77 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Mention Picker */}
+      {/* Manage Channel Modal */}
+      <AnimatePresence>
+        {showManageModal && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowManageModal(false)}
+            style={{ zIndex: 2000 }}
+          >
+            <motion.div
+              className="modal-content"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ padding: '24px', width: '300px', maxWidth: '90%' }} // Inline style for override if needed
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px' }}>Manage Channel</h3>
+                <button onClick={() => setShowManageModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text)', cursor: 'pointer' }}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                 <button 
+                    onClick={() => { setShowManageModal(false); setShowRenameModal(true); }}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px',
+                        background: 'var(--bg-3)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '8px',
+                        color: 'var(--color-text)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        fontSize: '14px'
+                    }}
+                 >
+                    <Pencil size={18} />
+                    <span>Rename Channel</span>
+                 </button>
+
+                 <button 
+                    onClick={handleDeleteChannel}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px',
+                        background: 'rgba(255, 77, 77, 0.1)',
+                        border: '1px solid rgba(255, 77, 77, 0.3)',
+                        borderRadius: '8px',
+                        color: '#ff4d4d',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        fontSize: '14px'
+                    }}
+                 >
+                    <Trash2 size={18} />
+                    <span>Delete Channel</span>
+                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {showMentionPicker && (
           <motion.div
@@ -1420,7 +1643,15 @@ const Chat = () => {
             </div>
           </div>
           <div className="header-actions">
-            {isPrivateOrDM && (
+            {canManage ? (
+              <button 
+                className="action-btn"
+                onClick={() => setShowManageModal(true)}
+                title="Manage Channel"
+              >
+                <Settings size={20} />
+              </button>
+            ) : (isPrivateOrDM && (
               <button 
                 className="action-btn"
                 onClick={() => setShowRenameModal(true)}
@@ -1428,7 +1659,7 @@ const Chat = () => {
               >
                 <MoreVertical size={20} />
               </button>
-            )}
+            ))}
             <button 
               className="action-btn"
               onClick={() => {

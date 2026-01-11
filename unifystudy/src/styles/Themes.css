@@ -1,4 +1,4 @@
-/* Base Theme (Default) */
+/* Base Theme (Default - Dark / Hacker) */
 :root {
   --color-primary: #4b6c82;
   --color-primary-rgb: 75, 108, 130;
@@ -17,6 +17,56 @@
   --glow: 0 0 20px rgba(75, 108, 130, 0.3);
 }
 
+/* Cute Pink Theme */
+[data-theme='cute'] {
+  --bg-1: #fff0f5;        /* Lavender Blush */
+  --bg-2: #ffe6f0;        /* Light Pink */
+  --bg-3: #ffcce0;        
+  
+  --color-bg: #fff0f5;
+  --color-text: #592e40;  /* Dark Pink/Brown text */
+  --color-text-dim: #9e6b80;
+  --color-muted: #d4a5b8;
+  
+  --color-primary: #ff69b4; /* Hot Pink */
+  --color-primary-rgb: 255, 105, 180;
+  --color-secondary: #ffb6c1; /* Light Pink */
+  
+  --color-success: #4ade80;
+  --color-danger: #f43f5e;
+  --color-warning: #fbbf24;
+  
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 105, 180, 0.2);
+  --glass-shadow: 0 8px 32px rgba(255, 105, 180, 0.15);
+  --glow: 0 0 25px rgba(255, 105, 180, 0.3);
+}
+
+/* Light Mode (New Distinct Theme) */
+[data-theme='light'] {
+  --bg-1: #f8fafc;        /* Slate-50 - Very soft white/blue tint */
+  --bg-2: #ffffff;        /* Pure white for panels */
+  --bg-3: #e2e8f0;        /* Slate-200 for hovers */
+  
+  --color-bg: #f8fafc;
+  --color-text: #0f172a;  /* Slate-900 - Deep clean dark */
+  --color-text-dim: #475569;
+  --color-muted: #94a3b8;
+  
+  --color-primary: #3b82f6; /* Blue-500 */
+  --color-primary-rgb: 59, 130, 246;
+  --color-secondary: #60a5fa;
+  
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08); /* Darker border for visibility on light */
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --glow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
 /* Tokyo Night */
 [data-theme='tokyo'] {
   --bg-image: none;
@@ -31,11 +81,11 @@
   --color-muted: #565f89;
 }
 
-/* Midnight (From Themes.scss) */
+/* Midnight */
 [data-theme='midnight'] {
   --bg-1: #1e1b2e;
   --bg-2: #2d2b42;
-  --color-bg: #1e1b2e; /* Added to match base vars */
+  --color-bg: #1e1b2e;
   --color-text: #e0e0e0;
   --color-primary: #6c5ce7;
   --color-secondary: #a29bfe;
@@ -46,7 +96,7 @@
   --glow: 0 0 15px rgba(108, 92, 231, 0.2);
 }
 
-/* Forest (From Themes.scss) */
+/* Forest */
 [data-theme='forest'] {
   --bg-1: #0f2018;
   --bg-2: #193326;
@@ -61,7 +111,7 @@
   --glow: 0 0 15px rgba(0, 184, 148, 0.2);
 }
 
-/* Obsidian (From Themes.scss) */
+/* Obsidian */
 [data-theme='obsidian'] {
   --bg-1: #000000;
   --bg-2: #0a0a0a;
@@ -74,7 +124,6 @@
   --glass-bg: rgba(20, 20, 20, 0.9);
   --glass-border: rgba(255, 215, 0, 0.4);
   --glow: 0 0 30px rgba(255, 215, 0, 0.25);
-  /* Custom Background logic usually needs specific CSS, ignoring complicated gradients for base vars for now */
 }
 
 /* Nebula */

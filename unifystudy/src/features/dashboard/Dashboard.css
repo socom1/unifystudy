@@ -5,6 +5,7 @@
   background: var(--bg-1, #0c1214);
   color: var(--color-text, #fff);
   font-family: "Fira Code", monospace; /* Match sidebar font */
+  overflow-x: hidden;
   /* Remove all link decorations */
   /* 1. Header */
   /* 2. Top Section */

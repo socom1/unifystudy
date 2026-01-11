@@ -5,6 +5,14 @@
   position: relative;
   overflow: hidden;
   /* Profile Modal Styles */
+  /* Avatar Placeholder */
+}
+@media (max-width: 1082px) {
+  .leaderboard-root {
+    margin-top: 100px !important;
+    height: calc(100% - 100px) !important;
+    overflow-y: auto !important;
+  }
 }
 .leaderboard-root::before {
   content: "";
@@ -95,25 +103,13 @@
   color: white;
   box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.3);
 }
-.leaderboard-root .empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 24px;
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
-  position: relative;
-  z-index: 1;
-}
-.leaderboard-root .empty-state p {
+.leaderboard-root .lb-header p {
   color: var(--color-muted);
   font-size: 1.2rem;
   text-align: center;
   max-width: 400px;
-  padding: 2rem;
+  margin: 0 auto 2rem auto; /* Added auto margins for centering */
+  padding: 0 1rem; /* Reduced padding */
 }
 .leaderboard-root .lb-list {
   max-width: 800px;
@@ -157,6 +153,7 @@
   border-radius: 16px;
   padding: 2px;
   background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -405,6 +402,20 @@
 .leaderboard-root .profile-modal-card .close-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
+}
+.leaderboard-root .avatar-placeholder-q {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-muted);
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+.leaderboard-root .avatar-placeholder-q.large {
+  font-size: 3rem;
 }
 @media (max-width: 768px) {
   .leaderboard-root {

@@ -8,6 +8,18 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.0.3',
+    title: 'UnifyStudy 1.0.3 - Layout & Feature Updates',
+    description: 'General improvements to application layout and feature availability.',
+    features: [
+      '✨ UI Improvements: Enhanced layout stability and corrected visual spacing',
+      '🤖 Assistant Update: Nova Assistant is temporarily unavailable for upgrades',
+      '📱 Mobile Polish: Better responsiveness across various devices',
+      '🔧 Maintenance: Removed legacy features for better performance'
+    ],
+    date: '2026-01-11'
+  },
+  {
     version: '1.0.2',
     title: 'UnifyStudy 1.0.2 - Visual Polish Update',
     description: 'Refining the visual experience with themed components, improved responsiveness, and better chat interactions.',

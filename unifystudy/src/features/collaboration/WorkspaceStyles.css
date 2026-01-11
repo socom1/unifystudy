@@ -119,6 +119,92 @@
   opacity: 0.9;
 }
 
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+          backdrop-filter: blur(4px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2000;
+}
+.modal-overlay .modal-content {
+  background: var(--bg-2) !important;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1)) !important;
+  padding: 2rem !important;
+  border-radius: 16px !important;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+  color: var(--color-text);
+  position: relative;
+  display: block;
+}
+.modal-overlay .modal-content h2 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  color: var(--color-text);
+}
+.modal-overlay .modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.modal-overlay .modal-content input {
+  width: 100%;
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  padding: 0.8rem;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+.modal-overlay .modal-content input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.modal-overlay .modal-content input::-moz-placeholder {
+  color: var(--color-muted);
+}
+.modal-overlay .modal-content input::placeholder {
+  color: var(--color-muted);
+}
+.modal-overlay .modal-content .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.modal-overlay .modal-content .modal-actions button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.modal-overlay .modal-content .modal-actions button:first-child {
+  background: transparent;
+  color: var(--color-muted);
+}
+.modal-overlay .modal-content .modal-actions button:first-child:hover {
+  color: var(--color-text);
+}
+.modal-overlay .modal-content .modal-actions button.primary {
+  background: var(--color-primary);
+  color: var(--bg-1, #000);
+}
+.modal-overlay .modal-content .modal-actions button.primary:hover {
+  opacity: 0.9;
+}
+
 .workspace-lobby {
   height: 100%;
   display: flex;
@@ -256,6 +342,11 @@
 .workspace-dashboard .dashboard-header .create-btn:hover {
   background: var(--color-secondary);
 }
+@media (max-width: 1085px) {
+  .workspace-dashboard .dashboard-header {
+    margin-top: 100px;
+  }
+}
 .workspace-dashboard .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -315,89 +406,6 @@
   color: #666;
   border: 2px dashed var(--glass-border);
   border-radius: 16px;
-}
-.workspace-dashboard .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-          backdrop-filter: blur(4px) !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-.workspace-dashboard .modal-overlay .modal-content {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1)) !important;
-  padding: 2rem !important;
-  border-radius: 16px !important;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
-  color: var(--color-text);
-}
-.workspace-dashboard .modal-overlay .modal-content h2 {
-  margin: 0 0 1.5rem 0;
-  font-size: 1.25rem;
-  color: var(--color-text);
-}
-.workspace-dashboard .modal-overlay .modal-content form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.workspace-dashboard .modal-overlay .modal-content input {
-  width: 100%;
-  background: var(--bg-1);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
-  padding: 0.8rem;
-  border-radius: 8px;
-  color: var(--color-text);
-  font-family: inherit;
-  font-size: 0.95rem;
-}
-.workspace-dashboard .modal-overlay .modal-content input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-.workspace-dashboard .modal-overlay .modal-content input::-moz-placeholder {
-  color: var(--color-muted);
-}
-.workspace-dashboard .modal-overlay .modal-content input::placeholder {
-  color: var(--color-muted);
-}
-.workspace-dashboard .modal-overlay .modal-content .modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-.workspace-dashboard .modal-overlay .modal-content .modal-actions button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-}
-.workspace-dashboard .modal-overlay .modal-content .modal-actions button:first-child {
-  background: transparent;
-  color: var(--color-muted);
-}
-.workspace-dashboard .modal-overlay .modal-content .modal-actions button:first-child:hover {
-  color: var(--color-text);
-}
-.workspace-dashboard .modal-overlay .modal-content .modal-actions button.primary {
-  background: var(--color-primary);
-  color: var(--bg-1, #000);
-}
-.workspace-dashboard .modal-overlay .modal-content .modal-actions button.primary:hover {
-  opacity: 0.9;
 }
 
 .workspace-container {
@@ -646,31 +654,98 @@
 }
 .workspace-container .workspace-body .editor-area {
   flex: 1;
-  background: var(--bg-1);
-  padding: 20px;
+  background: #f0f2f5; /* Light grey desk background */
+  padding: 0;
   overflow-y: auto;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  position: relative;
+  /* Whiteboard & PDF override */
 }
-.workspace-container .workspace-body .editor-area .rich-text-container {
-  width: 100%;
-  max-width: 800px;
+.workspace-container .workspace-body .editor-area:has(.whiteboard-container), .workspace-container .workspace-body .editor-area:has(.pdf-viewer) {
+  background: var(--bg-1);
+  padding: 0;
+  overflow: hidden;
+}
+.workspace-container .workspace-body .editor-area .no-file-selected {
   height: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+  gap: 16px;
+}
+.workspace-container .workspace-body .editor-area .pdf-viewer {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
   gap: 1rem;
 }
 .workspace-container .workspace-body .editor-area .rich-text-container .toolbar {
   background: var(--bg-2);
-  padding: 10px;
+  padding: 8px 16px;
   border-radius: 8px;
   border: 1px solid var(--glass-border);
   display: flex;
   gap: 8px;
   align-items: center;
+  position: sticky;
+  top: 10px;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px; /* Space for toolbar */
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page {
+  background: white;
+  width: 100%;
+  max-width: 850px; /* A4 width approx */
+  min-height: 1100px; /* A4 height approx */
+  padding: 50px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  color: #000; /* Force black text on white paper */
+  border-radius: 2px;
+  position: relative;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page .page-number {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  color: #888;
+  font-size: 12px;
+  pointer-events: none;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page .rich-text-editor {
+  min-height: 1000px;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page .rich-text-editor h1,
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page .rich-text-editor h2,
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page .rich-text-editor h3 {
+  color: #000;
+  margin-bottom: 0.5em;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page .rich-text-editor p {
+  margin-bottom: 1em;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page .rich-text-editor ul,
+.workspace-container .workspace-body .editor-area .rich-text-container .toolbar .workspace-page .rich-text-editor ol {
+  margin-left: 20px;
+  margin-bottom: 1em;
 }
 .workspace-container .workspace-body .editor-area .rich-text-container .toolbar button {
-  background: transparent;
+  /* ... existing toolbar styles ... */
   border: none;
   color: var(--color-text);
   padding: 6px;
@@ -706,46 +781,80 @@
   height: 24px;
   border-radius: 4px;
   cursor: pointer;
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 .workspace-container .workspace-body .editor-area .rich-text-container .toolbar .color-picker-wrapper .color-palette .color-swatch:hover {
   transform: scale(1.1);
 }
-.workspace-container .workspace-body .editor-area .rich-text-container .rich-text-editor {
-  flex: 1;
-  background: var(--bg-2);
-  border-radius: 8px;
-  padding: 40px;
-  max-height: 750px;
-  color: var(--color-text);
-  outline: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  overflow-y: auto;
-}
-.workspace-container .workspace-body .editor-area .rich-text-container .rich-text-editor h1 {
-  border-bottom: 1px solid var(--glass-border);
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-}
-.workspace-container .workspace-body .editor-area .rich-text-container .rich-text-editor p {
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-.workspace-container .workspace-body .editor-area .pdf-viewer {
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 8px;
-  background: #333;
-}
-.workspace-container .workspace-body .editor-area .no-file-selected {
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-document {
   display: flex;
   flex-direction: column;
+  gap: 20px;
   align-items: center;
-  justify-content: center;
-  color: var(--color-muted);
-  gap: 1rem;
-  height: 100%;
+  width: 100%;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .page-controls {
+  width: 794px; /* Match A4 */
+  max-width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 10px;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .page-controls .new-page-btn {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .page-controls .new-page-btn:hover {
+  opacity: 0.9;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-page {
+  width: 794px; /* A4 Width */
+  min-height: 1123px; /* A4 Height */
+  background: white;
+  color: #333;
+  padding: 96px 72px; /* Standard Margins */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  font-family: "Calibri", "Arial", sans-serif;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-page .page-number {
+  position: absolute;
+  bottom: 30px;
+  right: 40px;
+  left: auto;
+  background: transparent;
+  box-shadow: none;
+  color: #aaa;
+  font-size: 12px;
+  padding: 0;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-page .rich-text-editor {
+  outline: none;
+  min-height: 100%;
+  font-size: 11pt;
+  line-height: 1.5;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-page .rich-text-editor p {
+  margin-bottom: 1em;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-page .rich-text-editor h1 {
+  font-size: 2em;
+  margin-bottom: 0.5em;
+  color: #111;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-page .rich-text-editor h2 {
+  font-size: 1.5em;
+  margin-bottom: 0.5em;
+  color: #222;
+}
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-page .rich-text-editor ul,
+.workspace-container .workspace-body .editor-area .rich-text-container .workspace-page .rich-text-editor ol {
+  margin-left: 20px;
+  margin-bottom: 1em;
 }
 .workspace-container .workspace-body .chat-sidebar {
   width: 300px;

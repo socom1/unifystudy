@@ -10,11 +10,10 @@ import './CommandPalette.scss';
 export default function CommandPalette({ isOpen, onClose, user }) {
   const [queryText, setQueryText] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', msg: '' }
+  const [feedback, setFeedback] = useState(null); 
   const navigate = useNavigate();
   const inputRef = useRef(null);
 
-  // Define Commands
   const allCommands = [
       { id: 'dashboard', label: 'Go to Dashboard', icon: <Command size={18}/>, action: () => navigate('/') },
       { id: 'grades', label: 'View Grades / Subject Hub', icon: <BookOpen size={18}/>, action: () => navigate('/grades') },
@@ -23,16 +22,13 @@ export default function CommandPalette({ isOpen, onClose, user }) {
       { id: 'flashcards', label: 'Study Flashcards', icon: <Zap size={18}/>, action: () => navigate('/flashcards') },
       { id: 'analytics', label: 'Check Analytics', icon: <ArrowRight size={18}/>, action: () => navigate('/analytics') },
       { id: 'settings', label: 'Settings', icon: <Settings size={18}/>, action: () => navigate('/settings') },
-      // Pomodoro Actions
       { id: 'pomo-25', label: 'Start 25m Pomodoro', icon: <Zap size={18}/>, action: () => navigate('/pomodoro?time=25') },
       { id: 'pomo-50', label: 'Start 50m Focus Session', icon: <Zap size={18}/>, action: () => navigate('/pomodoro?time=50') },
   ];
 
-  // Detect "Quick Action" modes
   const isTaskMode = queryText.toLowerCase().startsWith('task ');
   const isNoteMode = queryText.toLowerCase().startsWith('note ');
   
-  // Dynamic Commands for Quick Actions
   let dynamicCommands = [];
   if (isTaskMode) {
       const content = queryText.slice(5);
@@ -66,14 +62,12 @@ export default function CommandPalette({ isOpen, onClose, user }) {
   }, [isOpen]);
 
   useEffect(() => {
-      // Reset selection when query changes
       setSelectedIndex(0);
   }, [queryText]);
 
   const handleQuickTask = async (text) => {
       if (!user || !text.trim()) return;
       try {
-          // Find first folder
           const foldersRef = query(ref(db, `users/${user.uid}/folders`), limitToFirst(1));
           const snap = await get(foldersRef);
           
@@ -81,7 +75,6 @@ export default function CommandPalette({ isOpen, onClose, user }) {
           if (snap.exists()) {
               targetFolderId = Object.keys(snap.val())[0];
           } else {
-              // Create default Inbox if no folders exist
               const newFolderRef = push(ref(db, `users/${user.uid}/folders`));
               await newFolderRef.set({ name: "Inbox", color: "#3b82f6", order: 0 });
               targetFolderId = newFolderRef.key;
@@ -111,7 +104,7 @@ export default function CommandPalette({ isOpen, onClose, user }) {
           const notesRef = ref(db, `users/${user.uid}/sticky_notes`);
           await push(notesRef, {
               text: text.trim(),
-              color: "#f59e0b", // Default sticky color
+              color: "#f59e0b",
               x: 100 + Math.random() * 50,
               y: 100 + Math.random() * 50,
               rotation: Math.random() * 6 - 3,

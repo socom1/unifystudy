@@ -21,8 +21,9 @@ const MindMap = React.lazy(() => import("@/features/mindmap/MindMap"));
 const ResourceLibrary = React.lazy(() => import("@/features/resources/ResourceLibrary"));
 const YearlyCalendar = React.lazy(() => import("@/features/calendar/YearlyCalendar"));
 const Workspace = React.lazy(() => import("@/features/collaboration/Workspace"));
-const StudyBuddy = React.lazy(() => import("@/features/social/StudyBuddy"));
+
 const Chat = React.lazy(() => import("@/features/chat/Chat"));
+const Nova = React.lazy(() => import("@/features/nova/Nova"));
 const Flashcards = React.lazy(() => import("@/features/flashcards/Flashcards"));
 const Analytics = React.lazy(() => import("@/features/analytics/Analytics"));
 const HabitTracker = React.lazy(() => import("@/features/habits/HabitTracker"));
@@ -91,6 +92,9 @@ const AppLayout = () => {
         const theme = snapshot.val();
         if (theme) {
           document.documentElement.setAttribute('data-theme', theme);
+        } else {
+            // Enforce default theme by removing override
+            document.documentElement.removeAttribute('data-theme');
         }
       });
 
@@ -230,6 +234,12 @@ const AppLayout = () => {
                   </motion.div>
                 } />
 
+                <Route path="/nova" element={
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
+                    <Nova />
+                  </motion.div>
+                } />
+
                 <Route path="/flashcards" element={
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
                     <Flashcards />
@@ -254,11 +264,7 @@ const AppLayout = () => {
                   </motion.div>
                 } />
 
-                <Route path="/buddy" element={
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">
-                    <StudyBuddy />
-                  </motion.div>
-                } />
+
 
                 <Route path="/resources" element={
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.45 }} className="full-size">

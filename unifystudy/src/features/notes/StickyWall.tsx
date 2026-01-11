@@ -1,9 +1,9 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
-// Force reload
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { db, auth } from "@/services/firebaseConfig";
 import { ref, onValue, push, set, remove, update } from "firebase/database";
+import { Palette } from "lucide-react";
 import "./StickyWall.scss";
 
 const colors = ["#2d3436", "#0984e3", "#6c5ce7", "#00b894", "#d63031", "#e17055"];
@@ -44,7 +44,7 @@ export default function StickyWall() {
       color: colors[Math.floor(Math.random() * colors.length)],
       x: Math.random() * 200,
       y: Math.random() * 200,
-      rotation: Math.random() * 6 - 3, // Random tilt
+      rotation: Math.random() * 6 - 3, 
     });
   };
 
@@ -90,13 +90,12 @@ export default function StickyWall() {
 function StickyNote({ note, containerRef, onUpdate, onDelete }) {
   const [size, setSize] = useState({ width: 240, height: 240 });
   const [isEditing, setIsEditing] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const dragControls = useDragControls();
 
-  // Parse text for [[links]]
   const renderText = (text) => {
     if (!text) return "Double click to edit...";
 
-    // Regex to find [[link]]
     const parts = text.split(/(\[\[.*?\]\])/g);
 
     return parts.map((part, index) => {
@@ -108,8 +107,6 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
             className="wiki-link"
             onClick={(e) => {
               e.stopPropagation();
-
-              // Future: Implement actual navigation/search
             }}
           >
             {linkContent}
@@ -136,6 +133,7 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
         y: note.y,
         width: size.width,
         height: size.height,
+        backgroundColor: note.color || '#2d3436' 
       }}
       exit={{ scale: 0, opacity: 0 }}
       whileDrag={{ zIndex: 100, cursor: "grabbing" }}
@@ -149,6 +147,9 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
         e.stopPropagation();
         setIsEditing(true);
       }}
+      onClick={(e) => {
+          if (showColorPicker) setShowColorPicker(false);
+      }}
     >
       <div
         className="note-header"
@@ -156,22 +157,75 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
         style={{ height: '24px', width: '100%', cursor: 'grab', position: 'absolute', top: 0, left: 0, zIndex: 10 }}
       />
       <div className="note-actions">
-        <button onClick={() => onDelete(note.id)}>×</button>
+        <button 
+            className="action-btn"
+            onClick={(e) => {
+                e.stopPropagation();
+                setShowColorPicker(!showColorPicker);
+            }}
+            title="Change Color"
+        >
+            <Palette size={14} />
+        </button>
+        <button className="action-btn" onClick={() => onDelete(note.id)}>×</button>
       </div>
+
+      {showColorPicker && (
+          <div 
+            className="color-palette" 
+            style={{
+                position: 'absolute',
+                top: '30px',
+                right: '10px',
+                padding: '6px',
+                background: 'rgba(0,0,0,0.8)',
+                borderRadius: '8px',
+                display: 'flex',
+                gap: '4px',
+                zIndex: 20,
+                backdropFilter: 'blur(4px)'
+            }}
+            onPointerDown={(e) => e.stopPropagation()} 
+          >
+              {colors.map(c => (
+                  <div 
+                    key={c}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdate(note.id, { color: c });
+                        setShowColorPicker(false);
+                    }}
+                    style={{
+                        width: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        background: c,
+                        cursor: 'pointer',
+                        border: note.color === c ? '2px solid white' : '1px solid rgba(255,255,255,0.2)',
+                        transform: note.color === c ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                  />
+              ))}
+          </div>
+      )}
 
       <div className="note-content">
         {isEditing ? (
           <textarea
             autoFocus
             value={note.text}
-            placeholder="Type here... Use [[Link]] to link notes."
+            placeholder="Type here..."
             onChange={(e) => onUpdate(note.id, { text: e.target.value })}
             onBlur={() => setIsEditing(false)}
             onPointerDown={(e) => e.stopPropagation()}
             className="note-textarea"
+            style={{ 
+                background: 'transparent', 
+                color: 'inherit' 
+            }}
           />
         ) : (
-          <div className="note-view">
+          <div className="note-view" style={{ color: 'inherit' }}>
             {renderText(note.text)}
           </div>
         )}

@@ -17,13 +17,15 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  max-width: 1600px; /* Prevent being too stretched on ultra-wide */
+  margin: 0 auto;    /* Center the container */
   overflow: hidden;
   /* Flat background as requested */
   background: var(--bg-1);
   /* radial-gradient removed */
   color: var(--color-text, #fff);
   font-family: "Fira Code", monospace;
-  padding: 1rem;
+  padding: 1rem 2rem; /* More side padding */
   position: relative;
 }
 
@@ -31,40 +33,50 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  background: rgba(255, 255, 255, 0.03); /* Glassier */
-  padding: 0.8rem 1.2rem;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
-  backdrop-filter: blur(12px);
+  margin-bottom: 1rem; /* Reduced margin */
+  background: transparent; /* Remove floating box look */
+  padding: 0.5rem 0.5rem; /* Minimal padding */
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
 
   h2 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--color-primary);
+    font-size: 1.8rem; /* Bigger, bolder title since no box */
+    font-weight: 800;
+    color: var(--color-text);
+    text-shadow: none;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--color-text), var(--color-primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: var(--color-primary);
-    color: var(--bg-1, #000);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    gap: 0.6rem;
+    background: var(--bg-2); /* More subtle buttons */
+    color: var(--color-text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
     cursor: pointer;
     font-weight: 600;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
+    box-shadow: none;
 
     &:hover {
-      opacity: 0.9;
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
     }
   }
 
   .header-actions {
     display: flex;
-    gap: 0.8rem;
+    gap: 1rem;
     align-items: center;
   }
 }
@@ -72,12 +84,13 @@
 .calendar-wrapper {
   flex: 1;
   overflow: hidden;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
-  background: rgba(15, 21, 22, 0.4); /* Semi-transparent */
-  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(var(--bg-2), 0.5); 
+  backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
 }
 
 .calendar-body {
@@ -92,25 +105,23 @@
 .time-sidebar {
   flex: 0 0 var(--time-col-width);
   position: sticky;
-  position: sticky;
   left: 0;
-  background: rgba(15, 21, 22, 0.6); /* Slightly darker glass */
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Parent doesn't scroll, child does */
+  overflow: hidden; 
   position: relative;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-  background: var(--bg-2);
+  background: var(--bg-1);
+  border-right: 1px solid rgba(255, 255, 255, 0.03); 
+  z-index: 20;
 }
 
 /* 1. Sticky Header Row (Days + Spacer) */
 .header-row-sticky {
   display: flex;
   height: var(--header-height);
-  background: rgba(15, 21, 22, 0.6); /* Glass header */
-  backdrop-filter: blur(5px);
-  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  background: rgba(var(--bg-1), 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   z-index: 30;
   flex-shrink: 0; 
 }
@@ -118,7 +129,7 @@
 .time-header-spacer {
   width: var(--time-col-width); 
   flex-shrink: 0;
-  border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
   background: transparent; 
 }
 
@@ -132,24 +143,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Explicitly remove border/background */
     background: transparent;
     border: none;
-    box-shadow: none;
-    border-radius: 0;
-    padding: 0.4rem 0.5rem; /* Reduce padding since no border */
+    padding: 0.4rem;
     
     span {
       font-weight: 700;
-      font-size: 1rem; /* Slightly larger text found in modern designs */
-      color: var(--color-text);
-      text-align: center;
+      font-size: 0.9rem;
+      color: var(--color-muted);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      /* removed border and radius */
+      letter-spacing: 1.5px;
+    }
+
+    /* Highlight Today */
+    &.today span {
+        color: var(--color-primary);
+        text-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.4);
     }
     
-    /* Remove old border */
     border-right: none; 
 
     .mobile-day { display: none; }
@@ -165,7 +176,7 @@
 /* 2. Scrollable Body (Times + Grid) */
 .calendar-scroll-area {
   flex: 1;
-  overflow-y: auto; /* The ONLY scrollbar */
+  overflow-y: auto; 
   overflow-x: hidden;
   position: relative;
 }
@@ -176,25 +187,19 @@
   position: relative;
 }
 
-/* A. Time Sidebar */
+/* A. Time Sidebar Labels */
 .time-sidebar {
-  width: var(--time-col-width);
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-  background: var(--bg-1);
-  
   .time-label {
     display: flex;
     align-items: flex-start;
     justify-content: center;
     font-size: 0.75rem;
     color: var(--color-muted);
+    opacity: 0.6;
     
     span {
-      transform: translateY(-50%); /* Center on line */
-      background: var(--bg-1);
+      transform: translateY(-50%); 
+      background: transparent;
       padding: 2px 4px;
     }
   }
@@ -204,7 +209,6 @@
 .days-grid-body {
   flex: 1;
   position: relative;
-  /* No overflow here, parent handles it */
 }
 
 /* Wrapper for grid content */
@@ -221,7 +225,7 @@
 
   .grid-line-row {
     width: 100%;
-    border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
+    border-top: 1px solid rgba(255, 255, 255, 0.03); /* Softer lines */
     box-sizing: border-box;
   }
 }
@@ -235,15 +239,15 @@
   bottom: 0;
   display: flex;
   z-index: 5;
-  pointer-events: none; /* Let clicks pass through to events */
+  pointer-events: none; 
 }
 
-/* Day Column (Transparent, just holds events) */
+/* Day Column */
 .day-column {
   flex: 1;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
+  border-right: 1px solid rgba(255, 255, 255, 0.03); /* Softer lines */
   position: relative;
 
   &:last-child {
@@ -259,35 +263,32 @@
 /* Event Box */
 .event-box {
   position: absolute;
-  left: 4px;
-  right: 4px;
-  /* Minimal Glass Look with Accent Line */
-  background: rgba(15, 23, 42, 0.6); /* Dark Glass */
-  border-left: 3px solid var(--event-color, #4b6c82); /* Accent Line */
-  border-radius: 4px; /* Sharper corners for modern look */
-  padding: 8px 10px;
-  font-size: 0.75rem;
+  left: 6px;
+  right: 6px;
+  background: rgba(30, 41, 59, 0.75); 
+  border-left: 4px solid var(--event-color, #4b6c82); 
+  border-radius: 8px; /* Rounder */
+  padding: 6px 10px;
+  font-size: 0.8rem;
   overflow: hidden;
   cursor: pointer;
   
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   
   z-index: 10; 
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   pointer-events: auto;
 
   &:hover {
-    background: rgba(15, 23, 42, 0.8);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
     z-index: 100;
-    border-color: rgba(255, 255, 255, 0.1);
   }
 
   .event-title {

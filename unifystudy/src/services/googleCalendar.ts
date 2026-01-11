@@ -1,4 +1,3 @@
-
 import { GoogleAuthProvider, signInWithPopup, getAuth } from "firebase/auth";
 
 const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
@@ -27,7 +26,6 @@ export const connectGoogleCalendar = async () => {
 export const fetchUpcomingEvents = async (accessToken: string) => {
   try {
     const now = new Date().toISOString();
-    // Fetch events for next 7 days
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
     

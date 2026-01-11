@@ -567,6 +567,37 @@ export default function Dashboard({ user }) {
         {/* Column 2: Side Widgets Stack */}
         <div className="side-widgets-area">
           
+          {/* Nova Assistant Widget */}
+          <div className="widget-card nova-widget" style={{ borderColor: 'var(--color-primary)', background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.1), rgba(var(--bg-2-rgb), 0.8))' }}>
+            <div className="widget-header">
+                <h3><Sparkles size={18} fill="var(--color-primary)" style={{marginRight:8}}/> Nova Assistant</h3>
+            </div>
+            <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
+                <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom: '1rem' }}>
+                    Need help organizing? Ask Nova to manage your tasks and schedule.
+                </p>
+                <div 
+                    onClick={() => navigate('/nova')}
+                    style={{ 
+                        background: 'var(--bg-1)', 
+                        border: '1px solid var(--glass-border)', 
+                        borderRadius: '20px', 
+                        padding: '0.8rem 1rem', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem', 
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+                    }}
+                    className="nova-fake-input"
+                >
+                    <Sparkles size={16} color="var(--color-primary)" />
+                    <span style={{ color: 'var(--color-muted)', fontSize: '0.9rem' }}>Ask Nova something...</span>
+                </div>
+            </div>
+          </div>
+
           {/* Smart Schedule Suggestions */}
           {scheduleSuggestions.length > 0 && (
             <div className="widget-card smart-plan-widget" style={{ borderColor: 'var(--color-secondary)' }}>
@@ -796,7 +827,7 @@ export default function Dashboard({ user }) {
                         </span>
                         <div>
                           <div style={{ fontWeight: 'bold' }}>{achievement.name}</div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{achievement.desc}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{achievement.description}</div>
                         </div>
                       </div>
                       

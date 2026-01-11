@@ -1,20 +1,24 @@
 .sticky-wall {
   width: 100%;
   height: 100%;
-  position: relative;
   background-color: var(--bg-1);
-  background-image: radial-gradient(var(--glass-border) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: var(--bg-1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* Sticky Note Styles */
 }
 .sticky-wall .wall-header {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 10;
+  width: 100%;
+  z-index: 50;
   display: flex;
   align-items: center;
   gap: 20px;
+  padding: 20px 30px;
+  background-color: var(--bg-1);
+  border-bottom: 1px solid var(--glass-border);
+  margin: 0;
+  flex-shrink: 0;
 }
 .sticky-wall .wall-header h1 {
   color: var(--color-text);
@@ -36,8 +40,13 @@
 }
 .sticky-wall .wall-area {
   width: 100%;
-  height: 100%;
+  flex: 1;
   position: relative;
+  background-image: radial-gradient(var(--glass-border) 1px, transparent 1px);
+  background-size: 20px 20px;
+  overflow: hidden;
+  /* Ensure notes don't fly out improperly */
+  z-index: 10;
 }
 .sticky-wall .empty-state {
   position: absolute;
@@ -47,10 +56,9 @@
   color: var(--color-muted);
   font-size: 18px;
   pointer-events: none;
+  z-index: 5;
 }
-
-/* The .sticky-note ruleset was not empty, so it has been kept as is. */
-.sticky-note {
+.sticky-wall .sticky-note {
   position: absolute;
   border-radius: 12px;
   padding: 16px;
@@ -61,14 +69,23 @@
   border: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
+  /* Basic z-index, handled by drag controls usually but set logic here */
+  z-index: 20;
+  background-color: rgb(30, 30, 40);
+  /* Solid background for legibility */
+  background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 200px;
+  min-height: 200px;
 }
-.sticky-note .note-actions {
+.sticky-wall .sticky-note .note-actions {
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 20;
+  z-index: 30;
 }
-.sticky-note .note-actions button {
+.sticky-wall .sticky-note .note-actions button {
   background: transparent;
   border: none;
   color: #888;
@@ -78,47 +95,58 @@
   border-radius: 50%;
   line-height: 1;
 }
-.sticky-note .note-actions button:hover {
+.sticky-wall .sticky-note .note-actions button:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #ff5f56;
 }
-.sticky-note .note-content {
+.sticky-wall .sticky-note .note-content {
   flex: 1;
   font-family: "Inter", sans-serif;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
+  margin-top: 10px;
+  color: #e2e8f0;
+  overflow: hidden;
 }
-.sticky-note .note-content textarea {
+.sticky-wall .sticky-note .note-content .note-textarea {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: inherit;
+  resize: none;
+  outline: none;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
 }
-.sticky-note .note-content .note-view {
+.sticky-wall .sticky-note .note-content .note-view {
   white-space: pre-wrap;
   word-wrap: break-word;
   height: 100%;
   cursor: text;
 }
-.sticky-note .note-content .wiki-link {
+.sticky-wall .sticky-note .note-content .wiki-link {
   color: #6366f1;
   font-weight: 500;
   cursor: pointer;
   text-decoration: underline;
   text-decoration-color: rgba(99, 102, 241, 0.3);
 }
-.sticky-note .note-content .wiki-link:hover {
+.sticky-wall .sticky-note .note-content .wiki-link:hover {
   color: #818cf8;
   text-decoration-color: #818cf8;
 }
-.sticky-note .resize-handle {
+.sticky-wall .sticky-note .resize-handle {
   position: absolute;
   bottom: 0;
   right: 0;
   width: 20px;
   height: 20px;
   cursor: nwse-resize;
+  z-index: 30;
 }
-.sticky-note .resize-handle::after {
+.sticky-wall .sticky-note .resize-handle::after {
   content: "";
   position: absolute;
   bottom: 6px;
@@ -132,9 +160,8 @@
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .sticky-wall .wall-header {
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    /* On mobile, we might need space for top nav if it's fixed */
+    margin-top: 130px;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
@@ -148,14 +175,13 @@
   }
   .sticky-wall .empty-state {
     font-size: 14px;
-    text-align: center;
     padding: 0 20px;
   }
-  .sticky-note {
+  .sticky-wall .sticky-note {
     max-width: calc(100vw - 40px) !important;
     min-width: 180px !important;
   }
-  .sticky-note .note-content {
+  .sticky-wall .sticky-note .note-content {
     font-size: 13px;
   }
 }/*# sourceMappingURL=StickyWall.css.map */

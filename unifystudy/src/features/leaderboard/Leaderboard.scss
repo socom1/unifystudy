@@ -1,14 +1,14 @@
 .leaderboard-root {
-  min-height: calc(100vh - 60px);
+  height: 100%;
+  width: 100%;
   padding: 2rem;
   background: var(--bg-1);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
   
   @media (max-width: 1082px) {
-    margin-top: 100px !important;
-    height: calc(100% - 100px) !important;
-    overflow-y: auto !important;
+    padding-top: 100px; // Use padding instead of margin to include background
+    padding-bottom: 2rem;
   }
 
   // Background glow

@@ -718,13 +718,17 @@ export default function TdlF() {
     // addDebugLog(`addTask called. Input: "${taskInput}"`, 'info');
     
     if (!userId) {
-        // addDebugLog("Error: No userId found (not logged in?)", 'error');
+        toast.error("Internal Error: No user ID. Please refresh.");
         return;
     }
     if (!taskInput.trim()) {
-        // addDebugLog("Error: Task input is empty", 'warn');
+        toast.error("Please enter a task name.");
         return;
     }
+
+    // Clear filters to ensure visibility
+    setTagFilter(null);
+    setSearchQuery("");
 
     // Use current folder, or fallback to first available folder, or create a default "Inbox" if totally empty
     let targetFolderId = currentFolderId;
@@ -775,15 +779,16 @@ export default function TdlF() {
     // Determine folder color for the task
     const targetFolder = foldersFlat.find(f => f.id === targetFolderId);
     
-    // STRICT CHECK: Cannot add tasks to generic folders.
-    // If targetFolder exists and is NOT a list, deny.
-    if (targetFolder && targetFolder.type === 'folder' && activeView !== "today" && activeView !== "upcoming") {
+    // STRICT CHECK REMOVED: User can add tasks to any folder.
+    // If targetFolder exists and is NOT a list, we used to deny. Now we allow.
+    /*
+    if (targetFolder && targetFolder.type === 'folder' && !['today', 'upcoming', 'favorites'].includes(activeView)) {
         toast.error("You cannot add tasks to a generic Folder. Please select or create a List.", {
             duration: 4000,
         });
-        // addDebugLog(`Blocked adding task to generic folder: ${targetFolderId}`, 'warn');
         return;
     }
+    */
 
     const folderColor = targetFolder?.color || "var(--color-primary)";
 
@@ -808,6 +813,7 @@ export default function TdlF() {
     try {
         await safePushTask(targetFolderId, newTask);
         // addDebugLog("Task pushed successfully!", 'success');
+        toast.success(`Task added to ${targetFolder?.text || 'folder'}`);
         setTaskInput("");
         
         // If we are in folder view and didn't have a folder selected, select the one we used
@@ -1618,7 +1624,7 @@ export default function TdlF() {
         className="main-content" 
         style={{ 
             position: 'relative', 
-            display: (!isLargeScreen && !currentFolderId) ? 'none' : 'flex',
+            display: (!isLargeScreen && !currentFolderId && activeView === 'folder') ? 'none' : 'flex',
             width: (!isLargeScreen) ? '100%' : 'auto'
         }}
       >
@@ -1676,7 +1682,7 @@ export default function TdlF() {
         {/* New Task Input (Top) */}
         <div className="tasks-area">
           <div className="task-input-wrapper">
-            {activeView === "folder" && foldersFlat.find(f => f.id === currentFolderId)?.type === "list" && (
+            {(activeView === "folder" || ['today', 'upcoming', 'favorites'].includes(activeView)) && (
                 <input
                   name="newTaskInput"
                   id="newTaskInput"

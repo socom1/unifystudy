@@ -40,13 +40,18 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    icon: path.join(__dirname, '../public/favicon.ico'), // App icon
+    icon: path.join(__dirname, '../favicon/favicon.ico'), // App icon
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
       webSecurity: false, // Disable web security in dev
     },
-    titleBarStyle: 'hiddenInset', // Mac style title bar
+    titleBarStyle: 'hidden', // Hidden title bar for both Mac and Win
+    titleBarOverlay: {
+        color: '#0f1012', // Match --bg-1
+        symbolColor: '#e2e8f0', // Match --color-text
+        height: 35
+    },
     show: false, // Don't show until ready
   });
 

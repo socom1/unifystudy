@@ -1,0 +1,116 @@
+/* Analytics.scss */
+.analytics-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: var(--bg-1);
+  color: var(--color-text);
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Grid Layout */
+}
+@media (max-width: 1082px) {
+  .analytics-root {
+    margin-top: 100px !important;
+    height: calc(100% - 100px) !important;
+  }
+}
+.analytics-root .analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.analytics-root .analytics-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+.analytics-root .analytics-header .period-selector {
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  gap: 4px;
+}
+.analytics-root .analytics-header .period-selector button {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.2s;
+}
+.analytics-root .analytics-header .period-selector button.active {
+  background: var(--color-primary);
+  color: white;
+}
+.analytics-root .analytics-header .period-selector button:hover:not(.active) {
+  background: var(--bg-hover);
+}
+.analytics-root .analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: auto auto;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+  /* Cards */
+}
+@media (max-width: 1000px) {
+  .analytics-root .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.analytics-root .analytics-grid .chart-card {
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  /* Stats Row inside card */
+}
+.analytics-root .analytics-grid .chart-card.full-width {
+  grid-column: 1/-1;
+}
+.analytics-root .analytics-grid .chart-card h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.1rem;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.analytics-root .analytics-grid .chart-card .chart-container {
+  width: 100%;
+  height: 300px;
+}
+.analytics-root .analytics-grid .chart-card .stats-summary {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+.analytics-root .analytics-grid .chart-card .stats-summary .stat-item {
+  display: flex;
+  flex-direction: column;
+}
+.analytics-root .analytics-grid .chart-card .stats-summary .stat-item .label {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.analytics-root .analytics-grid .chart-card .stats-summary .stat-item .value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}/*# sourceMappingURL=Analytics.css.map */

@@ -1,80 +1,279 @@
-.focus-mode-overlay {
+/* Zen Mode Styles */
+.focus-mode-overlay.zen-mode {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #000;
-  z-index: 9999;
+  z-index: 2000;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  /* Background handled by motion variants, fallback here */
+  background: radial-gradient(circle at 50% 50%, #1a202c 0%, #0f172a 100%);
+  color: #e2e8f0;
+  overflow-y: auto; /* Allow scrolling on small screens */
+  overflow-x: hidden;
 }
-.focus-mode-overlay .focus-container {
-  width: 100%;
-  height: 100%;
+
+/* Glassy Texture for background to give blur something to eat */
+.focus-mode-overlay.zen-mode::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  opacity: 0.07;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.zen-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
   padding: 2rem;
+  position: relative;
+  z-index: 2; /* Content above orb/noise */
 }
-.focus-mode-overlay .focus-container .focus-header {
+
+/* ... headers ... */
+.zen-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 4rem;
+  position: relative;
+  z-index: 10;
 }
-.focus-mode-overlay .focus-container .focus-header .focus-title {
+.zen-header .ambient-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.zen-header .ambient-controls .ambient-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: #6366f1;
-}
-.focus-mode-overlay .focus-container .focus-header .focus-title h2 {
-  margin: 0;
-  font-size: 24px;
-}
-.focus-mode-overlay .focus-container .focus-header .close-focus {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
+  justify-content: center;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   transition: all 0.2s;
 }
-.focus-mode-overlay .focus-container .focus-header .close-focus:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: #ef4444;
-  color: #ef4444;
+.zen-header .ambient-controls .ambient-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
-.focus-mode-overlay .focus-container .focus-content-wrapper {
+.zen-header .ambient-controls .ambient-btn.active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.4);
+  border-color: transparent;
+}
+.zen-header .ambient-controls .mute-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+.zen-header .ambient-controls .mute-btn:hover {
+  color: white;
+}
+.zen-header .close-zen {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: 0.2s;
+}
+.zen-header .close-zen:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  color: white;
+}
+
+.zen-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  position: relative;
 }
-.focus-mode-overlay .focus-container .focus-content-wrapper .pom-root {
-  height: auto;
+
+.zen-orb {
+  position: absolute;
+  width: 80vh; /* Larger */
+  height: 80vh;
+  /* Explicit color fallback + var */
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.4) 0%, rgba(var(--color-primary-rgb), 0.4) 20%, transparent 70%);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1; /* Below content, above background */
+  filter: blur(80px); /* Enhance blur for softness */
+  mix-blend-mode: screen; /* Make it glow */
+  position: fixed; /* Keep orb fixed during scroll */
+}
+
+.pomodoro-wrapper-zen {
+  position: relative;
+  z-index: 1; /* Above the orb */
+  transform: scale(1);
+  margin-bottom: 2rem;
   width: 100%;
-  max-width: 800px;
-  background: transparent;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap; /* Allow wrapping */
+  /* Override Pomodoro Styles for Zen Mode context */
+  /* Typography Polish */
+  /* Button Polish - Fix Overflow */
 }
-.focus-mode-overlay .focus-container .focus-content-wrapper .pom-root .main {
-  height: auto;
+.pomodoro-wrapper-zen .timer {
+  background: transparent !important; /* No box */
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+          backdrop-filter: none !important;
+  padding: 0 !important; /* Remove padding to let it flow */
+  width: 100%;
+  max-width: 600px; /* Allow more width */
+  border-radius: 0 !important;
 }
-.focus-mode-overlay .focus-container .focus-content-wrapper .focus-quote {
+.pomodoro-wrapper-zen .timer::before {
+  display: none !important; /* Remove glass highlight */
+}
+.pomodoro-wrapper-zen .timer__time {
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.2); /* Soft glow */
+  color: #fff !important;
+  font-weight: 800; /* Bolder */
+  letter-spacing: -2px;
+}
+.pomodoro-wrapper-zen .timer__status {
+  background: rgba(255, 255, 255, 0.05); /* Very subtle pill */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 3rem; /* Spacing */
+}
+.pomodoro-wrapper-zen .timer__controls {
+  gap: 1rem;
+  flex-wrap: wrap; /* CRITICAL FIX: Allow wrapping */
+  justify-content: center;
+  width: 100%;
+  max-width: 800px; /* Ensure max width constraint */
+}
+.pomodoro-wrapper-zen .timer__controls button {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  border-radius: 16px !important; /* Soft rounded rects */
+  padding: 1rem 2rem !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  min-width: 120px; /* Minimum touch target */
+  flex: 1 1 auto; /* Allow grow/shrink */
+  max-width: 200px; /* Don't get huge */
+}
+.pomodoro-wrapper-zen .timer__controls button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5); /* Lift off */
+}
+.pomodoro-wrapper-zen .timer__controls button.primary {
+  background: rgba(var(--color-primary-rgb), 0.1) !important;
+  border-color: rgba(var(--color-primary-rgb), 0.3) !important;
+  color: var(--color-primary) !important;
+  box-shadow: 0 0 30px -10px rgba(var(--color-primary-rgb), 0.3);
+}
+.pomodoro-wrapper-zen .timer__controls button.primary:hover {
+  background: rgba(var(--color-primary-rgb), 0.2) !important;
+  box-shadow: 0 0 50px -10px rgba(var(--color-primary-rgb), 0.5);
+}
+
+.zen-quote {
+  font-size: 1.2rem;
+  font-weight: 300;
   font-style: italic;
-  color: #888;
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
   max-width: 600px;
-  margin-top: 2rem;
-  font-size: 1.1rem;
   line-height: 1.6;
+}
+
+.zen-templates {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3rem;
+  max-width: 600px;
+  width: 100%;
+}
+
+.zen-templates-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+}
+
+.zen-templates-list {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.zen-template-pill {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.6rem 1.2rem;
+  border-radius: 100px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-family: inherit;
+}
+.zen-template-pill:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  transform: translateY(-2px);
+}
+.zen-template-pill.active {
+  background: rgba(var(--color-primary-rgb), 0.15);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.2);
 }/*# sourceMappingURL=FocusMode.css.map */

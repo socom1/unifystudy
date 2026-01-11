@@ -33,6 +33,16 @@ export const optimizeSchedule = (tasks, events, subjects = [], currentDate = new
 
   // 3. Find gaps
   let currentTime = WORK_START_HOUR * 60; // minutes from midnight
+  
+  // If planning for today, ensure we don't suggest past times
+  const isToday = new Date().toDateString() === currentDate.toDateString();
+  if (isToday) {
+      const now = new Date();
+      const currentMins = now.getHours() * 60 + now.getMinutes();
+      // Add a small buffer (e.g. 15 mins) so we don't suggest something starting IMMEDIATELY
+      currentTime = Math.max(currentTime, currentMins + 15); 
+  }
+
   const endTime = WORK_END_HOUR * 60;
 
   for (let i = 0; i < occupiedSlots.length; i++) {

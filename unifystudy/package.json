@@ -34,11 +34,11 @@
     "mac": {
       "category": "public.app-category.education",
       "target": "dmg",
-      "icon": "public/android-chrome-512x512.png"
+      "icon": "public/app-icon.png"
     },
     "win": {
       "target": "nsis",
-      "icon": "public/favicon.ico",
+      "icon": "favicon/favicon.ico",
       "forceCodeSigning": false
     },
     "files": [

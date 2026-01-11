@@ -1,0 +1,317 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
+/* src/styles/_shared.scss */
+/* --- Glassmorphism Utils --- */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* --- Reusable Modal Styles --- */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+  z-index: 2000; /* High z-index to cover everything */
+}
+
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-2, #0f1516);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  padding: 2rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  z-index: 2001; /* Higher than backdrop */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  color: var(--color-text, #fff);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-container .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.modal-container .modal-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--color-text, #fff);
+}
+.modal-container .modal-header .close-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.modal-container .modal-header .close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+}
+.modal-container .modal-body {
+  margin-bottom: 2rem;
+}
+.modal-container .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--glass-border);
+}
+.modal-container .modal-footer button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+.modal-container .modal-footer button.btn-secondary {
+  background: transparent;
+  color: var(--color-muted);
+}
+.modal-container .modal-footer button.btn-secondary:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.05);
+}
+.modal-container .modal-footer button.btn-primary {
+  background: var(--color-primary);
+  color: var(--bg-1, #000);
+}
+.modal-container .modal-footer button.btn-primary:hover {
+  opacity: 0.9;
+}
+.modal-container .modal-footer button.btn-danger {
+  background: #ff4d4d;
+  color: #fff;
+}
+.modal-container .modal-footer button.btn-danger:hover {
+  background: #e04343;
+}
+
+/* --- Common Form Styles --- */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%;
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border);
+  padding: 0.8rem;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+  /* Remove browser default styles */
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.form-group input:disabled, .form-group textarea:disabled, .form-group select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* --- Design System Tokens --- */
+:root {
+  /* Palette - Dark Mode "Hacker" Theme */
+  --bg-1: #0f1012; /* Deepest background (body) */
+  --bg-2: #16181b; /* Panel background */
+  --bg-3: #212429; /* Hover states / inputs */
+  --color-primary: #8fd2ff; /* Main accent (Blue) */
+  --color-secondary: #afd4ed; /* Secondary accent */
+  --color-success: #4ade80;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-text: #e2e8f0; /* Primary text */
+  --color-text-dim: #94a3b8; /* Secondary text */
+  --color-muted: #64748b; /* Muted text */
+  --glass-bg: rgba(22, 24, 27, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --font-mono: "Fira Code", monospace;
+  --font-sans: "Roboto", sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+/* Legacy Variable Mapping (For backward compatibility) */
+/* --- Global Reset & Base Styles --- */
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body {
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-1);
+  color: var(--color-text);
+  overflow: hidden; /* App-like feel */
+}
+
+/* --- Global Scrollbar --- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Layout Utils --- */
+.flex {
+  display: flex;
+}
+
+.full-size {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.full-size.scrollable {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+}
+
+/* --- App Layout Structure --- */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  /* Mobile Layout Structure: STACKED BLOCKS */
+}
+@media (max-width: 768px) {
+  .app-layout {
+    /* Removed flex-direction column for standard fixed header layout */
+  }
+}
+.app-layout .main-content {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-1);
+  /* Layout Fix for Fixed Sidebar */
+  margin-left: 280px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.app-layout .main-content.collapsed {
+  margin-left: 85px;
+}
+@media (max-width: 1082px) {
+  .app-layout .main-content {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    /* NUCLEAR OPTION: Fixed Positioning Strategy */
+    /* We manually place the content rectangle below the navbar rectangle */
+    position: fixed !important;
+    top: 100px !important;
+    left: 0 !important;
+    right: 0 !important; /* Forces width to fill screen */
+    bottom: 0 !important; /* Forces height to bottom of screen */
+    width: auto !important; /* Width is handled by left/right */
+    height: auto !important; /* Height is handled by top/bottom */
+    box-sizing: border-box;
+    overflow-y: auto !important; /* APP SHELL SCROLL: The shell connects to the viewport */
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    flex: none;
+    z-index: 1;
+  }
+}
+
+/* --- Mobile Scroll Helper --- */
+/* When active, the child grows, pushing the main-content scrollbar */
+@media (max-width: 768px) {
+  .full-size.scrollable {
+    height: auto !important;
+    overflow: visible !important;
+    min-height: 100%;
+    padding-bottom: 80px; /* Ensure content isn't hidden behind bottom chrome if any */
+  }
+}
+/* --- Button Utility Class (Optional Usage) --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.btn.btn-primary {
+  background: var(--color-primary);
+  color: var(--bg-1);
+}
+.btn.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.btn.btn-ghost {
+  background: transparent;
+  color: var(--color-text);
+}
+.btn.btn-ghost:hover {
+  background: var(--bg-3);
+}/*# sourceMappingURL=app.css.map */

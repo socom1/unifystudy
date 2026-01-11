@@ -1,0 +1,577 @@
+.yearly-calendar {
+  height: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text);
+  overflow: hidden;
+  position: relative;
+  background: radial-gradient(circle at top right, rgba(var(--color-primary-rgb), 0.05), transparent 40%);
+  /* --- Header --- */
+  /* --- Main Content Layout --- */
+  /* --- Month Grid --- */
+  /* --- Modals & Panels --- */
+}
+.yearly-calendar .calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+@media (max-width: 768px) {
+  .yearly-calendar .calendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+.yearly-calendar .calendar-header .controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+@media (max-width: 768px) {
+  .yearly-calendar .calendar-header .controls {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+}
+.yearly-calendar .calendar-header .controls h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  min-width: 300px;
+}
+@media (max-width: 768px) {
+  .yearly-calendar .calendar-header .controls h1 {
+    font-size: 1.8rem;
+    min-width: auto;
+  }
+}
+.yearly-calendar .calendar-header .controls button {
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.yearly-calendar .calendar-header .controls button:hover {
+  background: var(--bg-2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.yearly-calendar .calendar-header .controls button:active {
+  transform: translateY(0);
+}
+.yearly-calendar .calendar-header .header-actions {
+  display: flex;
+  gap: 1rem;
+}
+.yearly-calendar .calendar-header .header-actions .add-event-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.yearly-calendar .calendar-header .header-actions .add-event-btn.holiday {
+  background: rgba(var(--color-primary-rgb), 0.1);
+  color: var(--color-primary);
+}
+.yearly-calendar .calendar-header .header-actions .add-event-btn.holiday:hover {
+  background: rgba(var(--color-primary-rgb), 0.2);
+}
+.yearly-calendar .calendar-header .header-actions .add-event-btn.exam {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+}
+.yearly-calendar .calendar-header .header-actions .add-event-btn.exam:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(var(--color-primary-rgb), 0.4);
+}
+.yearly-calendar .calendar-content {
+  flex: 1;
+  display: flex;
+  gap: 2rem;
+  overflow: hidden;
+  position: relative;
+}
+.yearly-calendar .calendar-content .calendar-main-area {
+  flex: 3;
+  position: relative;
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.yearly-calendar .calendar-content .calendar-main-area .upcoming-toggle-btn {
+  display: none;
+  position: absolute;
+  right: 1.5rem;
+  top: 2rem; /* Was 50% - top aligns better with header on mobile */
+  /* transform: translateY(-50%); Removed to stick to top */
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 44px; /* Slightly smaller */
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+  z-index: 150; /* Ensure above content */
+}
+@media (max-width: 1024px) {
+  .yearly-calendar .calendar-content .calendar-main-area .upcoming-toggle-btn {
+    display: flex;
+  }
+}
+@media (max-width: 768px) {
+  .yearly-calendar .calendar-content .calendar-main-area {
+    padding: 0.75rem; /* Reduced padding on mobile */
+  }
+}
+.yearly-calendar .calendar-content .upcoming-sidebar {
+  flex: 1;
+  min-width: 300px;
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (max-width: 1024px) {
+  .yearly-calendar .calendar-content .upcoming-sidebar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%; /* Full width on small mobile */
+    max-width: 320px;
+    z-index: 200; /* Above everything */
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+    transform: translateX(110%);
+    background: var(--bg-1);
+  }
+  .yearly-calendar .calendar-content .upcoming-sidebar.open {
+    transform: translateX(0);
+  }
+  .yearly-calendar .calendar-content .upcoming-sidebar .close-sidebar-btn {
+    display: block !important;
+  }
+}
+.yearly-calendar .calendar-content .upcoming-sidebar h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text);
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-right: 0.5rem;
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item {
+  padding: 1rem;
+  border-radius: 16px;
+  background: var(--bg-2);
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item:hover {
+  border-color: var(--glass-border);
+  transform: translateX(4px);
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item .up-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item .up-header .up-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item .up-header .up-badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item .up-header .up-badge.holiday {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item .up-header .up-badge.exam {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .upcoming-item .up-time {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.yearly-calendar .calendar-content .upcoming-sidebar .upcoming-list .no-upcoming {
+  text-align: center;
+  color: var(--color-muted);
+  font-style: italic;
+  margin-top: 2rem;
+  opacity: 0.7;
+}
+.yearly-calendar .month-card.full-view {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.yearly-calendar .month-card.full-view .days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 100%;
+  gap: 1px;
+  background: var(--glass-border);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+@media (max-width: 768px) {
+  .yearly-calendar .month-card.full-view .days-grid {
+    border-radius: 12px;
+  }
+}
+.yearly-calendar .month-card.full-view .days-grid .day-label {
+  background: var(--bg-2);
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+@media (max-width: 768px) {
+  .yearly-calendar .month-card.full-view .days-grid .day-label {
+    padding: 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+.yearly-calendar .month-card.full-view .days-grid .day {
+  background: var(--bg-1);
+  min-height: 40px;
+  padding: 0.25rem;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  outline: 1px solid var(--glass-border);
+}
+@media (max-width: 768px) {
+  .yearly-calendar .month-card.full-view .days-grid .day {
+    min-height: 30px; /* Even smaller on mobile */
+    padding: 2px;
+  }
+}
+.yearly-calendar .month-card.full-view .days-grid .day:hover {
+  background: var(--bg-2);
+}
+.yearly-calendar .month-card.full-view .days-grid .day.empty {
+  background: var(--bg-2);
+  opacity: 0.3;
+  pointer-events: none;
+}
+.yearly-calendar .month-card.full-view .days-grid .day.today {
+  background: rgba(var(--color-primary-rgb), 0.08); /* Increased visibility */
+  box-shadow: inset 0 0 0 2px var(--color-primary); /* Strong border effect */
+  z-index: 2; /* Ensure it stays on top */
+}
+.yearly-calendar .month-card.full-view .days-grid .day.today .day-number {
+  background: var(--color-primary);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.4);
+}
+.yearly-calendar .month-card.full-view .days-grid .day .day-number {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+.yearly-calendar .month-card.full-view .days-grid .day .day-dots {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.yearly-calendar .month-card.full-view .days-grid .day .day-dots .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.yearly-calendar .month-card.full-view .days-grid .day .day-dots .dot.holiday {
+  background: #10b981;
+}
+.yearly-calendar .month-card.full-view .days-grid .day .day-dots .dot.exam {
+  background: #ef4444;
+}
+.yearly-calendar .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.yearly-calendar .modal-overlay .modal-content {
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border);
+  padding: 2.5rem;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+.yearly-calendar .modal-overlay .modal-content h2 {
+  margin: 0 0 2rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+.yearly-calendar .modal-overlay .modal-content .form-group {
+  margin-bottom: 1.25rem;
+}
+.yearly-calendar .modal-overlay .modal-content .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+.yearly-calendar .modal-overlay .modal-content .form-group input, .yearly-calendar .modal-overlay .modal-content .form-group select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--color-text);
+  transition: all 0.2s;
+}
+.yearly-calendar .modal-overlay .modal-content .form-group input:focus, .yearly-calendar .modal-overlay .modal-content .form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
+}
+.yearly-calendar .modal-overlay .modal-content .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.yearly-calendar .modal-overlay .modal-content .modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.yearly-calendar .modal-overlay .modal-content .modal-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.yearly-calendar .modal-overlay .modal-content .modal-actions button:first-child {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--color-muted);
+}
+.yearly-calendar .modal-overlay .modal-content .modal-actions button:first-child:hover {
+  background: var(--bg-2);
+  color: var(--color-text);
+}
+.yearly-calendar .modal-overlay .modal-content .modal-actions button.primary {
+  background: var(--color-primary);
+  color: white;
+}
+.yearly-calendar .modal-overlay .modal-content .modal-actions button.primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.yearly-calendar .day-details-panel {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 350px;
+  background: var(--bg-1);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.2);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+}
+.yearly-calendar .day-details-panel .panel-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.yearly-calendar .day-details-panel .panel-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.yearly-calendar .day-details-panel .panel-header button {
+  background: transparent;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+}
+.yearly-calendar .day-details-panel .panel-header button:hover {
+  background: var(--bg-2);
+  color: var(--color-text);
+}
+.yearly-calendar .day-details-panel .panel-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+.yearly-calendar .day-details-panel .panel-content .events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.yearly-calendar .day-details-panel .panel-content .event-card {
+  background: var(--bg-2);
+  border: 1px solid transparent;
+  padding: 1rem;
+  border-radius: 16px;
+  transition: all 0.2s;
+}
+.yearly-calendar .day-details-panel .panel-content .event-card:hover {
+  border-color: var(--glass-border);
+  transform: translateY(-2px);
+}
+.yearly-calendar .day-details-panel .panel-content .event-card.holiday {
+  border-left: 4px solid #10b981;
+}
+.yearly-calendar .day-details-panel .panel-content .event-card.exam {
+  border-left: 4px solid #ef4444;
+}
+.yearly-calendar .day-details-panel .panel-content .event-card .icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--color-muted);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.yearly-calendar .day-details-panel .panel-content .event-card .icon-btn:hover {
+  background: var(--bg-1);
+  color: var(--color-text);
+}
+.yearly-calendar .day-details-panel .panel-content .event-card .icon-btn.delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+.yearly-calendar .day-details-panel .panel-content .event-card .icon-btn.edit:hover {
+  background: rgba(var(--color-primary-rgb), 0.1);
+  color: var(--color-primary);
+}
+.yearly-calendar .day-details-panel .panel-content .event-card h4 {
+  margin: 0.5rem 0;
+}
+.yearly-calendar .day-details-panel .panel-content .event-card .event-time {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-bottom: 0.25rem;
+}
+.yearly-calendar .day-details-panel .panel-content .event-card .event-duration {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+.yearly-calendar .day-details-panel .panel-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--glass-border);
+}
+.yearly-calendar .day-details-panel .panel-footer .add-another-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px dashed var(--glass-border);
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+.yearly-calendar .day-details-panel .panel-footer .add-another-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb), 0.05);
+}/*# sourceMappingURL=YearlyCalendar.css.map */
