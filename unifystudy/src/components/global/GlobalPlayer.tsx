@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 import "./GlobalPlayer.scss";
 
-export default function GlobalPlayer() {
+export default function GlobalPlayer({ idPrefix = "", disableDrag = false, className = "", style = {} }) {
   const { setShowMusicPlayer } = useUI();
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState("spotify"); // 'spotify' or 'youtube'
@@ -73,9 +73,10 @@ export default function GlobalPlayer() {
   useEffect(() => {
     const initPlayer = () => {
       if (mode === "youtube" && window.YT && window.YT.Player) {
-        const iframe = document.getElementById('youtube-player-iframe');
+        const iframeId = `${idPrefix}youtube-player-iframe`;
+        const iframe = document.getElementById(iframeId);
         if (iframe && !playerRef.current) {
-          playerRef.current = new window.YT.Player('youtube-player-iframe', {
+          playerRef.current = new window.YT.Player(iframeId, {
             events: {
               'onStateChange': (event) => {
                 setIsPlaying(event.data === 1);
@@ -95,7 +96,7 @@ export default function GlobalPlayer() {
         playerRef.current = null;
       }
     };
-  }, [mode, youtubeId]);
+  }, [mode, youtubeId, idPrefix]);
 
   // Sync Listener
   useEffect(() => {
@@ -158,14 +159,14 @@ export default function GlobalPlayer() {
 
   return (
     <motion.div
-      className="global-player"
+      className={`global-player ${className}`}
       ref={containerRef}
-      drag
-      dragListener={false} // Disable default drag listener
+      drag={!disableDrag}
+      dragListener={!disableDrag} // Disable default drag listener
       dragControls={dragControls}
       dragMomentum={false}
       initial={{ x: 0, y: 0 }}
-      style={{ touchAction: 'none' }} // Prevent scrolling while dragging
+      style={{ touchAction: 'none', ...style }} // Prevent scrolling while dragging
     >
       <motion.div
         key="player-content"
@@ -262,7 +263,7 @@ export default function GlobalPlayer() {
                 </button>
               </div>
               <iframe
-                id="youtube-player-iframe"
+                id={`${idPrefix}youtube-player-iframe`}
                 width="100%"
                 height="200"
                 src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&origin=${window.location.origin}`}
