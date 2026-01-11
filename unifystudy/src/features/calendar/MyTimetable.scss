@@ -4,12 +4,6 @@
   --time-col-width: 70px;
   --header-height: 40px;
   --row-height: 100px; /* Must match ROW_HEIGHT in JSX */
-  --bg-1: #0c1214;
-  --bg-2: #0f1516;
-  --muted: #9fb1bb;
-  --accent: #4b6c82;
-  --accent-2: #8fd2ff;
-  --accent-3: #66c0ff;
 }
 
 .calendar-container {
@@ -21,9 +15,9 @@
   margin: 0 auto;    /* Center the container */
   overflow: hidden;
   /* Flat background as requested */
-  background: var(--bg-1);
-  /* radial-gradient removed */
-  color: var(--color-text, #fff);
+  /* Use global bg */
+  background: transparent;
+  color: var(--color-text);
   font-family: "Fira Code", monospace;
   padding: 1rem 2rem; /* More side padding */
   position: relative;
@@ -85,8 +79,8 @@
   flex: 1;
   overflow: hidden;
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(var(--bg-2), 0.5); 
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg); 
   backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
@@ -110,8 +104,8 @@
   flex-direction: column;
   overflow: hidden; 
   position: relative;
-  background: var(--bg-1);
-  border-right: 1px solid rgba(255, 255, 255, 0.03); 
+  background: rgba(0,0,0,0.2);
+  border-right: 1px solid var(--glass-border); 
   z-index: 20;
 }
 
@@ -119,9 +113,9 @@
 .header-row-sticky {
   display: flex;
   height: var(--header-height);
-  background: rgba(var(--bg-1), 0.8);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--glass-border);
   z-index: 30;
   flex-shrink: 0; 
 }
