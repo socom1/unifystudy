@@ -1,1 +1,0 @@
-{"version":3,"sources":["core.css","core.scss","_vars.scss","_functions.scss","_color-palette.scss"],"names":[],"mappings":"AAAA,gBAAgB;ACAhB;iFAAA;ACAA;iFAAA;ACAA;iFAAA;ACAA;;;;;kDAAA;AHKA;EACI,sBAAA;ADSJ;;ACNA;EACI,gBAAA;EACA,yBAAA;EACA,WAAA;EAIA,yBAAA;ADMJ;ACTI;EACI,qDAAA;ADWR;;ACNA;EACI,qBAAA;EACA,qBAAA;ADSJ","file":"core.css"}
