@@ -8,6 +8,18 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.0.4',
+    title: 'UnifyStudy 1.0.4 - Audio & Visual Polish',
+    description: 'Refined UI logic for university verification, restored Focus Mode ambience, and brightened the Timetable.',
+    features: [
+      '🎓 Verification: "Verify" button & headers now hide after joining a university',
+      '🧘 Focus Mode: Restored Rain/Wind ambience with reliable audio sources',
+      '📅 Timetable: Refreshed styling to use the global Glass theme (brighter look)',
+      '🎵 Fixes: Improved audio playback reliability in Focus Mode'
+    ],
+    date: '2026-01-11'
+  },
+  {
     version: '1.0.3',
     title: 'UnifyStudy 1.0.3 - Layout & Feature Updates',
     description: 'General improvements to application layout and feature availability.',
