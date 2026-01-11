@@ -1241,7 +1241,7 @@ const Chat = () => {
             </>
           )}
 
-       {(channelSearch === "" || filteredUniChannels.length > 0) && (
+       {(channelSearch === "" && uniChannels.length === 0) && (
          <div className="section-label mt-4">UNIVERSITY</div>
        )}
        {channelSearch === "" && uniChannels.length === 0 && (  
