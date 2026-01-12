@@ -24,7 +24,6 @@ const VirtualMessageList = <T,>({
         style={{ height: '100%', width: '100%', overscrollBehavior: 'contain' }}
         totalCount={messages.length}
         itemContent={(index) => renderRow(messages[index], index)}
-        initialTopMostItemIndex={messages.length > 0 ? messages.length - 1 : 0}
         followOutput="auto"
         alignToBottom
       />
