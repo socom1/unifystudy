@@ -102,3 +102,16 @@ html {
   filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.5));
   transform: translateY(-1px);
 }
+
+/* Force Light Mode Globals */
+[data-theme='light'] body,
+[data-theme='light'] #root,
+[data-theme='light'] .app-layout,
+[data-theme='light'] .main-content {
+  background-color: var(--bg-1) !important;
+  color: var(--color-text) !important;
+}
+
+[data-theme='light'] .main-content::before {
+    display: none; /* Remove any potential dark overlays */
+}
