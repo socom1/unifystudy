@@ -340,3 +340,44 @@
     }
   }
 }
+
+/* Light Mode Overrides */
+[data-theme='light'] {
+    .settings-page {
+        background: #f8fafc !important; /* Force Light Slate */
+    }
+    
+    .settings-section {
+        background: #ffffff !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+    
+    .setting-title, .setting-label, h1, h2 {
+        color: #0f172a !important;
+    }
+    
+    .setting-description {
+        color: #64748b !important;
+    }
+    
+    .setting-input {
+        background: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        color: #0f172a !important;
+        
+        &:focus {
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+    }
+    
+    .setting-item {
+        border-bottom-color: #f1f5f9 !important;
+    }
+    
+    .settings-actions {
+        background: rgba(255,255,255,0.9) !important;
+        border-top-color: #e2e8f0 !important;
+    }
+}
