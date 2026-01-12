@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { db, storage } from "@/services/firebaseConfig";
 import { useAuth } from "@/context/AuthContext";
@@ -103,7 +103,7 @@ const Chat = () => {
   // const [user, setUser] = useState(null); // Local state removed
   const [anonymousMode, setAnonymousMode] = useState(false);
   const [avatarColor, setAvatarColor] = useState("#333"); // Changed default avatar color
-  const messagesEndRef = useRef(null);
+
   const fileInputRef = useRef(null); // Ref for file input
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -527,10 +527,7 @@ const Chat = () => {
     }
   }, [activeChannel]);
 
-  // Auto-scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+
 
   // Clear unread messages when viewing chat
   useEffect(() => {
@@ -780,7 +777,7 @@ const Chat = () => {
     // Focus back on input (ref needed)
   };
 
-  const renderMessageText = (text) => {
+  const renderMessageText = useCallback((text) => {
     if (!text) return null;
     // Simple regex for @mentions
     const parts = text.split(/(@\w+(?:\s\w+)?)/g);
@@ -790,7 +787,7 @@ const Chat = () => {
       }
       return part;
     });
-  };
+  }, []);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -1688,7 +1685,7 @@ const Chat = () => {
           ) : (
             <VirtualMessageList
               messages={messages}
-              renderRow={(msg, index) => (
+              renderRow={useCallback((msg, index) => (
                     <motion.div
                     key={msg.id}
                     initial={{ opacity: 0, y: 10 }} // Keep simple entrance
@@ -1778,7 +1775,7 @@ const Chat = () => {
                         </div>
                     </div>
                     </motion.div>
-              )}
+              ), [user, anonymousMode, openProfile, handleReply, handleEdit, handleDelete, renderMessageText])}
             />
           )}
         </div>
