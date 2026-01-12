@@ -8,6 +8,18 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.0.6',
+    title: 'UnifyStudy 1.0.6 - UI Polish & Confirmation Modals',
+    description: 'A refinement update with nicer delete confirmations, improved To-Do styling, and README screenshots.',
+    features: [
+      '🗑️ Delete Modals: Beautiful confirmation popups replace native alerts',
+      '📝 To-Do Styling: Tags now appear as readable pills, Details panel polished',
+      '📸 README: Added screenshots for Dashboard, Timetable, Calendar & To-Do',
+      '🐛 Fixes: Removed lingering mock data from Calendar view'
+    ],
+    date: '2026-01-12'
+  },
+  {
     version: '1.0.5',
     title: 'UnifyStudy 1.0.5 - Chat Stability & Light Mode',
     description: 'A major stability update for Chat, eliminating all visual jitters and shaking, plus comprehensive theme fixes.',

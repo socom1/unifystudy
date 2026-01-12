@@ -20,6 +20,8 @@ export default function Pomodoro({ zenMode = false }) {
     totalSeconds,
     completedPomodoros,
     formatTime,
+    showClaimModal, // New
+    confirmClaim,   // New
   } = useTimer();
 
   // editor UI (Local state is fine for editor)
@@ -329,6 +331,7 @@ export default function Pomodoro({ zenMode = false }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
           >
+            {/* ... editor content ... */}
             {selectorMode ? (
               /* Selector Mode UI */
               <div className="selector-mode">
@@ -512,6 +515,59 @@ export default function Pomodoro({ zenMode = false }) {
             )}
           </motion.div>
         )}
+
+        {/* --- ANTI-ABUSE CLAIM MODAL --- */}
+        {showClaimModal && (
+          <motion.div
+             className="modal-overlay"
+             style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)',
+                zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center'
+             }}
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+          >
+             <motion.div
+                className="claim-modal"
+                style={{
+                    background: 'var(--color-bg-card)',
+                    padding: '2rem',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    textAlign: 'center',
+                    maxWidth: '400px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+                }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+             >
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                <h2 style={{ lineHeight: 1.2, marginBottom: '0.5rem', color: 'var(--color-text-primary)' }}>Session Complete!</h2>
+                <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
+                    Confirm you are still here to claim your Lumens and XP.
+                </p>
+                <button 
+                    onClick={confirmClaim}
+                    style={{
+                        background: 'var(--color-primary)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '8px',
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        width: '100%'
+                    }}
+                >
+                    I'm Here! Claim Rewards 💰
+                </button>
+             </motion.div>
+          </motion.div>
+        )}
+
       </AnimatePresence>
     </div>
   );

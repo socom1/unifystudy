@@ -27,7 +27,8 @@ import {
   Medal,
   Target,
   Sparkles,
-  ZapOff
+  ZapOff,
+  AlertCircle
 } from "lucide-react";
 import "./Dashboard.scss";
 
@@ -63,6 +64,7 @@ const STUDY_TIPS = [
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
   const { xp, level, progress } = useGamification();
+  const [activeTab, setActiveTab] = useState('tasks');
   const [stats, setStats] = useState({
     tasksDue: 0,
     activeTasks: 0,
@@ -93,46 +95,107 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (!user) return;
 
+    // --- MOCK DATA FOR SCREENSHOT ---
+    const MOCK_MODE = false; 
+
+    if (MOCK_MODE) {
+       // Set Mock Data once on mount
+       setStats({
+           lumens: 2450,
+           gpa: "4.0",
+           rank: "#3",
+           totalStudyTime: "142.5h",
+           tasksDue: 5,
+           activeTasks: 3,
+           completedTasks: 12
+       });
+       setStreak(15);
+       setWeeklyActivity([
+           { day: "Sun", minutes: 45 },
+           { day: "Mon", minutes: 120 },
+           { day: "Tue", minutes: 90 },
+           { day: "Wed", minutes: 160 },
+           { day: "Thu", minutes: 60 },
+           { day: "Fri", minutes: 180 },
+           { day: "Sat", minutes: 30 },
+       ]);
+       setUrgentTasks([
+           { id: '1', text: 'Calculus III Problem Set', priority: 'high', dueDate: new Date().toISOString() },
+           { id: '2', text: 'Physics Lab Report', priority: 'high', dueDate: new Date().toISOString() },
+           { id: '3', text: 'Read Chapter 4-5', priority: 'medium', dueDate: new Date(Date.now() + 86400000).toISOString() },
+       ]);
+       setUpcomingEvents([
+           { id: '1', title: 'Deep Work Session', start: '09', day: 'Monday' },
+           { id: '2', title: 'Group Study', start: '14', day: 'Monday' },
+       ]);
+       setUnlockedAchievements(['focus-master', 'first-steps']);
+       setSubjects(['Math', 'Physics', 'CS']);
+       // Gamification Context (Mocking it requires context level change or just ignoring it for visual widgets if they use local vars, 
+       // but LevelWidget uses `level` and `xp` from context. 
+       // Wait, LevelWidget in the JSX uses `level` and `xp` variables. 
+       // I need to see where `level` and `xp` come from. 
+       // Line 12: `const { ... } = useGamification()`. 
+       // I cannot easily mock context values from here without touching context.
+       // However, I can shadow the variables if I destructure them and then override them in render? 
+       // Or simpler: I'll accept that Level might show real data, or I'll try to 'mock' it by ignoring the context return.
+       
+       // actually, `level` and `progress` are used in the JSX later.
+       // I will define overrides inside the component scope if I can.
+    }
+
+    // Since I can't easily conditionally wrap all hooks without breaking "Rules of Hooks" (fetching logic inside useEffect is fine, but declaring hooks isn't),
+    // I will just use an early return in the useEffect if MOCK_MODE is true.
+
+    if (MOCK_MODE) return; // Stop Real Fetching
+
+    // ... (Original Fetching Logic) ...
     // Fetch tasks
     const tasksRef = ref(db, `users/${user.uid}/folders`);
     const unsubTasks = onValue(tasksRef, (snap) => {
-      const data = snap.val() || {};
-      let dueCount = 0;
-      let activeCount = 0;
-      const today = new Date().toISOString().split("T")[0];
-      const allTasks = [];
+      const data = snap.val();
+      if (!data) {
+          setStats(prev => ({...prev, tasksDue: 0, activeTasks: 0, completedTasks: 0}));
+          setUrgentTasks([]);
+          return;
+      }
+      
+      let due = 0;
+      let active = 0;
+      let completed = 0;
+      let allUrgent = [];
+      let allTasks = [];
 
-      Object.entries(data).forEach(([folderId, folder]) => {
+      Object.values(data).forEach((folder) => {
         if (folder.tasks) {
-          Object.entries(folder.tasks).forEach(([taskId, task]) => {
-            if (!task.isActive) {
-              activeCount++;
-              if (task.dueDate === today) dueCount++;
-              allTasks.push({ ...task, id: taskId, folderId });
+          Object.values(folder.tasks).forEach((task) => {
+             allTasks.push(task);
+            if (task.completed) {
+              completed++;
+            } else {
+              active++;
+              if (task.dueDate) {
+                const dueTime = new Date(task.dueDate).getTime();
+                const now = new Date().getTime();
+                if (dueTime - now < 3 * 24 * 60 * 60 * 1000 && dueTime > now) { 
+                  due++;
+                  allUrgent.push({...task, folderId: folder.id});
+                }
+              }
             }
           });
         }
       });
-      setAllTasksForOpt(allTasks); // Save for optimizer
+      
+      // Sort urgent by priority/date
+      allUrgent.sort((a,b) => {
+          const prioMap = { high: 3, medium: 2, low: 1 };
+          if (prioMap[b.priority] !== prioMap[a.priority]) return prioMap[b.priority] - prioMap[a.priority];
+          return new Date(a.dueDate) - new Date(b.dueDate);
+      });
 
-      // Sort tasks by due date and priority
-      const sortedTasks = allTasks
-        .sort((a, b) => {
-          if (a.dueDate && b.dueDate)
-            return new Date(a.dueDate) - new Date(b.dueDate);
-          if (a.dueDate) return -1;
-          if (b.dueDate) return 1;
-          return 0;
-        })
-        .slice(0, 3);
-
-      setUrgentTasks(sortedTasks);
-
-      setStats((prev) => ({
-        ...prev,
-        tasksDue: dueCount,
-        activeTasks: activeCount,
-      }));
+      setAllTasksForOpt(allTasks);
+      setStats((prev) => ({ ...prev, tasksDue: due, activeTasks: active, completedTasks: completed }));
+      setUrgentTasks(allUrgent.slice(0, 5));
     });
 
     // ... (User Stats fetch remains same) ...
@@ -171,6 +234,7 @@ export default function Dashboard({ user }) {
           ...prev,
           lumens: data.currency || 0,
           gpa: gpa,
+          totalStudyTime: data.stats?.totalStudyTime ? (data.stats.totalStudyTime / 60).toFixed(1) + "h" : "0h"
         }));
       }
     });
@@ -379,391 +443,210 @@ export default function Dashboard({ user }) {
 
   return (
     <div className="dashboard-container">
-      {/* 1. Header Section */}
-      <header className="dashboard-header">
-        <div className="header-left">
-          <div className="user-welcome">
-            <div className="avatar-circle">
-              {user?.photoURL ? <img src={user.photoURL} alt="User" /> : "U"}
-            </div>
-            <div className="user-text">
-              <span className="greeting">{getGreeting()}</span>
-              <span className="username">{user?.displayName || "Student"}</span>
-            </div>
-          </div>
+      {/* 1. Header / Intro */}
+      <div className="dashboard-intro">
+        <div className="intro-text">
+            <h1>Welcome back, <span className="highlight">{user?.displayName || 'Student'}</span>! 👋</h1>
+            <p className="subtitle">Here's your daily overview.</p>
         </div>
-
-        <div className="header-right">
-          {/* <div className="search-bar">
-            <span className="search-icon">🔍</span>
-            <input type="text" placeholder="Search..." />
-          </div> */}
-          <button className="icon-btn">🔔</button>
-          <Link to="/settings" className="icon-btn">⚙️</Link>
-        </div>
-      </header>
-
-      {/* 2. Top Section: Stats & Hero */}
-      <div className="top-section">
-        <div className="stats-column">
-          <div className="section-title">
-            <h2>Your Stats</h2>
-            <span className="badge">3 Metrics</span>
-          </div>
-
-          <div className="stats-cards">
-            {/* Stat 1: Lumens */}
-            <motion.div
-              className="stat-card"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="stat-icon-box lumens"><Lightbulb size={24} /></div>
-              <div className="stat-info">
-                <span className="stat-label">Lumens Balance</span>
-                <span className="stat-value">{stats.lumens}</span>
-                <span className="stat-change positive">
-                  Earn more by studying
-                </span>
-              </div>
-              <div className="stat-chart-mini"></div>
-            </motion.div>
-
-            {/* Stat 2: GPA */}
-            <motion.div
-              className="stat-card"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="stat-icon-box gpa"><GraduationCap size={24} /></div>
-              <div className="stat-info">
-                <span className="stat-label">Overall GPA</span>
-                <span className="stat-value">{stats.gpa}</span>
-                <span className="stat-change neutral">Keep it up!</span>
-              </div>
-              <div className="stat-chart-mini"></div>
-            </motion.div>
-
-            {/* Stat 3: Level (Gamification) */}
-            <motion.div
-              className="stat-card"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="stat-icon-box rank"><Star size={24} /></div>
-              <div className="stat-info" style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span className="stat-label">Level {level}</span>
-                    <span className="stat-change" style={{ fontSize: '0.75rem' }}>{Math.round(xp)} XP</span>
-                </div>
-                
-                <div className="xp-bar-container" style={{ 
-                    height: '6px', 
-                    background: 'rgba(255,255,255,0.1)', 
-                    borderRadius: '10px', 
-                    marginTop: '8px',
-                    overflow: 'hidden'
-                }}>
-                    <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        style={{ height: '100%', background: 'var(--color-primary)', borderRadius: '10px' }}
-                    />
-                </div>
-                <span className="stat-change" style={{ marginTop: '4px', fontSize: '0.7rem', opacity: 0.7 }}>
-                    {Math.round(progress)}% to Level {level + 1}
-                </span>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Hero Card: Focus Timer */}
-        <div className="hero-column">
-          <motion.div
-            className="hero-card"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div className="hero-content">
-              <div className="hero-header">
-                <span className="hero-logo"><Clock size={24} color="#a78bfa" /></span>
-              </div>
-              <h2>Ready to Focus?</h2>
-              <p>
-                Start a Pomodoro session to boost your productivity and earn
-                Lumens.
-              </p>
-
-              <div className="hero-actions">
-                <div className="quick-start-buttons" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
-                  <Link to="/pomodoro" className="primary-btn" style={{ 
-                      background: 'rgba(255,255,255,0.1)', 
-                      color: 'var(--color-text)', 
-                      border: '1px solid var(--glass-border)',
-                      display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 
-                  }}>
-                    <span>Default</span>
-                    <span style={{ fontSize: '0.8em', opacity: 0.6 }}>(25/5)</span>
-                  </Link>
-                  <Link to="/pomodoro" className="primary-btn" style={{ 
-                      background: 'var(--color-primary)', 
-                      color: 'white', 
-                      border: 'none',
-                      display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 
-                  }}>
-                    <span>Deep Work</span>
-                    <span style={{ fontSize: '0.8em', opacity: 0.8 }}>(50/10)</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <div className="hero-bg-effect"></div>
-          </motion.div>
+        <div className="intro-actions">
+             {/* Optional: Add date or quick actions here if needed */}
+             <span className="current-date">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
         </div>
       </div>
 
-      {/* 4. Bottom Section: 3-Column Grid */}
-      <div className="bottom-section">
-        {/* Column 1: Weekly Activity (spans 2 columns) */}
-        <div className="main-chart-area span-2">
-          <div className="section-header">
-            <h3>Weekly Activity</h3>
-            <div className="streak-badge"><Flame size={16} fill="orange" stroke="orange" /> {streak} Day Streak</div>
-          </div>
-
-          <div className="activity-chart">
-            {weeklyActivity.map((day, i) => {
-              const maxMinutes = Math.max(
-                ...weeklyActivity.map((d) => d.minutes),
-                60 // Ensure at least 60m scale
-              ) * 1.2; // Add 20% headroom
-              const heightPercent = (day.minutes / maxMinutes) * 100;
-
-              return (
-                <div key={i} className="chart-bar-col">
-                  <div className="bar-container">
-                    <motion.div
-                      className="bar-fill"
-                      initial={{ height: 0 }}
-                      animate={{ height: `${heightPercent}%` }}
-                      transition={{ delay: i * 0.1, duration: 0.5 }}
-                    />
-                    {day.minutes > 0 && (
-                      <div className="bar-tooltip">{day.minutes}m</div>
-                    )}
-                  </div>
-                  <span className="bar-label">{day.day}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Column 2: Side Widgets Stack */}
-        <div className="side-widgets-area">
-          
-          {/* Nova Assistant Widget */}
-          <div className="widget-card nova-widget" style={{ borderColor: 'var(--color-primary)', background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.1), rgba(var(--bg-2-rgb), 0.8))' }}>
-            <div className="widget-header">
-                <h3><Sparkles size={18} fill="var(--color-primary)" style={{marginRight:8}}/> Nova Assistant</h3>
-            </div>
-            <div style={{ padding: '0 0.5rem 0.5rem 0.5rem' }}>
-                <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom: '1rem' }}>
-                    Need help organizing? Ask Nova to manage your tasks and schedule.
-                </p>
-                <div 
-                    onClick={() => navigate('/nova')}
-                    style={{ 
-                        background: 'var(--bg-1)', 
-                        border: '1px solid var(--glass-border)', 
-                        borderRadius: '20px', 
-                        padding: '0.8rem 1rem', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '0.5rem', 
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
-                    }}
-                    className="nova-fake-input"
-                >
-                    <Sparkles size={16} color="var(--color-primary)" />
-                    <span style={{ color: 'var(--color-muted)', fontSize: '0.9rem' }}>Ask Nova something...</span>
-                </div>
-            </div>
-          </div>
-
-          {/* Smart Schedule Suggestions */}
-          {scheduleSuggestions.length > 0 && (
-            <div className="widget-card smart-plan-widget" style={{ borderColor: 'var(--color-secondary)' }}>
-                <div className="widget-header">
-                    <h3><Zap size={18} fill="var(--color-secondary)" style={{marginRight:8}}/> Smart Plan</h3>
-                </div>
-                <div className="suggestions-list">
-                    {scheduleSuggestions.map((s, i) => (
-                        <div key={i} className="suggestion-item" style={{ marginBottom: '10px', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{s.title}</div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>{s.start} - {s.end} today</span>
-                                <button 
-                                    onClick={() => handleAcceptSuggestion(s)}
-                                    style={{ background: 'var(--color-primary)', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '2px 8px', fontSize: '0.8rem' }}
-                                >
-                                    Add
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-          )}
-
-          {/* Urgent Tasks */}
-          <div className="widget-card task-widget">
-            <div className="widget-header">
-              <h3>Urgent Tasks</h3>
-              <Link to="/todo" className="link">
-                View All
-              </Link>
-            </div>
-            <div className="tasks-list-compact">
-              {urgentTasks.length > 0 ? (
-                urgentTasks.map((task, i) => (
-                  <div 
-                    key={i} 
-                    className="task-row clickable" 
-                    onClick={() => navigate('/todo', { state: { taskId: task.id, folderId: task.folderId } })}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div
-                      className={`priority-dot ${task.priority || "low"}`}
-                    ></div>
-                    <span className="task-title">{task.text}</span>
-                    <span className="task-date">
-                      {task.dueDate
-                        ? new Date(task.dueDate).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                          })
-                        : ""}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-state">No urgent tasks! 🎉</div>
-              )}
-            </div>
-          </div>
-
-          {/* Upcoming Events */}
-          <div className="widget-card">
-            <div className="widget-header">
-              <h3>Upcoming</h3>
-              <Link to="/timetable" className="link">
-                View All
-              </Link>
-            </div>
-            <div className="events-list-compact">
-              {upcomingEvents.length > 0 ? (
-                upcomingEvents.map((evt, i) => (
-                  <div key={i} className="event-row">
-                    <span className="time">{evt.start}:00</span>
-                    <span className="title">{evt.title}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="empty-state">No events today</div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. Extra Widgets Row */}
-      <div className="extra-widgets-row">
-        {/* Quote of the Day */}
-        <motion.div
-          className="widget-card quote-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <div className="quote-icon"><Quote size={24} /></div>
-          <div className="quote-content">
-            <p className="quote-text">
-              "The secret of getting ahead is getting started."
-            </p>
-            <span className="quote-author">— Mark Twain</span>
-          </div>
-        </motion.div>
-
-        {/* Recent Achievements */}
-        <motion.div
-          className="widget-card achievements-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-        >
-          <div className="widget-header">
-            <h3>Recent Achievements</h3>
-            <button 
-              className="view-all-btn"
-              onClick={() => setShowAchievementsModal(true)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--color-muted)' }}
-            >
-              View All
-            </button>
-          </div>
-          <div className="achievements-mini-list">
-            {unlockedAchievements.length > 0 ? (
-              ACHIEVEMENTS.filter((a) => unlockedAchievements.includes(a.id))
-                .slice(0, 3)
-                .map((achievement, i) => (
-                  <div key={i} className="achievement-mini">
-                    <span className="achievement-icon-mini">
-                    <span className="achievement-icon-mini">
-                      {ACHIEVEMENT_ICONS[achievement.id] || <Trophy size={20} />}
-                    </span>
-                    </span>
-                    <div className="achievement-info-mini">
-                      <span className="achievement-name-mini">
-                        {achievement.name}
-                      </span>
-                      <span className="achievement-reward-mini">
-                        +{achievement.reward} 💡
-                      </span>
+      <div className="dashboard-grid-layout">
+        {/* === LEFT: MAIN CONTENT AREA === */}
+        <div className="main-content-area">
+            
+            {/* Row 1: Stats Cards */}
+            <div className="stats-row">
+                <div className="stat-card">
+                    <div className="stat-icon-box" style={{ background: 'rgba(255, 215, 0, 0.1)', color: '#ffd700' }}>
+                        <Zap size={22} fill="#ffd700" />
                     </div>
-                  </div>
-                ))
-            ) : (
-              <div className="empty-state">
-                Start studying to unlock achievements!
-              </div>
-            )}
-          </div>
-        </motion.div>
+                    <div className="stat-info">
+                        <span className="stat-value">{stats.lumens}</span>
+                        <span className="stat-label">Lumens</span>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-icon-box" style={{ background: 'rgba(162, 155, 254, 0.1)', color: '#a29bfe' }}>
+                        <GraduationCap size={22} />
+                    </div>
+                    <div className="stat-info">
+                        <span className="stat-value">{stats.gpa}</span>
+                        <span className="stat-label">Overall GPA</span>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-icon-box" style={{ background: 'rgba(9, 132, 227, 0.1)', color: '#0984e3' }}>
+                        <Clock size={22} />
+                    </div>
+                    <div className="stat-info">
+                        <span className="stat-value">{stats.totalStudyTime || "0h"}</span>
+                        <span className="stat-label">Total Study Time</span>
+                    </div>
+                </div>
+            </div>
 
-        {/* Study Tip */}
-        <motion.div
-          className="widget-card tip-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-        >
-          <div className="tip-icon"><Lightbulb size={24} /></div>
-          <div className="tip-content">
-            <h4>Study Tip</h4>
-            <p>
-              {todaysTip}
-            </p>
-          </div>
-        </motion.div>
+            {/* Row 2: Main Chart */}
+            <div className="chart-section styled-card">
+                <div className="section-header">
+                    <h3>Weekly Focus</h3>
+                    <div className="streak-badge"><Flame size={16} fill="orange" stroke="orange" /> {streak} Day Streak</div>
+                </div>
+                <div className="activity-chart">
+                    {weeklyActivity.map((day, i) => {
+                    const maxMinutes = Math.max(...weeklyActivity.map((d) => d.minutes), 60) * 1.2;
+                    const heightPercent = (day.minutes / maxMinutes) * 100;
+                    return (
+                        <div key={i} className="chart-bar-col">
+                        <div className="bar-container">
+                            <motion.div
+                            className="bar-fill"
+                            initial={{ height: 0 }}
+                            animate={{ height: `${heightPercent}%` }}
+                            transition={{ delay: i * 0.1, duration: 0.5 }}
+                            />
+                            {day.minutes > 0 && <div className="bar-tooltip">{day.minutes}m</div>}
+                        </div>
+                        <span className="bar-label">{day.day}</span>
+                        </div>
+                    );
+                    })}
+                </div>
+            </div>
+
+            {/* Row 3: Bottom Widgets (Quote & Tip) */}
+            <div className="bottom-widgets-row">
+                {/* Quote */}
+                <motion.div className="widget-card quote-card styled-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <div className="card-decoration quote-deco"><Quote size={80} /></div>
+                    <div className="quote-content">
+                        <Quote size={20} className="small-icon" />
+                        <p className="quote-text">"The secret of getting ahead is getting started."</p>
+                        <span className="quote-author">— Mark Twain</span>
+                    </div>
+                </motion.div>
+                {/* Tip */}
+                <motion.div className="widget-card tip-card styled-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                    <div className="card-decoration bulb-deco"><Lightbulb size={80} /></div>
+                    <div className="tip-content">
+                        <div className="tip-header"><Lightbulb size={18} /> Daily Tip</div>
+                        <p>{todaysTip}</p>
+                    </div>
+                </motion.div>
+            </div>
+        </div>
+
+        {/* === RIGHT: SIDEBAR === */}
+        <div className="right-sidebar">
+            
+            {/* 1. Level / Gamification Widget (Replaces Profile) */}
+            <div className="widget-card level-widget styled-card">
+                <div className="widget-header">
+                    <h3>Current Level</h3>
+                    <span className="level-badge">Lvl {level}</span>
+                </div>
+                <div className="xp-container">
+                    <div className="xp-info">
+                        <span>XP Progress</span>
+                        <span>{Math.floor(progress)}%</span>
+                    </div>
+                    <div className="xp-bar-bg">
+                        <div className="xp-bar-fill" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <p className="xp-subtext">{Math.round((level + 1) * 1000 - xp)} XP to next level</p>
+                </div>
+            </div>
+
+            {/* 2. Achievements Widget */}
+            <div className="widget-card achievements-card styled-card">
+                <div className="widget-header">
+                    <h3>Last Achievement</h3>
+                </div>
+                <div className="achievements-spotlight">
+                    {unlockedAchievements.length > 0 ? (
+                        ACHIEVEMENTS.filter((a) => unlockedAchievements.includes(a.id))
+                            .reverse()
+                            .slice(0, 1)
+                            .map((achievement, i) => (
+                            <div key={i} className="achievement-mini spotlight">
+                                <span className="achievement-icon-mini">
+                                {ACHIEVEMENT_ICONS[achievement.id] || <Trophy size={24} />}
+                                </span>
+                                <div className="achievement-info-mini">
+                                <span className="achievement-name-mini">
+                                    {achievement.name}
+                                </span>
+                                <span className="achievement-desc-mini">
+                                    {achievement.description}
+                                </span>
+                                </div>
+                            </div>
+                            ))
+                        ) : (
+                        <div className="empty-state">No achievements yet. Start studying!</div>
+                    )}
+                </div>
+                <button 
+                    onClick={() => setShowAchievementsModal(true)}
+                    className="view-all-bottom"
+                >
+                    View All Achievements <ArrowRight size={14} />
+                </button>
+            </div>
+
+            {/* 3. Tasks/Events Tabs Widget */}
+            <div className="widget-card tabs-widget styled-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div className="tabs-header">
+                    <button className={`tab-btn ${activeTab === 'tasks' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>Urgent Tasks</button>
+                    <button className={`tab-btn ${activeTab === 'events' ? 'active' : ''}`} onClick={() => setActiveTab('events')}>Upcoming</button>
+                </div>
+                <div className="tab-content" style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }}>
+                    {activeTab === 'tasks' ? (
+                        <div className="tasks-list-compact">
+                            {urgentTasks.length > 0 ? urgentTasks.map((task, i) => (
+                                <div 
+                                    key={i} 
+                                    className="task-row clickable" 
+                                    onClick={() => navigate('/todo', { state: { taskId: task.id, folderId: task.folderId } })}
+                                >
+                                    <div className={`priority-indicator ${task.priority || "low"}`}></div>
+                                    <div className="task-content">
+                                        <span className="task-title">{task.text}</span>
+                                        <span className="task-subtext">{task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, {month: "short", day: "numeric"}) : "No date"}</span>
+                                    </div>
+                                    <div className="hover-arrow"><ArrowRight size={14}/></div>
+                                </div>
+                            )) : <div className="empty-state">All caught up! 🎉</div>}
+                            <Link to="/todo" className="view-all-bottom">Go to Tasks <ArrowRight size={14}/></Link>
+                        </div>
+                    ) : (
+                        <div className="events-list-compact">
+                            {upcomingEvents.length > 0 ? upcomingEvents.map((evt, i) => (
+                                <div key={i} className="event-row">
+                                    <div className="time-badge">
+                                        <span>{evt.start}</span>
+                                        <small>:00</small>
+                                    </div>
+                                    <div className="event-info">
+                                        <span className="title">{evt.title}</span>
+                                        <span className="day">{evt.day}</span>
+                                    </div>
+                                </div>
+                            )) : <div className="empty-state">No events today</div>}
+                            <Link to="/timetable" className="view-all-bottom">Go to Calendar <ArrowRight size={14}/></Link>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+        </div>
       </div>
+
+
       <AnimatePresence>
         {showAchievementsModal && (
           <motion.div

@@ -343,6 +343,22 @@ export default function TdlF() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createModalInput, setCreateModalInput] = useState("");
 
+  // Confirm Modal State (for delete confirmations)
+  const [confirmState, setConfirmState] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const openConfirmModal = (title, message, onConfirm) => {
+    setConfirmState({ isOpen: true, title, message, onConfirm });
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmState({ isOpen: false, title: "", message: "", onConfirm: () => {} });
+  };
+
   /* --- Derived State --- */
   const availableTags = useMemo(() => {
     const tagSet = new Set();
@@ -423,6 +439,35 @@ export default function TdlF() {
 
   /* --- folders load & tree build --- */
   useEffect(() => {
+    // --- MOCK DATA FOR SCREENSHOT ---
+    const MOCK_MODE = false; 
+    
+    if (MOCK_MODE) {
+        const mockFolders = [
+            { id: 'f1', text: 'University', type: 'list', color: 'var(--color-primary)', parentId: null, order: 0 },
+            { id: 'f2', text: 'Personal', type: 'list', color: '#2ecc71', parentId: null, order: 1 },
+            { id: 'f3', text: 'Work', type: 'list', color: '#e74c3c', parentId: null, order: 2 },
+            { id: 'f4', text: 'Projects', type: 'folder', color: '#f39c12', parentId: null, order: 3 },
+            { id: 'f5', text: 'App Dev', type: 'list', color: '#9b59b6', parentId: 'f4', order: 0 },
+        ];
+        
+        // Build map
+        const map = {};
+        mockFolders.forEach((f) => {
+            const pid = f.parentId ?? "__root";
+            if (!map[pid]) map[pid] = [];
+            map[pid].push(f);
+        });
+        
+        setFoldersFlat(mockFolders);
+        setChildrenMap(map);
+        setRootFolders(map["__root"] || []);
+        if (currentFolderId && !mockFolders.find(f => f.id === currentFolderId)) {
+             if (activeView === "folder") setCurrentFolderId(null);
+        }
+        return; // Skip real fetch
+    }
+
     if (!userId) {
       setFoldersFlat([]);
       setChildrenMap({});
@@ -467,6 +512,38 @@ export default function TdlF() {
 
   /* --- tasks load for folder --- */
   useEffect(() => {
+    // --- MOCK DATA FOR SCREENSHOT ---
+    const MOCK_MODE = false;
+    
+    if (MOCK_MODE) {
+        if (!currentFolderId) {
+             setTasks([]);
+             return;
+        }
+        
+        // Mock tasks based on folder
+        let mockTasks = [];
+        if (currentFolderId === 'f1') { // University
+            mockTasks = [
+                { id: 't1', text: 'Calculus III Problem Set', priority: 'high', dueDate: new Date().toISOString().slice(0,10), isActive: false, tags: [{label:'Math', color:'red'}] },
+                { id: 't2', text: 'Physics Lab Report', priority: 'high', dueDate: new Date().toISOString().slice(0,10), isActive: false, tags: [{label:'Lab', color:'blue'}] },
+                { id: 't3', text: 'Read Chapter 4 History', priority: 'medium', isActive: false },
+            ];
+        } else if (currentFolderId === 'f2') { // Personal
+             mockTasks = [
+                { id: 't4', text: 'Gym - Leg Day', isActive: false, tags: [{label:'Health', color:'green'}] },
+                { id: 't5', text: 'Grocery Shopping', isActive: false },
+             ];
+        } else if (currentFolderId === 'f5') { // App Dev
+             mockTasks = [
+                { id: 't6', text: 'Design UI Mockups', priority: 'high', isActive: false },
+                { id: 't7', text: 'Implement Auth', priority: 'high', isActive: false },
+             ];
+        }
+        setTasks(mockTasks);
+        return;
+    }
+
     if (!userId || !currentFolderId || activeView !== "folder") {
       if (activeView === "folder") setTasks([]);
       return;
@@ -669,34 +746,35 @@ export default function TdlF() {
     e?.stopPropagation();
     if (!userId) return;
     const folderObj = foldersFlat.find((f) => f.id === folderId);
-    const confirmMsg = `Delete "${folderObj?.text}" and ALL subfolders and tasks? This cannot be undone except by "Undo" immediately.`;
-    const ok = window.confirm(confirmMsg);
-    if (!ok) return;
+    const confirmMsg = `Delete "${folderObj?.text}" and ALL subfolders and tasks? This cannot be undone.`;
+    
+    openConfirmModal("Delete Folder", confirmMsg, async () => {
+      // collect subtree
+      const toDeleteFolders = collectDescendants(folderId, foldersFlat);
 
-    // collect subtree
-    const toDeleteFolders = collectDescendants(folderId, foldersFlat);
+      // build updates: remove folders (tasks are automatically removed as children)
+      const updates = {};
+      toDeleteFolders.forEach((fid) => {
+        updates[`users/${userId}/folders/${fid}`] = null;
+      });
 
-    // build updates: remove folders (tasks are automatically removed as children)
-    const updates = {};
-    toDeleteFolders.forEach((fid) => {
-      updates[`users/${userId}/folders/${fid}`] = null;
+      // store recentlyDeleted for undo (shallow snapshot)
+      setRecentlyDeleted({
+        type: "folder-delete",
+        ids: toDeleteFolders.slice(),
+        data: folderObj,
+        timestamp: Date.now(),
+      });
+
+      // perform update (bulk delete)
+      await update(databaseRef(db, "/"), updates).catch(console.error);
+
+      if (currentFolderId && toDeleteFolders.includes(currentFolderId)) {
+        setCurrentFolderId(null);
+        setSelectedTaskId(null);
+      }
+      closeConfirmModal();
     });
-
-    // store recentlyDeleted for undo (shallow snapshot)
-    setRecentlyDeleted({
-      type: "folder-delete",
-      ids: toDeleteFolders.slice(),
-      data: folderObj,
-      timestamp: Date.now(),
-    });
-
-    // perform update (bulk delete)
-    await update(databaseRef(db, "/"), updates).catch(console.error);
-
-    if (currentFolderId && toDeleteFolders.includes(currentFolderId)) {
-      setCurrentFolderId(null);
-      setSelectedTaskId(null);
-    }
   };
 
   const setFolderColor = async (folderId, color) => {
@@ -1136,11 +1214,11 @@ export default function TdlF() {
             <button
               className="danger"
               onClick={(e) => {
-                const ok = window.confirm("Delete this task?");
-                if (ok) {
+                openConfirmModal("Delete Task", "Are you sure you want to delete this task?", () => {
                   deleteTask(taskId);
                   onClose();
-                }
+                  closeConfirmModal();
+                });
               }}
             >
               Delete
@@ -1739,9 +1817,10 @@ export default function TdlF() {
                       toggleTask(task.id, task.isActive, task.folderId); 
                     } else if (diff < -100) {
                       // Swipe Left -> Delete
-                      if (window.confirm("Delete task?")) {
+                      openConfirmModal("Delete Task", "Are you sure?", () => {
                           deleteTask(task.id);
-                      }
+                          closeConfirmModal();
+                      });
                     }
                   }}
                   style={{
@@ -1949,6 +2028,20 @@ export default function TdlF() {
           </div>
         </form>
       </Modal>
+
+      {/* Confirmation Modal */}
+      {confirmState.isOpen && (
+        <div className="confirm-modal-backdrop" onClick={closeConfirmModal}>
+          <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>{confirmState.title}</h3>
+            <p>{confirmState.message}</p>
+            <div className="confirm-modal-actions">
+              <button className="btn-secondary" onClick={closeConfirmModal}>Cancel</button>
+              <button className="btn-danger" onClick={confirmState.onConfirm}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

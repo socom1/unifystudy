@@ -39,6 +39,7 @@ export const TimerProvider = ({ children }) => {
   
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
+  const [showClaimModal, setShowClaimModal] = useState(false); // New state for anti-abuse modal
 
   // Refs for rAF
   const rafRef = useRef(null);
@@ -185,18 +186,31 @@ export const TimerProvider = ({ children }) => {
 
   const handleComplete = async () => {
     if (mode === "work") {
+      // ANTI-ABUSE: Do not award immediately. Show claim modal.
+      setShowClaimModal(true);
+      // We stop here. User must click "I'm here" to proceed.
+    } else {
+      // Break finished - pure auto-switch or manual?
+      // Original logic was manual start for work... wait:
+      // "switchMode("work", false)" -> manual start.
+      switchMode("work", false); 
+      if("Notification" in window && Notification.permission === "granted")
+          new Notification("Back to Work!", { body: "Ready to focus again? 🚀" });
+    }
+  };
+
+  const confirmClaim = async () => {
+      setShowClaimModal(false);
+      
       setCompletedPomodoros((c) => c + 1);
       setCycleCount((c) => c + 1);
 
-      // --- GAMIFICATION (Unified via Service) ---
+      // --- GAMIFICATION ---
       const durationMinutes = selectedTemplate?.work || 25;
       if (auth.currentUser) {
         try {
-          // 2. Record Session via Service
-          // This handles: stats update, currency, leaderboard, achievements
           const result = await recordStudySession(auth.currentUser.uid, durationMinutes, "pomodoro");
-          
-          addXP(10, "Pomodoro Session"); // Keep XP separate or move to service if desired, currently service handles coins
+          addXP(10, "Pomodoro Session"); // User requested XP too
           
           if (result.earnedCoins > 0 && "Notification" in window && Notification.permission === "granted") {
              const achievementMsg = result.unlocked.length > 0 ? ` and unlocked ${result.unlocked.length} achievements!` : '!';
@@ -204,34 +218,25 @@ export const TimerProvider = ({ children }) => {
                   body: `You finished a session and earned ${result.earnedCoins} Lumens${achievementMsg} 💡`,
               });
           }
+          toast.success(`Session Complete! +${result.earnedCoins} Lumens, +10 XP`);
 
         } catch (error) {
           console.error("❌ Failed to update gamification data:", error);
-          if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Error", { body: "Failed to save session stats." });
-          }
+          toast.error("Failed to save session stats.");
         }
       }
       // --------------------
 
       const nextIsLong = cycleCount + 1 >= (selectedTemplate?.cycles || 4);
       if (nextIsLong) {
-        switchMode("long", true); // Auto-start break
+        switchMode("long", true); 
         setCycleCount(0);
       } else {
-        switchMode("short", true); // Auto-start break
+        switchMode("short", true); 
       }
-    } else {
-      switchMode("work", false); // Manual start for work
-    }
-    
-    if (mode === "work") {
-       if("Notification" in window && Notification.permission === "granted") 
+
+      if("Notification" in window && Notification.permission === "granted") 
           new Notification("Break Time!", { body: "Take a well-deserved break. ☕" });
-    } else {
-       if("Notification" in window && Notification.permission === "granted")
-          new Notification("Back to Work!", { body: "Ready to focus again? 🚀" });
-    }
   };
 
   // Check-in Feature
@@ -273,7 +278,8 @@ export const TimerProvider = ({ children }) => {
         const mm = Math.floor(secs / 60).toString().padStart(2, "0");
         const ss = Math.floor(secs % 60).toString().padStart(2, "0");
         return `${mm}:${ss}`;
-      }
+      },
+      showClaimModal, confirmClaim, // Exposed for UI
   };
 
   return (

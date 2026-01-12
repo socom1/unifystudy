@@ -78,6 +78,26 @@ const YearlyCalendar = () => {
     localStorage.setItem('calendar-events', JSON.stringify(events));
   }, [events]);
 
+  // --- MOCK DATA FOR SCREENSHOT ---
+  useEffect(() => {
+     const MOCK_MODE = false;
+     // Cleanup mock events if they persist
+     const mockIds = ['m1', '3', '4', '5', '6'];
+     setEvents(prev => prev.filter(e => !mockIds.includes(e.id)));
+     
+     if (MOCK_MODE) {
+         setEvents([
+             { id: '1', type: 'holiday', name: "New Year's Day", month: 0, day: 1, year: currentYear },
+             { id: 'm1', type: 'holiday', name: "Winter Break", month: 0, day: 2, endMonth: 0, endDay: 15, year: currentYear },
+             { id: '2', type: 'holiday', name: "Christmas", month: 11, day: 25, year: currentYear },
+             { id: '3', type: 'exam', name: "Physics Midterm", month: 2, day: 15, time: '10:00', year: currentYear },
+             { id: '4', type: 'exam', name: "Calc Final", month: 4, day: 20, time: '13:00', year: currentYear },
+             { id: '5', type: 'holiday', name: "Spring Break", month: 3, day: 5, endMonth: 3, endDay: 12, year: currentYear },
+             { id: '6', type: 'exam', name: "CS Project Due", month: 9, day: 10, time: '23:59', year: currentYear },
+         ]);
+     }
+  }, [currentYear]); // Update when year changes (or just once)
+
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"

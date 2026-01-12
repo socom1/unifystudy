@@ -44,7 +44,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      webSecurity: false, // Disable web security in dev
+      webSecurity: true,
     },
     titleBarStyle: 'hidden', // Hidden title bar for both Mac and Win
     titleBarOverlay: {

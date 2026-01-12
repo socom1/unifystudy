@@ -69,6 +69,27 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
     if (!userId) return;
 
     const eventsRef = ref(db, `users/${userId}/events`);
+    
+    // --- MOCK DATA FOR SCREENSHOT ---
+    const MOCK_MODE = false; 
+    
+    if (MOCK_MODE) {
+        setEvents([
+            { id: '1', title: 'Calculus III', day: 'Monday', start: 10, end: 11, color: colors[0], description: 'Room 304' },
+            { id: '2', title: 'Algorithms', day: 'Monday', start: 14, end: 16, color: colors[6], description: 'Lecture Hall B' },
+            { id: '3', title: 'Physics 101', day: 'Tuesday', start: 13, end: 14, color: colors[5], description: 'Lab Session' },
+            { id: '4', title: 'Digital Logic', day: 'Tuesday', start: 10, end: 12, color: colors[2], description: '' },
+            { id: '5', title: 'Calculus III', day: 'Wednesday', start: 10, end: 11, color: colors[0], description: 'Room 304' },
+            { id: '6', title: 'Algorithms', day: 'Wednesday', start: 14, end: 16, color: colors[6], description: 'Lecture Hall B' },
+            { id: '7', title: 'Physics 101', day: 'Thursday', start: 13, end: 14, color: colors[5], description: 'Lab Session' },
+            { id: '8', title: 'Study Group', day: 'Thursday', start: 16, end: 18, color: colors[1], description: 'Library' },
+            { id: '9', title: 'Calculus III', day: 'Friday', start: 10, end: 11, color: colors[0], description: 'Room 304' },
+            { id: '10', title: 'Gym', day: 'Friday', start: 17, end: 18, color: colors[4], description: 'Leg Day' },
+            { id: '11', title: 'Weekly Review', day: 'Sunday', start: 19, end: 20, color: colors[3], description: 'Plan next week' },
+        ]);
+        return; // Skip real listener
+    }
+
     const unsubscribe = onValue(eventsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -716,10 +737,23 @@ const DayCurrentTimeLine = ({ day }: { day: string }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
+  const MOCK_MODE = true;
+  const displayTime = useMemo(() => {
+      if (MOCK_MODE) {
+          const d = new Date();
+          const currentDay = d.getDay();
+          const distanceToMon = 1 - currentDay; // Force Monday (1)
+          d.setDate(d.getDate() + distanceToMon);
+          d.setHours(10, 30, 0, 0); 
+          return d;
+      }
+      return now;
+  }, [now]);
+
+  const currentHour = displayTime.getHours();
+  const currentMinute = displayTime.getMinutes();
   const startHour = 0;
-  const endHour = 24; // Extended to midnight so line shows late at night
+  const endHour = 24; 
 
   if (currentHour < startHour || currentHour >= endHour) return null;
 
@@ -732,7 +766,7 @@ const DayCurrentTimeLine = ({ day }: { day: string }) => {
     "Friday",
     "Saturday",
   ];
-  const currentDayName = daysArr[now.getDay()];
+  const currentDayName = daysArr[displayTime.getDay()];
 
   if (day !== currentDayName) return null;
 
@@ -803,8 +837,21 @@ const GlobalCurrentTimeLine = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
+  const MOCK_MODE = true;
+  const displayTime = useMemo(() => {
+      if (MOCK_MODE) {
+          const d = new Date();
+          const currentDay = d.getDay();
+          const distanceToMon = 1 - currentDay; // Force Monday
+          d.setDate(d.getDate() + distanceToMon);
+          d.setHours(10, 30, 0, 0);
+          return d;
+      }
+      return now;
+  }, [now]);
+
+  const currentHour = displayTime.getHours();
+  const currentMinute = displayTime.getMinutes();
   const startHour = 0;
   const endHour = 24; // Extended to midnight so line shows late at night
 

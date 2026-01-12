@@ -15,9 +15,22 @@
 
 ## 🚀 About UnifyStudy
 
-UnifyStudy is a powerful, desktop-first productivity platform designed to centralize every aspect of student life. Built with modern web technologies and wrapped in Electron, it combines rigid planning tools with flexible creativity spaces to help you master your studies.
+![Dashboard Preview](assets/dashboard.png)
+
+**UnifyStudy** is the ultimate student productivity platform designed to centralize every aspect of student life. Built with modern web technologies and wrapped in Electron, it combines rigid planning tools with flexible creativity spaces to help you master your studies.
 
 From tracking grades and managing timetables to collaborating in real-time and gamifying your habits, UnifyStudy bridges the gap between academic management and social learning.
+
+## ✨ Core Features
+
+| **Interactive Timetable** | **Yearly Calendar** |
+|:---:|:---:|
+| ![Timetable](assets/timetable.jpg) | ![Yearly Calendar](assets/calendar.jpg) |
+| Manage classes and weekly routines. | Track holidays, exams, and milestones. |
+
+### ✅ Advanced To-Do List
+![To-Do List](assets/todo.jpg)
+*Organize tasks with folders, tags, and priorities.*
 
 ---
 
