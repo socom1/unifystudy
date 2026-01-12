@@ -1027,6 +1027,98 @@ const Chat = () => {
     u.displayName.toLowerCase().includes(userSearch.toLowerCase())
   );
 
+  const renderRow = useCallback((msg, index) => (
+    <motion.div
+    key={msg.id}
+    initial={{ opacity: 0, y: 10 }} // Keep simple entrance
+    animate={{ opacity: 1, y: 0 }}
+    className={`message-row ${
+        msg.uid === user.uid ? "own" : ""
+    }`}
+    >
+     {!anonymousMode && (
+        <div 
+          className="avatar-wrapper"
+          onClick={() => !msg.isAnonymous && openProfile(msg.uid)}
+          style={{ cursor: msg.isAnonymous ? 'default' : 'pointer' }}
+        >
+          <UserAvatar
+          photoURL={msg.photoURL}
+          displayName={msg.displayName}
+          avatarColor={msg.avatarColor}
+          className="message-avatar"
+          />
+        </div>
+     )}
+
+    <div className="message-content">
+        <div className="message-sender">
+        <span
+            className={`sender-name ${
+            msg.role === "Verified Student" || msg.role === "Teacher" ? "verified" : ""
+            }`}
+            onClick={() => !msg.isAnonymous && openProfile(msg.uid)}
+            style={{ cursor: msg.isAnonymous ? 'default' : 'pointer' }}
+        >
+            {msg.displayName}
+            {msg.role === "Verified Student" && (
+            <span className="verified-badge" title="Verified Student">
+                ✓
+            </span>
+            )}
+        </span>
+        <span className="message-time">
+            {msg.timestamp
+            ? new Date(msg.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            })
+            : "Sending..."}
+        </span>
+        {msg.isEdited && <span className="edited-tag">(edited)</span>}
+         </div>
+
+        {msg.replyTo && (
+            <div className="reply-context">
+                <div className="reply-bar"></div>
+                <div className="reply-content">
+                    <span className="reply-author">{msg.replyTo.displayName}</span>
+                    <span className="reply-text">{msg.replyTo.text}</span>
+                </div>
+            </div>
+        )}
+
+        <div className="message-bubble">
+        {msg.type === "image" ? (
+            <div className="image-attachment">
+                <img src={msg.fileURL} alt="attachment" onClick={() => window.open(msg.fileURL, '_blank')} />
+            </div>
+        ) : msg.type === "file" ? (
+             <div className="file-attachment">
+                <File size={20} />
+                <a href={msg.fileURL} target="_blank" rel="noopener noreferrer">
+                    {msg.fileName || "Download File"}
+                </a>
+            </div>
+        ) : (
+            renderMessageText(msg.text)
+        )}
+        </div>
+        
+        {/* Hover Actions */}
+        <div className="msg-actions">
+            <button onClick={() => handleReply(msg)} title="Reply"><Reply size={14} /></button>
+            {msg.uid === user.uid && (
+                <>
+                    <button onClick={() => handleEdit(msg)} title="Edit"><Pencil size={14} /></button>
+                    <button onClick={() => handleDelete(msg.id)} title="Delete" className="delete-btn"><Trash2 size={14} /></button>
+                </>
+            )}
+        </div>
+    </div>
+    </motion.div>
+), [user, anonymousMode, openProfile, handleReply, handleEdit, handleDelete, renderMessageText]);
+
   return (
     <div className="chat-layout">
       {/* Profile Card Modal Removed - Uses Global UIContext */}
