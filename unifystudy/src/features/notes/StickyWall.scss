@@ -69,20 +69,19 @@
     border-radius: 12px;
     padding: 16px;
     color: var(--color-text);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
-    /* Basic z-index, handled by drag controls usually but set logic here */
     z-index: 20;
-    background-color: rgb(30, 30, 40);
-    /* Solid background for legibility */
-    background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.95));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    
+    /* Default (Dark Mode) - Fallback */
+    background: var(--bg-2);
+    
     min-width: 200px;
     min-height: 200px;
+    transition: box-shadow 0.2s, transform 0.2s;
 
     .note-actions {
       position: absolute;
@@ -93,7 +92,7 @@
       button {
         background: transparent;
         border: none;
-        color: #888;
+        color: var(--color-muted);
         cursor: pointer;
         font-size: 18px;
         padding: 4px;
@@ -101,8 +100,8 @@
         line-height: 1;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: #ff5f56;
+          background: rgba(100, 100, 100, 0.1);
+          color: var(--color-danger);
         }
       }
     }
@@ -113,7 +112,7 @@
       font-size: 14px;
       line-height: 1.6;
       margin-top: 10px;
-      color: #e2e8f0;
+      color: var(--color-text); 
       overflow: hidden;
 
       .note-textarea {
@@ -137,15 +136,14 @@
       }
 
       .wiki-link {
-        color: #6366f1;
+        color: var(--color-primary);
         font-weight: 500;
         cursor: pointer;
         text-decoration: underline;
         text-decoration-color: rgba(99, 102, 241, 0.3);
 
         &:hover {
-          color: #818cf8;
-          text-decoration-color: #818cf8;
+          color: var(--color-secondary);
         }
       }
     }
@@ -206,5 +204,29 @@
         font-size: 13px;
       }
     }
+  }
+}
+
+/* Light Mode Specific Overrides */
+[data-theme='light'] .sticky-wall {
+  background-color: var(--bg-1); /* Ensure light background */
+  
+  .wall-area {
+      background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
+  }
+  
+  .sticky-note {
+      background: #ffffff; /* Explicit white for notes */
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      color: #334155;
+      
+      .note-content {
+          color: #334155;
+      }
+      
+      .resize-handle::after {
+           border-color: rgba(0,0,0,0.2);
+      }
   }
 }
