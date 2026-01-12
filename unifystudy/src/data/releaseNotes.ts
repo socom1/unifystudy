@@ -10,11 +10,10 @@ export const releaseNotes: ReleaseNote[] = [
   {
     version: '1.0.5',
     title: 'UnifyStudy 1.0.5 - Chat Stability & Light Mode',
-    description: 'A major stability update for Chat, eliminating all visual jitters and shaking, plus comprehensive Light Mode fixes.',
+    description: 'A major stability update for Chat, eliminating all visual jitters and shaking, plus comprehensive theme fixes.',
     features: [
       '💬 Chat Stability: Fixed "twitching" while typing (Optimized Rendering)',
       '🛹 Smooth Scroll: Eliminated stutter and shake when scrolling to bottom',
-      '🛑 Rubber Banding: Disabled overscroll "shake" for a solid feel',
       '☀️ Light Mode: Fixed hardcoded dark backgrounds in Timetable, Settings & Profile'
     ],
     date: '2026-01-12'
