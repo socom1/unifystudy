@@ -91,7 +91,7 @@ export const processNovaCommand = async (input: string, userId: string, context:
         if (isFollowUp) {
             // Re-interpret input as a schedule command
             
-            let targetDateStr = lowerInput
+            const targetDateStr = lowerInput
                 .replace('how about', '')
                 .replace('what about', '')
                 .replace('and ', '')
@@ -116,7 +116,7 @@ export const processNovaCommand = async (input: string, userId: string, context:
     if (context?.lastTopic === 'TASK_ADD') {
         const isChain = lowerInput.startsWith('and ') || lowerInput.startsWith('also ') || lowerInput.startsWith('add ');
         if (isChain) {
-            let content = lowerInput.replace(/and |also |add /i, '').trim();
+            const content = lowerInput.replace(/and |also |add /i, '').trim();
             // Recursive call as a fresh task command
             return processNovaCommand(`add task ${content}`, userId, context);
         }
@@ -268,7 +268,7 @@ export const processNovaCommand = async (input: string, userId: string, context:
     if (lowerInput.startsWith('replace') || lowerInput.startsWith('change') || lowerInput.startsWith('move')) {
         if (typeof window !== 'undefined') {
             const existing = localStorage.getItem('calendar-events');
-            let events: any[] = existing ? JSON.parse(existing) : [];
+            const events: any[] = existing ? JSON.parse(existing) : [];
             
             let targetName = "";
             let newDetails = "";
@@ -411,7 +411,7 @@ export const processNovaCommand = async (input: string, userId: string, context:
     if (lowerInput.includes('exams') || lowerInput.includes('events') || lowerInput.includes('schedule') || lowerInput.includes('anything today') || lowerInput.includes('what do i have')) {
         // Determine Range
         const now = new Date();
-        let start = new Date(now);
+        const start = new Date(now);
         let end = new Date(now);
         let rangeName = "upcoming";
 
@@ -666,7 +666,7 @@ export const processNovaCommand = async (input: string, userId: string, context:
                 const data = snap.val() || {};
                 const now = Math.floor(Date.now() / 1000);
                 let totalDue = 0;
-                let dueDecks: string[] = [];
+                const dueDecks: string[] = [];
 
                 Object.values(data).forEach((deck: any) => {
                     if (deck.cards) {
@@ -711,8 +711,8 @@ export const processNovaCommand = async (input: string, userId: string, context:
              const now = new Date();
              const holidays = events.filter(e => e.type === 'holiday').map(e => {
                  // Determine next occurrence
-                 let y = now.getFullYear();
-                 let d = new Date(y, e.month, e.day);
+                 const y = now.getFullYear();
+                 const d = new Date(y, e.month, e.day);
                  if (d < now) {
                      d.setFullYear(y + 1);
                  }
