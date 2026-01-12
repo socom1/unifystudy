@@ -506,12 +506,8 @@ export default function ProfilePage() {
         </motion.div >
 
         {/* Customize Panel (Moved to Left Column) */}
-        < motion.div
+        <div
           className="panel"
-          initial={{ opacity: 0, y: 6 }
-          }
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, delay: 0.08 }}
           style={{ marginTop: "1.5rem" }}
         >
           <div className="section-title">// customize</div>
@@ -693,14 +689,11 @@ export default function ProfilePage() {
               Save Customization
             </button>
           </div>
-        </motion.div >
+        </div >
 
         {/* Subscription Card */}
-        < motion.div
+        <div
           className="profile-card"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
           style={{
             border: '1px solid rgba(255, 215, 0, 0.3)',
             background: 'linear-gradient(145deg, var(--bg-secondary), rgba(255, 215, 0, 0.05))',
@@ -763,15 +756,12 @@ export default function ProfilePage() {
               Upgrade to Pro <Zap size={16} fill="currentColor" />
             </button>
           </div >
-        </motion.div >
+        </div >
 
         {/* Right column: settings/customization, security, account */}
         < div className="side-column" >
-          <motion.div
+          <div
             className="panel"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.06 }}
           >
             <div className="section-title">// verification</div>
             <div className="panel-body">
@@ -796,15 +786,12 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
 
           {/* Settings Shortcut */}
-          <motion.div
+          <div
             className="panel"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.08 }}
           >
             <div className="section-title">// account settings</div>
             <div className="panel-body">
@@ -815,7 +802,7 @@ export default function ProfilePage() {
                 Go to Settings
               </a>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 

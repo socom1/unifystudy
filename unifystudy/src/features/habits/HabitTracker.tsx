@@ -204,9 +204,9 @@ export default function HabitTracker() {
                            <th style={{width: '50px'}}></th>
                        </tr>
                    </thead>
-                   <motion.tbody variants={containerVariants} initial="hidden" animate="show">
+                   <tbody>
                        {habits.map(habit => (
-                           <motion.tr key={habit.id} variants={itemVariants}>
+                           <tr key={habit.id}>
                                <td>
                                    <div className="habit-name">
                                        <div className="habit-color" style={{background: habit.color}}></div>
@@ -233,9 +233,9 @@ export default function HabitTracker() {
                                <td>
                                    <button className="habit-delete" onClick={() => deleteHabit(habit.id)}><Trash2 size={16}/></button>
                                </td>
-                           </motion.tr>
+                           </tr>
                        ))}
-                   </motion.tbody>
+                   </tbody>
                </table>
            )}
        </div>

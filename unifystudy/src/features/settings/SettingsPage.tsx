@@ -351,12 +351,7 @@ export default function SettingsPage() {
 
   return (
     <div className="settings-page">
-      <motion.div
-        className="settings-container"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <div className="settings-container">
         <header className="settings-header">
           <h1>Settings</h1>
           <p>Manage your account preferences and app settings</p>
@@ -364,12 +359,7 @@ export default function SettingsPage() {
 
         <div className="settings-grid">
           {/* Interface Section */}
-          <motion.section
-            className="settings-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
+          <section className="settings-section">
             <div className="section-header">
               <Monitor size={20} />
               <h2>Interface</h2>
@@ -390,15 +380,10 @@ export default function SettingsPage() {
                 </label>
               </div>
             </div>
-          </motion.section>
+          </section>
 
           {/* Notifications Section */}
-          <motion.section
-            className="settings-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <section className="settings-section">
             <div className="section-header">
               <Bell size={20} />
               <h2>Notifications</h2>
@@ -484,15 +469,10 @@ export default function SettingsPage() {
                 </label>
               </div>
             </div>
-          </motion.section>
+          </section>
 
           {/* Privacy Section */}
-          <motion.section
-            className="settings-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <section className="settings-section">
             <div className="section-header">
               <Shield size={20} />
               <h2>Privacy</h2>
@@ -538,15 +518,10 @@ export default function SettingsPage() {
                 </label>
               </div>
             </div>
-          </motion.section>
+          </section>
 
           {/* Security Section */}
-          <motion.section
-            className="settings-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-          >
+          <section className="settings-section">
             <div className="section-header">
               <Lock size={20} />
               <h2>Security</h2>
@@ -629,15 +604,10 @@ export default function SettingsPage() {
                 <div id="recaptcha-container"></div>
               </div>
             </div>
-          </motion.section>
+          </section>
 
-          {/* Integrations Section - NEW */}
-          <motion.section
-            className="settings-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.45 }}
-          >
+          {/* Integrations Section */}
+          <section className="settings-section">
             <div className="section-header">
               <Globe size={20} />
               <h2>Integrations</h2>
@@ -656,15 +626,10 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-          </motion.section>
+          </section>
 
-          {/* Account Details Section - NEW (Emails) */}
-          <motion.section
-            className="settings-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.48 }}
-          >
+          {/* Account Details Section */}
+          <section className="settings-section">
             <div className="section-header">
               <User size={20} />
               <h2>Account Details</h2>
@@ -693,15 +658,10 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
-          </motion.section>
+          </section>
 
           {/* Data Management Section */}
-          <motion.section
-            className="settings-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-          >
+          <section className="settings-section">
             <div className="section-header">
               <Database size={20} />
               <h2>Data Management</h2>
@@ -725,15 +685,10 @@ export default function SettingsPage() {
                 Permanently delete your account and all associated data
               </p>
             </div>
-          </motion.section>
+          </section>
 
           {/* About Section */}
-          <motion.section
-            className="settings-section"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6 }}
-          >
+          <section className="settings-section">
             <div className="section-header">
               <HelpCircle size={20} />
               <h2>About</h2>
@@ -761,7 +716,7 @@ export default function SettingsPage() {
                 Terms of Service
               </a>
             </div>
-          </motion.section>
+          </section>
         </div>
 
         {/* Sticky Save Button - Only show when changes exist */}
@@ -780,7 +735,7 @@ export default function SettingsPage() {
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

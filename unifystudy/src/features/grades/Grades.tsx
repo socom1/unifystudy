@@ -319,13 +319,12 @@ export default function SubjectHub() {
                 </button>
               </form>
 
-              <motion.div className="subjects-list" variants={containerVariants} initial="hidden" animate="show">
+              <div className="subjects-list">
                 {subjects.map((sub) => {
                   const avg = calculateAverage(sub.assessments);
                   return (
-                    <motion.div
+                    <div
                       key={sub.id}
-                      variants={itemVariants}
                       className={`subject-card ${
                         selectedSubject?.id === sub.id ? "active" : ""
                       }`}
@@ -342,10 +341,10 @@ export default function SubjectHub() {
                       </div>
                       {/* Mobile Arrow Indicator */}
                       {isMobile && <ArrowRight size={16} style={{marginLeft:'auto', opacity:0.5}} />}
-                    </motion.div>
+                    </div>
                   );
                 })}
-              </motion.div>
+              </div>
             </div>
         )}
 

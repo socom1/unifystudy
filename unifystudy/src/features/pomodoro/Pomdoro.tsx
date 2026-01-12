@@ -304,7 +304,7 @@ export default function Pomodoro({ zenMode = false }) {
             className="zen-templates"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ duration: 0.15 }}
           >
             <h3 className="zen-templates-label">Templates</h3>
             <div className="zen-templates-list">

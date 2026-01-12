@@ -507,7 +507,7 @@ export default function Dashboard({ user }) {
                             className="bar-fill"
                             initial={{ height: 0 }}
                             animate={{ height: `${heightPercent}%` }}
-                            transition={{ delay: i * 0.1, duration: 0.5 }}
+                            transition={{ duration: 0.3 }}
                             />
                             {day.minutes > 0 && <div className="bar-tooltip">{day.minutes}m</div>}
                         </div>
@@ -521,22 +521,22 @@ export default function Dashboard({ user }) {
             {/* Row 3: Bottom Widgets (Quote & Tip) */}
             <div className="bottom-widgets-row">
                 {/* Quote */}
-                <motion.div className="widget-card quote-card styled-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="widget-card quote-card styled-card">
                     <div className="card-decoration quote-deco"><Quote size={80} /></div>
                     <div className="quote-content">
                         <Quote size={20} className="small-icon" />
                         <p className="quote-text">"The secret of getting ahead is getting started."</p>
                         <span className="quote-author">— Mark Twain</span>
                     </div>
-                </motion.div>
+                </div>
                 {/* Tip */}
-                <motion.div className="widget-card tip-card styled-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                <div className="widget-card tip-card styled-card">
                     <div className="card-decoration bulb-deco"><Lightbulb size={80} /></div>
                     <div className="tip-content">
                         <div className="tip-header"><Lightbulb size={18} /> Daily Tip</div>
                         <p>{todaysTip}</p>
                     </div>
-                </motion.div>
+                </div>
             </div>
         </div>
 

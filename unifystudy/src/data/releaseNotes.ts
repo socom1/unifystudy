@@ -8,6 +8,17 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.0.7',
+    title: 'UnifyStudy 1.0.7 - Zero-Stutter Update',
+    description: 'A performance-focused update that eliminates all animation stutter and lag during navigation.',
+    features: [
+      '⚡ Zero-Stutter: Optimized page transitions for a lightning-fast feel',
+      '🎯 Animation Fixes: Removed staggered entry animations across Settings, Profile, Dashboard, Grades, and Habit Tracker',
+      '📉 Snap Load: Pages now render instantly as single units without staggered sections'
+    ],
+    date: '2026-01-12'
+  },
+  {
     version: '1.0.6',
     title: 'UnifyStudy 1.0.6 - UI Polish & Confirmation Modals',
     description: 'A refinement update with nicer delete confirmations, improved To-Do styling, and README screenshots.',

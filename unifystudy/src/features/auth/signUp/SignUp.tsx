@@ -309,7 +309,7 @@ export default function SignUp({ onLoginSuccess }) {
         <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
+            transition={{ duration: 0.2 }}
             className="web-download-prompt"
         >
             <p>Want the best experience?</p>
