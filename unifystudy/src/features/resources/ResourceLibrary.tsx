@@ -387,7 +387,7 @@ const ResourceLibrary = ({ user }) => {
                             <h3>{previewFile.name}</h3>
                             <button onClick={() => setPreviewFile(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={24} /></button>
                         </header>
-                        <div style={{ flex: 1, background: '#000', position: 'relative' }}>
+                        <div style={{ flex: 1, background: 'var(--bg-1)', position: 'relative' }}>
                              {previewFile.type === 'pdf' ? (
                                  <iframe src={previewFile.url} width="100%" height="100%" />
                              ) : (

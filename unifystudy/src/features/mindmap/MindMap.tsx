@@ -58,7 +58,7 @@ const GlassNode = ({ data, selected }) => {
           
           {/* Paragraph Description Box */}
           {data.nodeType === 'paragraph' && data.description && (
-            <div className="glass-node-description" style={{ color: data.textColor ? `${data.textColor}cc` : 'rgba(255,255,255,0.7)' }}>
+            <div className="glass-node-description" style={{ color: data.textColor ? `${data.textColor}cc` : 'var(--color-text-dim)' }}>
                 {data.description}
             </div>
           )}
