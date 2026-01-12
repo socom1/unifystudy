@@ -1676,6 +1676,13 @@ const Chat = () => {
             <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>
                  <PageLoader message="Loading messages..." />
             </div>
+          ) : messages.length === 0 ? (
+             <EmptyState 
+                icon={<MessageSquare size={48}/>} 
+                title="No messages yet" 
+                description="Be the first to start the conversation!" 
+             />
+          ) : (
             <VirtualMessageList
               messages={messages}
               renderRow={renderRow}
