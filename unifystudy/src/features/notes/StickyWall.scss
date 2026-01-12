@@ -208,25 +208,47 @@
 }
 
 /* Light Mode Specific Overrides */
-[data-theme='light'] .sticky-wall {
-  background-color: var(--bg-1); /* Ensure light background */
-  
-  .wall-area {
-      background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
-  }
-  
-  .sticky-note {
-      background: #ffffff; /* Explicit white for notes */
-      border: 1px solid rgba(0,0,0,0.1);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      color: #334155;
-      
-      .note-content {
-          color: #334155;
-      }
-      
-      .resize-handle::after {
-           border-color: rgba(0,0,0,0.2);
-      }
-  }
+/* Light Mode Specific Overrides */
+[data-theme='light'] {
+    .sticky-wall {
+        background-color: var(--bg-1) !important; /* Force light background */
+        background: var(--bg-1) !important;
+        
+        .wall-header {
+            background-color: var(--bg-1) !important;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+
+             h1 {
+                color: #0f172a !important;
+             }
+        }
+
+        .wall-area {
+            background-color: var(--bg-1) !important;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px) !important; /* Visible dots */
+        }
+        
+        .sticky-note {
+            background: #ffffff !important; /* Explicit white */
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            color: #0f172a !important;
+            
+            .note-content {
+                color: #334155 !important;
+            }
+            
+            .resize-handle::after {
+                border-color: #94a3b8 !important;
+            }
+
+            .note-actions button {
+                color: #64748b;
+                &:hover {
+                    color: #ef4444;
+                    background: rgba(0,0,0,0.05);
+                }
+            }
+        }
+    }
 }
