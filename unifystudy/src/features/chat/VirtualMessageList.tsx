@@ -21,7 +21,7 @@ const VirtualMessageList = <T,>({
     <div style={{ height: '100%', width: '100%' }}>
       <Virtuoso
         ref={virtuosoRef}
-        style={{ height: '100%', width: '100%', overscrollBehavior: 'contain' }}
+        style={{ height: '100%', width: '100%', overscrollBehavior: 'none' }}
         totalCount={messages.length}
         itemContent={(index) => renderRow(messages[index], index)}
         followOutput="auto"
