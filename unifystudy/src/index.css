@@ -107,9 +107,11 @@ html {
 [data-theme='light'] body,
 [data-theme='light'] #root,
 [data-theme='light'] .app-layout,
-[data-theme='light'] .main-content {
+[data-theme='light'] .main-content,
+[data-theme='light'] .full-size {
   background-color: var(--bg-1) !important;
   color: var(--color-text) !important;
+  background-image: none !important; /* Ensure no dark gradients bleed through */
 }
 
 [data-theme='light'] .main-content::before {
