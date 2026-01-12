@@ -412,7 +412,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
                     borderRadius: '8px',
                     border: '1px solid var(--glass-border)',
                     background: 'var(--bg-1)', 
-                    color: 'white'
+                    color: 'var(--color-text)'
                 }}
             />
         </div>

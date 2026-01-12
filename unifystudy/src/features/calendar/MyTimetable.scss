@@ -499,14 +499,25 @@
 /* Light Mode Container Overrides */
 [data-theme='light'] {
     .calendar-container {
-        /* Ensure the main container doesn't introduce darkness */
-        background: transparent !important; 
+        /* Ensure the main container is explicitly light */
+        background: var(--bg-1) !important; 
     }
 
     .calendar-wrapper {
         background: #ffffff !important; /* Solid white */
         border: 1px solid #e2e8f0 !important;
         box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
+    }
+    
+    .event-box {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-left: 4px solid var(--event-color) !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+        
+        .event-title, .event-time {
+            color: #0f172a !important;
+        }
     }
     
     .time-sidebar {
@@ -521,6 +532,10 @@
     .header-row-sticky {
         background: #ffffff !important;
         border-bottom: 1px solid #e2e8f0 !important;
+    }
+    
+    .days-header-row {
+        background: #ffffff !important;
     }
     
     .day-column {
