@@ -219,7 +219,7 @@
 
   .grid-line-row {
     width: 100%;
-    border-top: 1px solid rgba(255, 255, 255, 0.03); /* Softer lines */
+    border-top: 1px solid var(--glass-border); /* Use variable */
     box-sizing: border-box;
   }
 }
@@ -241,7 +241,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255, 255, 255, 0.03); /* Softer lines */
+  border-right: 1px solid var(--glass-border); /* Use variable */
   position: relative;
 
   &:last-child {
@@ -287,7 +287,7 @@
 
   .event-title {
     font-weight: 700;
-    color: #fff;
+    color: var(--color-text); /* Use variable instead of #fff */
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -297,7 +297,19 @@
   .event-time {
     opacity: 0.8;
     font-size: 0.7rem;
-    color: #fff;
+    color: var(--color-text); /* Use variable instead of #fff */
+  }
+
+  /* Specific handling for dark text on light glass backgrounds if needed */
+  [data-theme='light'] & {
+      border-left-width: 4px;
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-left: 4px solid var(--event-color, #4b6c82);
+      
+      .event-title, .event-time {
+          color: #1e293b; /* Dark text for light mode events */
+      }
   }
 }
 
