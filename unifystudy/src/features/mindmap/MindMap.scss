@@ -261,13 +261,13 @@ $radius: 12px;
 
   // Force white dots
   .mm-background {
-    background-color: #1a1a1a;
+    background-color: var(--bg-1);
     circle {
-      fill: #ffffff !important;
-      opacity: 0.8 !important; // Increased opacity for visibility
+      fill: var(--color-text-dim) !important;
+      opacity: 0.2 !important; 
     }
     path {
-      stroke: #ffffff !important; // Just in case it renders as path
+      stroke: var(--color-text-dim) !important; 
     }
   }
 
@@ -533,40 +533,72 @@ $radius: 12px;
   }
 }
 
-/* Light Mode Overrides for MindMap */
+/* Light Mode Overrides for MindMap (NUCLEAR OPTION) */
 [data-theme='light'] {
+  .mm-app,
+  .mm-main,
+  .mm-canvas-area,
+  .mm-editor-container,
+  .react-flow,
+  .react-flow__pane,
+  .mm-background,
   .react-flow-wrapper {
-    background: var(--bg-1) !important;
-    
-    .react-flow__controls {
-        background: #ffffff;
-        border-color: #e2e8f0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        
-        button {
-            border-bottom-color: #e2e8f0;
-            fill: #475569;
-            &:hover { background: #f1f5f9; }
-        }
-    }
-    
-    .react-flow__background {
-        background: var(--bg-1);
-        circle { fill: #cbd5e1; }
-    }
+      background: var(--bg-1) !important;
+      background-color: var(--bg-1) !important;
+  }
+
+  .react-flow__controls {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      
+      button {
+          border-bottom-color: #e2e8f0;
+          fill: #475569;
+          background: #f8fafc;
+          &:hover { background: #f1f5f9; }
+      }
+  }
+  
+  .glass-node {
+      background: #ffffff !important;
+      color: #0f172a !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+
+      .glass-node-header,
+      .glass-node-subheader,
+      .glass-node-text {
+          color: #0f172a !important;
+      }
+      
+      .glass-node-description {
+          background: #f1f5f9 !important;
+          color: #475569 !important;
+      }
+      
+      .glass-handle {
+          border-color: #ffffff !important; 
+      }
   }
 
   .mindmap-sidebar {
-     background: #ffffff;
-     border-left: 1px solid #e2e8f0;
+     background: #ffffff !important;
+     border-left: 1px solid #e2e8f0 !important;
      
-     h3, label { color: #0f172a; }
+     h3, label, .mm-folder-name, button { color: #0f172a !important; }
+     
      input, select, textarea {
-         background: #f8fafc;
-         border-color: #e2e8f0;
-         color: #0f172a;
+         background: #f8fafc !important;
+         border-color: #e2e8f0 !important;
+         color: #0f172a !important;
      }
      
+     .mm-sidebar-footer {
+         color: #94a3b8 !important;
+         border-top-color: #e2e8f0 !important;
+     }
+
      .node-style-editor .color-picker .colors-grid .color-swatch {
          border: 1px solid rgba(0,0,0,0.1);
      }
