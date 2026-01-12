@@ -18,7 +18,7 @@ const VirtualMessageList = <T,>({
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   return (
-    <div style={{ height: '100%', width: '100%' }}>
+    <div style={{ height: '100%', width: '100%', overscrollBehavior: 'none' }}>
       <Virtuoso
         ref={virtuosoRef}
         style={{ height: '100%', width: '100%', overscrollBehavior: 'none' }}

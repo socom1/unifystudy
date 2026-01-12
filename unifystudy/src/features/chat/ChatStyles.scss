@@ -297,6 +297,7 @@
       /* gap: 16px; REMOVED - doesn't work with Virtuoso wrapper */
       background: var(--bg-2);
       position: relative;
+      overscroll-behavior: none; // Disable rubber banding
       /* Ensure it contains the absolute children */
 
       /* Custom Scrollbar */
