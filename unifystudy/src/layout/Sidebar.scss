@@ -639,4 +639,72 @@
   }
 }
 
+/* Light Mode Specific Overrides */
+[data-theme='light'] {
+  .sidebar {
+    background: var(--bg-2); /* Use pure white for sidebar usually in light mode apps */
+    border-right: 1px solid rgba(0,0,0,0.08);
+
+    .sidebar-header {
+        .logo-container .logo-icon {
+            background: rgba(59, 130, 246, 0.1); /* Blue tint */
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+    }
+
+    .nav-item {
+        color: #64748b; /* Slate-500 */
+        
+        &:hover {
+            background: rgba(0, 0, 0, 0.05); /* Darken on hover */
+            color: #0f172a; /* Dark text */
+        }
+
+        &.active {
+            background: rgba(59, 130, 246, 0.1); /* Blue tint */
+            color: var(--color-primary);
+        }
+        
+        .section-label {
+            color: #94a3b8;
+        }
+    }
+
+    /* User Section */
+    .sidebar-footer .user-section {
+        .user-info .avatar {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.1);
+            color: #333;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+    }
+
+    /* Scrollbar for light mode */
+    &::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        &:hover { background: rgba(0,0,0,0.2); }
+    }
+  }
+
+  /* Mobile Top Bar */
+  .mobile-top-bar {
+      background: rgba(255,255,255,0.9);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      
+      .logo-container .logo-icon {
+          background: rgba(59, 130, 246, 0.1);
+      }
+      
+      .mobile-menu-btn {
+          color: #333;
+      }
+  }
+}
+
 
