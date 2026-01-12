@@ -748,8 +748,11 @@ export default function SettingsPage() {
                 <span>2024.12.28</span>
               </div>
               <div className="divider" />
-              <a href="https://github.com/unifystudy" target="_blank" rel="noopener noreferrer" className="about-link">
+              <a href="https://github.com/socom1/unifystudy" target="_blank" rel="noopener noreferrer" className="about-link">
                 GitHub Repository
+              </a>
+              <a href="https://github.com/socom1/unifystudy/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="about-link">
+                License
               </a>
               <a href="/privacy" className="about-link">
                 Privacy Policy

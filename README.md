@@ -79,7 +79,7 @@ Follow these steps to set up the project locally.
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/rejuszuzevicius/unifystudy.git
+    git clone https://github.com/socom1/unifystudy.git
     cd unifystudy
     ```
 
