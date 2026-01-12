@@ -311,36 +311,14 @@ export default function SignUp({ onLoginSuccess }) {
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
             className="web-download-prompt"
-            style={{
-                marginTop: '2rem',
-                textAlign: 'center',
-                paddingTop: '2rem',
-                borderTop: '1px solid var(--glass-border)',
-                width: '100%',
-                maxWidth: '400px'
-            }}
         >
-            <p style={{ color: 'var(--color-muted)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                Want the best experience?
-            </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <p>Want the best experience?</p>
+            <div className="download-buttons">
                 <a 
                     href="https://github.com/rejuszuzevicius/unifystudy/releases/latest/download/UnifyStudy-mac.dmg" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="download-link"
-                    style={{
-                        padding: '8px 16px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid var(--glass-border)',
-                        borderRadius: '8px',
-                        color: 'var(--color-text)',
-                        textDecoration: 'none',
-                        fontSize: '0.8rem',
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px'
-                    }}
                 >
                     🍎 Mac
                 </a>
@@ -349,18 +327,6 @@ export default function SignUp({ onLoginSuccess }) {
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="download-link"
-                    style={{
-                        padding: '8px 16px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid var(--glass-border)',
-                        borderRadius: '8px',
-                        color: 'var(--color-text)',
-                        textDecoration: 'none',
-                        fontSize: '0.8rem',
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px'
-                    }}
                 >
                     🪟 Windows
                 </a>
