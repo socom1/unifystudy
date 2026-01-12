@@ -532,3 +532,43 @@ $radius: 12px;
     }
   }
 }
+
+/* Light Mode Overrides for MindMap */
+[data-theme='light'] {
+  .react-flow-wrapper {
+    background: var(--bg-1) !important;
+    
+    .react-flow__controls {
+        background: #ffffff;
+        border-color: #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        
+        button {
+            border-bottom-color: #e2e8f0;
+            fill: #475569;
+            &:hover { background: #f1f5f9; }
+        }
+    }
+    
+    .react-flow__background {
+        background: var(--bg-1);
+        circle { fill: #cbd5e1; }
+    }
+  }
+
+  .mindmap-sidebar {
+     background: #ffffff;
+     border-left: 1px solid #e2e8f0;
+     
+     h3, label { color: #0f172a; }
+     input, select, textarea {
+         background: #f8fafc;
+         border-color: #e2e8f0;
+         color: #0f172a;
+     }
+     
+     .node-style-editor .color-picker .colors-grid .color-swatch {
+         border: 1px solid rgba(0,0,0,0.1);
+     }
+  }
+}
