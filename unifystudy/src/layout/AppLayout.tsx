@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
-import InvitationModal from "@/features/collaboration/InvitationModal";
+// import InvitationModal from "@/features/collaboration/InvitationModal";
 
 const Dashboard = React.lazy(() => import("@/features/dashboard/Dashboard"));
 const SignUp = React.lazy(() => import("@/features/auth/signUp/SignUp"));
@@ -20,7 +20,7 @@ const Shop = React.lazy(() => import("@/features/shop/Shop"));
 const MindMap = React.lazy(() => import("@/features/mindmap/MindMap"));
 const ResourceLibrary = React.lazy(() => import("@/features/resources/ResourceLibrary"));
 const YearlyCalendar = React.lazy(() => import("@/features/calendar/YearlyCalendar"));
-const Workspace = React.lazy(() => import("@/features/collaboration/Workspace"));
+// const Workspace = React.lazy(() => import("@/features/collaboration/Workspace"));
 
 const Chat = React.lazy(() => import("@/features/chat/Chat"));
 const Nova = React.lazy(() => import("@/features/nova/Nova"));
@@ -149,7 +149,7 @@ const AppLayout = () => {
   return (
     <TimerProvider>
       <div className="app-layout">
-        <InvitationModal />
+        {/* <InvitationModal /> */}
         
         {/* Use Context State for Sidebar */}
         <Sidebar />
@@ -216,11 +216,13 @@ const AppLayout = () => {
                   </motion.div>
                 } />
 
+                {/* WORKSPACE REMOVED FOR ARCHIVE
                 <Route path="/workspace" element={
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="full-size">
                     <Workspace user={user} />
                   </motion.div>
                 } />
+                */}
 
                 <Route path="/profile" element={
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="full-size">

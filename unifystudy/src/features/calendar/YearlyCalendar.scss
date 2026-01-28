@@ -380,6 +380,7 @@
             
             &.holiday { background: #10b981; }
             &.exam { background: #ef4444; }
+            &.todo { background: var(--color-primary); }
           }
         }
       }
@@ -544,6 +545,7 @@
 
         &.holiday { border-left: 4px solid #10b981; }
         &.exam { border-left: 4px solid #ef4444; }
+        &.todo { border-left: 4px solid var(--color-primary); }
 
         .icon-btn {
             background: transparent;

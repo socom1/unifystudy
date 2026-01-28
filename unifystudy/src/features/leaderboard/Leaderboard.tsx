@@ -63,7 +63,6 @@ export default function Leaderboard() {
         const arr = Object.entries(typedData).map(([uid, val]) => {
           let time = 0;
           const isAnonymous = val.settings?.anonymousMode === true;
-          // ... (existing logic)
           const profileTag = val.settings?.customization?.profileTag || "";
 
           // Base user object

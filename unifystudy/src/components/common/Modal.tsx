@@ -13,8 +13,9 @@ import { X } from 'lucide-react';
  * - children: ReactNode (body content)
  * - footer: ReactNode (buttons, etc.)
  * - size: 'sm' | 'md' | 'lg' (default: 'md')
+ * - className: string (custom class for container)
  */
-export default function Modal({ isOpen, onClose, title, children, footer, size = 'md' }) {
+export default function Modal({ isOpen, onClose, title, children, footer, size = 'md', className = '' }) {
   
   // Close on Escape key
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
             transition={{ duration: 0.2 }}
         >
           <motion.div 
-            className="modal-container"
+            className={`modal-container ${className}`}
             style={{ maxWidth: maxWidths[size] }}
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, scale: 0.95, y: "-50%", x: "-50%" }}

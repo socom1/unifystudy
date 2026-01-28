@@ -35,24 +35,20 @@
   backdrop-filter: none;
 
   h2 {
-    font-size: 1.8rem; /* Bigger, bolder title since no box */
+    font-size: 1.8rem;
     font-weight: 800;
     color: var(--color-text);
-    text-shadow: none;
     letter-spacing: -1px;
-    background: linear-gradient(135deg, var(--color-text), var(--color-primary));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    /* Removed gradient text for cleaner look */
   }
 
   button {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    background: var(--bg-2); /* More subtle buttons */
+    background: var(--bg-2);
     color: var(--color-text);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
     padding: 0.6rem 1.2rem;
     border-radius: 12px;
     cursor: pointer;
@@ -61,234 +57,53 @@
     box-shadow: none;
 
     &:hover {
-      background: var(--color-primary);
-      color: white;
-      border-color: var(--color-primary);
+      background: var(--glass-bg);
+      border-color: var(--color-text-dim);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
     }
   }
 
-  .header-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-  }
+  /* ... */
 }
 
-.calendar-wrapper {
-  flex: 1;
-  overflow: hidden;
-  border-radius: 24px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg); 
-  backdrop-filter: blur(20px);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-}
-
-.calendar-body {
-  flex: 1;
-  display: flex;
-  overflow-y: auto;
-  overflow-x: auto;
-  position: relative;
-}
-
-/* Time Sidebar */
-.time-sidebar {
-  flex: 0 0 var(--time-col-width);
-  position: sticky;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; 
-  position: relative;
-  background: rgba(0,0,0,0.2);
-  border-right: 1px solid var(--glass-border); 
-  z-index: 20;
-}
-
-/* 1. Sticky Header Row (Days + Spacer) */
-.header-row-sticky {
-  display: flex;
-  height: var(--header-height);
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--glass-border);
-  z-index: 30;
-  flex-shrink: 0; 
-}
-
-.time-header-spacer {
-  width: var(--time-col-width); 
-  flex-shrink: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.03);
-  background: transparent; 
-}
-
-.days-header-row {
-  flex: 1;
-  display: flex;
-  padding: 0.5rem 0;
-  
-  .day-header-cell {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    padding: 0.4rem;
-    
-    span {
-      font-weight: 700;
-      font-size: 0.9rem;
-      color: var(--color-muted);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-    }
-
-    /* Highlight Today */
-    &.today span {
-        color: var(--color-primary);
-        text-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.4);
-    }
-    
-    border-right: none; 
-
-    .mobile-day { display: none; }
-    .desktop-day { display: block; }
-
-    @media (max-width: 768px) {
-      .desktop-day { display: none; }
-      .mobile-day { display: block; }
-    }
-  }
-}
-
-/* 2. Scrollable Body (Times + Grid) */
-.calendar-scroll-area {
-  flex: 1;
-  overflow-y: auto; 
-  overflow-x: hidden;
-  position: relative;
-}
-
-.calendar-content {
-  display: flex;
-  min-height: 100%;
-  position: relative;
-}
-
-/* A. Time Sidebar Labels */
-.time-sidebar {
-  .time-label {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    font-size: 0.75rem;
-    color: var(--color-muted);
-    opacity: 0.6;
-    
-    span {
-      transform: translateY(-50%); 
-      background: transparent;
-      padding: 2px 4px;
-    }
-  }
-}
-
-/* B. Days Grid Body */
-.days-grid-body {
-  flex: 1;
-  position: relative;
-}
-
-/* Wrapper for grid content */
-.days-content-wrapper {
-  position: relative;
-  min-height: 100%;
-}
-
-/* Layer A: Background Grid */
-.background-grid {
-  width: 100%;
-  z-index: 1;
-  pointer-events: none;
-
-  .grid-line-row {
-    width: 100%;
-    border-top: 1px solid var(--glass-border); /* Use variable */
-    box-sizing: border-box;
-  }
-}
-
-/* Layer B: Events Layer */
-.events-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  z-index: 5;
-  pointer-events: none; 
-}
-
-/* Day Column */
-.day-column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--glass-border); /* Use variable */
-  position: relative;
-
-  &:last-child {
-    border-right: none;
-  }
-
-  .day-content {
-    flex: 1;
-    position: relative;
-  }
-}
+/* ... */
 
 /* Event Box */
 .event-box {
   position: absolute;
   left: 6px;
   right: 6px;
-  background: rgba(30, 41, 59, 0.75); 
-  border-left: 4px solid var(--event-color, #4b6c82); 
-  border-radius: 8px; /* Rounder */
+  /* Restored Visual Structure */
+  background: var(--bg-2);
+  border-left: 4px solid var(--event-color, var(--color-primary)); 
+  border-radius: 8px;
   padding: 6px 10px;
   font-size: 0.8rem;
   overflow: hidden;
   cursor: pointer;
   
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  /* Distinct border and shadow */
+  border-top: 1px solid var(--glass-border);
+  border-right: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  
+  /* Ensure it's not transparent */
   z-index: 10; 
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.2s ease;
   pointer-events: auto;
 
   &:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    background: var(--bg-1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     z-index: 100;
+    border-color: var(--color-text-dim);
   }
 
   .event-title {
-    font-weight: 700;
-    color: var(--color-text); /* Use variable instead of #fff */
+    font-weight: 600;
+    color: var(--color-text);
     margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
@@ -296,22 +111,12 @@
   }
 
   .event-time {
-    opacity: 0.8;
-    font-size: 0.7rem;
-    color: var(--color-text); /* Use variable instead of #fff */
+    opacity: 0.7;
+    font-size: 0.75rem;
+    color: var(--color-muted);
   }
 
-  /* Specific handling for dark text on light glass backgrounds if needed */
-  [data-theme='light'] & {
-      border-left-width: 4px;
-      background: rgba(255, 255, 255, 0.4);
-      border: 1px solid rgba(0,0,0,0.1);
-      border-left: 4px solid var(--event-color, #4b6c82);
-      
-      .event-title, .event-time {
-          color: #1e293b; /* Dark text for light mode events */
-      }
-  }
+  /* ... */
 }
 
 .global-time-line-active {

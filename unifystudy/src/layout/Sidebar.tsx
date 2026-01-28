@@ -144,12 +144,7 @@ const SidebarContent = React.memo(({
             isCollapsed={isCollapsed}
             isMobile={isMobileState}
           />
-          <NavItem
-            item={{ iconElement: <Sparkles size={22} />, label: "Nova Assistant", to: "/nova" }}
-            location={location}
-            isCollapsed={isCollapsed}
-            isMobile={isMobileState}
-          />
+{/* Nova Assistant Removed */}
         </div>
 
         {/* STUDY & COLLAB Section */}
@@ -174,12 +169,12 @@ const SidebarContent = React.memo(({
             isCollapsed={isCollapsed}
             isMobile={isMobileState}
           />
-          <NavItem
+          {/* <NavItem
             item={{ iconElement: <Users size={22} />, label: "Collaborative Workspace", to: "/workspace" }}
             location={location}
             isCollapsed={isCollapsed}
             isMobile={isMobileState}
-          />
+          /> */}
 
 
           {renderNavItem({ icon: MessageSquare, label: "Chat", to: "/chat", badge: unreadCount })}

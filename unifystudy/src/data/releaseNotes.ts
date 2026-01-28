@@ -8,6 +8,18 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.1.0',
+    title: 'UnifyStudy 1.1.0 - To-Do Redesign & Refocus',
+    description: 'A comprehensive minor update featuring a complete redesign of the To-Do system, Focus Mode enhancements, and strategic streamlining of features.',
+    features: [
+      '✅ To-Do Redesign: A brand new, polished experience for managing your tasks',
+      '🧘 Zen Focus: Optimized layout, removed clutter, and added Stats to Zen Mode',
+      '🔧 Streamlining: Collaborative Studies removed & Chat entered Rework phase',
+      '🔴 Visual Progress: Added Session Dots to the Timer for satisfying progress tracking'
+    ],
+    date: '2026-01-28'
+  },
+  {
     version: '1.0.7',
     title: 'UnifyStudy 1.0.7 - Zero-Stutter Update',
     description: 'A performance-focused update that eliminates all animation stutter and lag during navigation.',

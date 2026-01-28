@@ -70,7 +70,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
 
     const eventsRef = ref(db, `users/${userId}/events`);
     
-    // --- MOCK DATA FOR SCREENSHOT ---
+    // Mock Mode Check
     const MOCK_MODE = false; 
     
     if (MOCK_MODE) {
@@ -196,7 +196,6 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
               cleanTitle = cleanTitle.replace(durationMatch[0], '');
           }
 
-          // 2. Parse Day Constraints
           // Check for "Weekend"
           if (/on\s+weekend|this\s+weekend|weekend/i.test(cleanTitle)) {
               allowedDays = weekendDays;

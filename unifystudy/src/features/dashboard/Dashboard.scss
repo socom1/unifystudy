@@ -10,7 +10,7 @@
 
   a { text-decoration: none; color: inherit; }
 
-  /* 1. Header / Intro */
+  /* Header & Intro Section */
   .dashboard-intro {
     display: flex;
     justify-content: space-between;
@@ -33,7 +33,7 @@
     }
   }
 
-  /* 2. Main Grid Layout */
+  /* Main Grid Layout */
   .dashboard-grid-layout {
     display: grid;
     grid-template-columns: 2.5fr 1fr; /* Main Content wider than Sidebar */
@@ -45,7 +45,7 @@
         grid-template-columns: 1fr;
     }
 
-    /* === LEFT COLUMN: MAIN CONTENT === */
+    /* Left Column: Main Content */
     .main-content-area {
         display: flex;
         flex-direction: column;
@@ -103,20 +103,20 @@
                 }
             }
 
-            .activity-chart {
-                flex: 1;
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-end;
-                gap: 1rem;
-                padding-bottom: 0.5rem;
+                .activity-chart {
+                    flex: 1;
+                    display: flex;
+                    justify-content: space-between;
+                    /* align-items: flex-end;  <-- Removed to allow columns to stretch full height */
+                    gap: 1rem;
+                    padding-bottom: 0.5rem;
 
-                .chart-bar-col {
-                    flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.5rem;
-                    
-                    .bar-container {
-                        width: 100%; flex: 1; display: flex; align-items: flex-end; justify-content: center; position: relative;
-                        background: rgba(255,255,255,0.02); border-radius: 8px;
+                    .chart-bar-col {
+                        flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.5rem;
+                        
+                        .bar-container {
+                            width: 100%; flex: 1; display: flex; align-items: flex-end; justify-content: center; position: relative;
+                            background: rgba(255,255,255,0.05); border-radius: 8px; /* Increased opacity from 0.02 to 0.05 */
                         
                         .bar-fill {
                             width: 60%; background: var(--color-primary); border-radius: 4px 4px 0 0; min-height: 4px;
@@ -150,7 +150,7 @@
         }
     }
 
-    /* === RIGHT COLUMN: SIDEBAR === */
+    /* Right Column: Sidebar */
     .right-sidebar {
         display: flex;
         flex-direction: column;
@@ -247,8 +247,35 @@
                     .event-info { .title { font-size: 0.85rem; font-weight: 500; } }
                 }
                 
-                .view-all-bottom { display: block; margin-top: 0.5rem; font-size: 0.8rem; color: var(--color-muted); text-align: center; &:hover { color: var(--color-primary); } }
                 .empty-state { text-align: center; color: var(--color-muted); font-size: 0.85rem; margin-top: 2rem; font-style: italic; }
+            }
+
+            .view-all-bottom {
+                margin: 0.5rem;
+                padding: 0.8rem;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid var(--glass-border);
+                border-radius: 10px;
+                color: var(--color-text);
+                font-weight: 600;
+                font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                transition: all 0.2s ease;
+                cursor: pointer;
+                width: calc(100% - 1rem);
+                position: relative;
+                z-index: 10;
+
+                &:hover {
+                    background: rgba(var(--color-primary-rgb), 0.1); /* fallback if var exists */
+                    background: var(--color-primary-transparent, rgba(255, 255, 255, 0.1));
+                    border-color: var(--color-primary);
+                    color: var(--color-primary);
+                    transform: translateY(-2px);
+                }
             }
         }
     }
@@ -284,7 +311,4 @@
       .tip-content { .tip-header { display: flex; align-items: center; gap: 0.5rem; color: #2ed573; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; } p { font-size: 0.85rem; color: var(--color-muted); line-height: 1.4; } }
   }
 
-  /* Modal Styles (Preserved) */
-  .modal-overlay { /* existing styles logic if needed custom overrides */ }
-  .achievements-modal { /* existing styles */ }
 }

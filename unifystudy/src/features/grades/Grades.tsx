@@ -93,7 +93,7 @@ export default function SubjectHub() {
         Object.values(data).forEach(folder => {
           if (folder.tasks) {
             Object.values(folder.tasks).forEach(task => {
-              if (!task.isActive) { // Only active active (not completed) tasks
+              if (!task.isActive) { // Only active (not completed) tasks
                 tasks.push({
                   ...task,
                   folderName: folder.text

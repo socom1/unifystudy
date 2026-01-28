@@ -11,7 +11,7 @@ const TimerWidget = () => {
   const dragStartPos = useRef(null);
 
   // Don't show on the Pomodoro page itself to avoid redundancy
-  if (location.pathname === '/pomodoro') return null;
+  if (location.pathname.startsWith('/pomodoro')) return null;
 
   // Only show if running
   if (!running) return null;

@@ -72,27 +72,27 @@
   --bg-image: none;
   --color-bg: #1a1b26;
   --color-text: #a9b1d6;
-  --bg-1: #24283b;
-  --bg-2: #1f2335;
+  --bg-1: #1a1b26; /* Darker main background */
+  --bg-2: #1f2335; /* Slightly lighter surface */
   --color-primary: #bb9af7;
   --color-primary-rgb: 187, 154, 247;
   --color-secondary: #7aa2f7;
-  --glass-border: #2f334d;
+  --glass-border: #292e42;
   --color-muted: #565f89;
 }
 
 /* Midnight */
 [data-theme='midnight'] {
-  --bg-1: #1e1b2e;
-  --bg-2: #2d2b42;
-  --color-bg: #1e1b2e;
+  --bg-1: #151320; /* Darker Space Blue */
+  --bg-2: #1e1b2e; /* Original bg-1 became bg-2 for subtlety */
+  --color-bg: #151320;
   --color-text: #e0e0e0;
   --color-primary: #6c5ce7;
   --color-secondary: #a29bfe;
   --color-muted: #b2bec3;
   --color-primary-rgb: 108, 92, 231;
   --glass-bg: rgba(30, 27, 46, 0.7);
-  --glass-border: rgba(108, 92, 231, 0.2);
+  --glass-border: rgba(108, 92, 231, 0.15);
   --glow: 0 0 15px rgba(108, 92, 231, 0.2);
 }
 

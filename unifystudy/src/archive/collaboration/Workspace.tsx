@@ -1,7 +1,9 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
+import CollaborativeEditor from '../editor/CollaborativeEditor';
 import Whiteboard from './Whiteboard';
 import { motion, AnimatePresence } from 'framer-motion';
+
 import { Users, MessageSquare, Video, Mic, Share2, Plus, Folder, FileText, Send, Copy, LogOut, Grid, List, Clock, MoreVertical, Upload, Type, Palette, Bold, Italic, ChevronRight, ChevronDown, UserPlus, X, PanelLeftClose, PanelRightClose, Underline, AlignLeft, AlignCenter, AlignRight, ListOrdered, Check } from 'lucide-react';
 import { db, storage } from '@/services/firebaseConfig';
 import { toast } from "sonner";
@@ -947,123 +949,12 @@ const Workspace = ({ user }) => {
             activeFile.type === 'pdf' ? (
               <iframe src={activeFile.url} className="pdf-viewer" title="PDF Viewer" />
             ) : (
-              <div className="rich-text-container">
-                <div className="toolbar" onMouseDown={(e) => e.preventDefault()}>
-                  <button onClick={() => execCommand('bold')} title="Bold"><Bold size={16} /></button>
-                  <button onClick={() => execCommand('italic')} title="Italic"><Italic size={16} /></button>
-                  <button onClick={() => execCommand('underline')} title="Underline"><Underline size={16} /></button>
-                  <div className="v-divider" style={{width:1, height:20, background:'rgba(255,255,255,0.1)', margin:'0 4px'}} />
-                  <button onClick={() => execCommand('justifyLeft')} title="Align Left"><AlignLeft size={16} /></button>
-                  <button onClick={() => execCommand('justifyCenter')} title="Align Center"><AlignCenter size={16} /></button>
-                  <button onClick={() => execCommand('justifyRight')} title="Align Right"><AlignRight size={16} /></button>
-                  <div className="v-divider" style={{width:1, height:20, background:'rgba(255,255,255,0.1)', margin:'0 4px'}} />
-                  <button onClick={() => execCommand('insertUnorderedList')} title="Bullet List"><List size={16} /></button>
-                  <button onClick={() => execCommand('insertOrderedList')} title="Numbered List"><ListOrdered size={16} /></button>
-                  <div className="v-divider" style={{width:1, height:20, background:'rgba(255,255,255,0.1)', margin:'0 4px'}} />
-                  <select 
-                      onChange={(e) => execCommand('fontSize', e.target.value)}
-                      style={{
-                          background: 'transparent', color: 'var(--color-text)', border: 'none', 
-                          outline: 'none', cursor: 'pointer', fontSize: '14px', padding: '0 4px',
-                          fontFamily: 'inherit'
-                      }}
-                      defaultValue="3"
-                  >
-                      <option value="1">Small</option>
-                      <option value="3">Normal</option>
-                      <option value="5">Large</option>
-                      <option value="7">Title</option>
-                  </select>
-                  <div className="color-picker-wrapper">
-                    <button onClick={() => setShowColorPicker(!showColorPicker)}><Palette size={16} /></button>
-                    {showColorPicker && (
-                      <div className="color-palette">
-                        {['#e0e0e0', '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'].map(color => (
-                          <div 
-                            key={color} 
-                            className="color-swatch" 
-                            style={{ backgroundColor: color }}
-                            onClick={() => {
-                              execCommand('foreColor', color);
-                              setShowColorPicker(false);
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="workspace-document">
-                  <div className="page-controls">
-                    <div className="page-nav">
-                      <button 
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        ← Previous
-                      </button>
-                      <span className="page-indicator">Page {currentPage} of {totalPages}</span>
-                      <button 
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next →
-                      </button>
-                    </div>
-                    <button 
-                      className="new-page-btn"
-                      onClick={() => {
-                        const newPage = totalPages + 1;
-                        setTotalPages(newPage);
-                        setCurrentPage(newPage);
-                        setPagesContent(prev => ({ ...prev, [newPage]: '' }));
-                      }}
-                    >
-                      + New Page
-                    </button>
-                  </div>
-                  
-                  <div className="workspace-page" style={{position:'relative'}}>
-                    {/* Remote Cursors */}
-                    {Object.entries(remoteCursors).map(([uid, cursor]) => (
-                         <div key={uid} style={{
-                            position: 'absolute',
-                            left: cursor.x,
-                            top: cursor.y,
-                            pointerEvents: 'none',
-                            zIndex: 100,
-                            transition: 'all 0.1s ease-out'
-                        }}>
-                             <div style={{
-                                 width: 2, height: cursor.height || 20, background: cursor.color || 'red',
-                                 boxShadow: '0 0 4px rgba(0,0,0,0.3)'
-                             }} />
-                             <div style={{
-                                 background: cursor.color || 'red',
-                                 color: 'white',
-                                 fontSize: 10, padding: '2px 4px',
-                                 borderRadius: 4, whiteSpace: 'nowrap',
-                                 position: 'absolute', top: -16, left: 0
-                             }}>
-                                 {cursor.name}
-                             </div>
-                        </div>
-                    ))}
-                    
-                    <div className="page-number">Page {currentPage}</div>
-                    <div 
-                      key={currentPage} 
-                      ref={editorRef}
-                      className="rich-text-editor"
-                      contentEditable
-                      suppressContentEditableWarning
-                      onBlur={handleEditorBlur}
-                      onInput={handlePageInput}
-                      style={{ maxHeight: '900px', overflowY: 'hidden' }}
-                      dangerouslySetInnerHTML={{ __html: pagesContent[currentPage] || (currentPage === 1 ? `<h1>${activeFile.name}</h1><p>Start typing...</p>` : '') }}
-                    />
-                  </div>
-                </div>
+              <div className="collaborative-editor-wrapper" style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+                  <CollaborativeEditor 
+                     docId={activeFile.id} 
+                     user={user}
+                     initialContent={activeFile.content}
+                  />
               </div>
             )
           ) : (

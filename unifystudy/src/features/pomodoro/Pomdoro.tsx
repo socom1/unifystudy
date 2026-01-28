@@ -22,10 +22,12 @@ export default function Pomodoro({ zenMode = false }) {
     formatTime,
     showClaimModal, // New
     confirmClaim,   // New
+    streak,         // New
   } = useTimer();
 
   // editor UI (Local state is fine for editor)
   const [editorOpen, setEditorOpen] = useState(false);
+  const [focusInput, setFocusInput] = useState(""); // Focus Task State
   const [selectorMode, setSelectorMode] = useState(
     typeof window !== 'undefined' && window.innerWidth < 768
   ); // Auto-detect mobile
@@ -37,7 +39,9 @@ export default function Pomodoro({ zenMode = false }) {
       )
       .join("\n\n")
   );
+  // Editor scroll ref
   const editorScrollRef = useRef(null);
+  
 
   // Selector mode template state
   const [selectorTemplate, setSelectorTemplate] = useState({
@@ -125,395 +129,289 @@ export default function Pomodoro({ zenMode = false }) {
   return (
     <div className={`pom-root ${zenMode ? "zen-layout" : ""}`}>
       <main className="main">
-        {/* Timer card */}
-        <section className={timerClass} aria-live="polite">
-          <div className="timer__status">
-            <div className="left">
-              <span className="dot" />
-              <span style={{ marginLeft: 8 }}>
-                {mode === "work"
-                  ? "Focus"
-                  : mode === "short"
-                  ? "Short Break"
-                  : "Long Break"}
-              </span>
-            </div>
 
-            <div className="right">
-              <span style={{ marginRight: 12 }}>
-                <strong>{completedPomodoros}</strong> done
-              </span>
-              <span className="muted-text">
-                Next:{" "}
-                {mode === "work"
-                  ? (selectedTemplate?.short || 5) + "m break"
-                  : "Work"}
-              </span>
-            </div>
-          </div>
+        {/* MIDDLE: GRID */}
+        <div className="pomodoro-grid" style={zenMode ? { display: 'flex', justifyContent: 'center' } : {}}>
+                {/* Timer card */}
+                <section className={timerClass} aria-live="polite">
+                
 
-          <div className="timer__circle">
-            <svg
-              className="timer__svg"
-              width="240"
-              height="240"
-              viewBox="0 0 240 240"
-            >
-              {/* Gradient */}
-              <defs>
-                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="var(--color-primary)" />
-                  <stop offset="100%" stopColor="var(--color-secondary)" />
-                </linearGradient>
-              </defs>
+                {/* Hide Status Pill in Zen Mode */}
+                {!zenMode && (
+                    <div className="timer__status">
+                        <div className="left" style={{display:'flex', gap:'8px', alignItems:'center'}}>
+                        <span className="dot" />
+                        <span>
+                            {mode === "work"
+                            ? "Focus Mode"
+                            : mode === "short"
+                            ? "Short Break"
+                            : "Long Break"}
+                        </span>
+                        </div>
+                    </div>
+                )}
 
-              {/* Background ring */}
-              <circle
-                className="circle-bg"
-                cx="120"
-                cy="120"
-                r="100"
-                strokeWidth="14"
-                fill="none"
-                stroke="rgba(255,255,255,0.08)"
-              />
+                <div className="timer__circle">
+                    <svg className="timer__svg" width="300" height="300" viewBox="0 0 240 240">
+                    {/* Background ring */}
+                    <circle
+                        className="circle-bg"
+                        cx="120"
+                        cy="120"
+                        r="100"
+                        fill="none"
+                    />
 
-              {/* Progress ring */}
-              <circle
-                className="circle-progress"
-                cx="120"
-                cy="120"
-                r="100"
-                strokeWidth="14"
-                fill="none"
-                stroke="url(#grad)"
-                strokeDasharray={CIRC}
-                strokeDashoffset={CIRC * (1 - progressPercent / 100)}
-                strokeLinecap="round"
-                style={{ transition: "none" }}
-              />
-            </svg>
+                    {/* Progress ring */}
+                    <circle
+                        className="circle-progress"
+                        cx="120"
+                        cy="120"
+                        r="100"
+                        fill="none"
+                        strokeDasharray={CIRC}
+                        strokeDashoffset={CIRC * (1 - progressPercent / 100)}
+                    />
+                    </svg>
+                    
+                    {/* Markers */}
+                    {markers.map((m) => (
+                    <div
+                        key={m.i}
+                        className="marker"
+                        style={{
+                        position: 'absolute',
+                        width: '2px', height: '6px',
+                        background: 'rgba(255,255,255,0.1)',
+                        left: '50%', top: '50%',
+                        transform: `translate(-50%, -50%) rotate(${m.angle}deg) translate(0, -96px)`
+                        }}
+                    />
+                    ))}
 
-            {/* markers */}
-            {markers.map((m) => (
-              <div
-                key={m.i}
-                className="marker"
-                style={{
-                  transform: `rotate(${m.angle}deg) translate(0, -118px) rotate(-${m.angle}deg)`,
-                }}
-              />
-            ))}
-
-            <div className="timer__center">
-              <div className="timer__time">{formatTime(secondsLeft)}</div>
-              <div className="timer__sub">{selectedTemplate?.name}</div>
-            </div>
-          </div>
-
-          {/* controls */}
-          <div className="timer__controls">
-            <button className="primary" onClick={startPause}>
-              {running ? "Pause" : "Start"}
-            </button>
-            <button onClick={reset}>Reset</button>
-            <button onClick={() => setMode("work")}>Jump to Work</button>
-            <button onClick={() => setMode("short")}>Short Break</button>
-            <button onClick={() => setMode("long")}>Long Break</button>
-          </div>
-
-          <div className="timer__progress-bar" aria-hidden>
-            <div
-              className="progress-bar__fill"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </section>
-
-        {/* Templates area (Hidden in Zen Mode) */}
-        {!zenMode && (
-        <section className="templates">
-          <div className="templates__header">
-            <h2>Templates</h2>
-            <div className="actions">
-              <button 
-                onClick={() => setSelectorMode(!selectorMode)}
-                className="mode-toggle"
-              >
-                {selectorMode ? "🎹 Typing Mode" : "🎛️ Selector Mode"}
-              </button>
-              <button onClick={() => setEditorOpen(true)}>
-                {selectorMode ? "Quick Edit" : "Open Editor"}
-              </button>
-              <button
-                onClick={() => {
-                  if (selectedTemplate) applyTemplate(selectedTemplate);
-                }}
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-
-          <div className="templates__list">
-            {templateList.map((tpl) => (
-              <div className="template-item" key={tpl.id}>
-                <div>
-                  <div style={{ fontWeight: 700 }}>{tpl.name}</div>
-                  <div className="meta">
-                    work: {tpl.work}m • short: {tpl.short}m • long: {tpl.long}m
-                    • cycles: {tpl.cycles}
-                  </div>
+                    <div className="timer__center">
+                    <div className="timer__time">{formatTime(secondsLeft)}</div>
+                    <div className="timer__sub">
+                        {zenMode 
+                            ? (mode === "work" ? "Focus Mode" : mode === "short" ? "Short Break" : "Long Break")
+                            : selectedTemplate?.name
+                        }
+                    </div>
+                    </div>
                 </div>
-                <div className="template-actions">
-                  <button onClick={() => setSelectedTemplateId(tpl.id)}>
-                    Select
-                  </button>
-                  <button onClick={() => applyTemplate(tpl)}>Use</button>
+
+                {/* Session Progress Visualizer */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '2rem', justifyContent: 'center', opacity: zenMode ? 1 : 0.7 }}>
+                    {Array.from({ length: Math.max(4, completedPomodoros + (mode === 'work' ? 1 : 0)) }).map((_, i) => (
+                        <div 
+                            key={i}
+                            style={{
+                                width: '8px', height: '8px', borderRadius: '50%',
+                                background: i < completedPomodoros ? 'var(--color-primary)' : 'var(--glass-border)',
+                                boxShadow: i < completedPomodoros ? '0 0 10px var(--color-primary)' : 'none',
+                                transition: 'all 0.3s'
+                            }}
+                        />
+                    ))}
                 </div>
-              </div>
-            ))}
-          </div>
 
-          <div className="quick-bar">
-            <button
-              className={`quick-bar__btn ${mode === "work" ? "active" : ""}`}
-              onClick={() => setMode("work")}
-            >
-              Work
-            </button>
-            <button
-              className={`quick-bar__btn ${mode === "short" ? "active" : ""}`}
-              onClick={() => setMode("short")}
-            >
-              Short
-            </button>
-            <button
-              className={`quick-bar__btn ${mode === "long" ? "active" : ""}`}
-              onClick={() => setMode("long")}
-            >
-              Long
-            </button>
-          </div>
-        </section>
-        )}
+                {/* controls */}
+                <div className="timer__controls">
+                    <button className="primary" onClick={startPause}>
+                    {running ? "Pause" : "Start Focus"}
+                    </button>
+                    <button onClick={reset}>Reset</button>
+                </div>
+                </section>
 
-        {/* ZEN MODE TEMPLATES (Simplified) */}
-        {zenMode && (
-          <motion.div 
-            className="zen-templates"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            <h3 className="zen-templates-label">Templates</h3>
-            <div className="zen-templates-list">
-            {templateList.map((tpl) => (
-              <button
-                key={tpl.id}
-                className={`zen-template-pill ${selectedTemplateId === tpl.id ? "active" : ""}`}
-                onClick={() => setSelectedTemplateId(tpl.id)}
-              >
-                {tpl.name}
-              </button>
-            ))}
+                {/* Templates area - Hide in Zen Mode */}
+                {!zenMode && (
+                    <section className="templates">
+                        <div className="templates__header">
+                            <h2>Sessions</h2>
+                            <div className="actions">
+                            <button onClick={() => setEditorOpen(true)}>Edit Templates</button>
+                            </div>
+                        </div>
+
+                        <div className="templates__list">
+                            {templateList.map((tpl) => (
+                            <div 
+                                className={`template-item ${selectedTemplateId === tpl.id ? 'active-template' : ''}`} 
+                                key={tpl.id}
+                                onClick={() => setSelectedTemplateId(tpl.id)}
+                            >
+                                <div>
+                                <div style={{ fontWeight: 600, fontSize:'0.95rem', color: 'var(--color-text)' }}>{tpl.name}</div>
+                                <div className="meta">
+                                    {tpl.work}m Focus • {tpl.cycles} Cycles
+                                </div>
+                                </div>
+                                {selectedTemplateId === tpl.id && (
+                                    <div style={{color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: 600}}>Active</div>
+                                )}
+                            </div>
+                            ))}
+                        </div>
+
+                        <div className="quick-bar">
+                            <button className={`quick-bar__btn ${mode === "work" ? "active" : ""}`} onClick={() => setMode("work")}>Focus</button>
+                            <button className={`quick-bar__btn ${mode === "short" ? "active" : ""}`} onClick={() => setMode("short")}>Short</button>
+                            <button className={`quick-bar__btn ${mode === "long" ? "active" : ""}`} onClick={() => setMode("long")}>Long</button>
+                        </div>
+                    </section>
+                )}
             </div>
-          </motion.div>
-        )}
+
+        {/* BOTTOM: STATS - Show in Zen Mode too to fill space */}
+        <div className="stats-section">
+            <div className="stat-item">
+                <span className="label">Sessions Today</span>
+                <span className="value">{completedPomodoros}</span>
+            </div>
+            <div className="stat-item">
+                <span className="label">Focus Strength</span>
+                <span className="value">{(completedPomodoros * 25) / 60 > 0 ? ((completedPomodoros * 25) / 60).toFixed(1) : '0'} hrs</span>
+            </div>
+            <div className="stat-item">
+                <span className="label">Streak</span>
+                <span className="value">{streak} Days</span>
+            </div>
+        </div>
       </main>
 
       {/* Editor/Selector modal */}
       <AnimatePresence>
         {editorOpen && (
-          <motion.div
-            className="templates__editor"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-          >
-            {/* ... editor content ... */}
-            {selectorMode ? (
-              /* Selector Mode UI */
-              <div className="selector-mode">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                  <h3>Create Template (Selector Mode)</h3>
-                  <div>
-                    <button onClick={() => setEditorOpen(false)}>Close</button>
-                    <button style={{ marginLeft: 8 }} onClick={saveSelectorTemplate}>
-                      Save
-                    </button>
-                  </div>
+          <div className="editor-overlay">
+            <motion.div 
+                className="editor-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+            >
+                <div className="editor-header">
+                    <h2>{selectorMode ? 'New Template' : 'Edit Source'}</h2>
+                    
+                    {/* TOGGLE SWITCH */}
+                    <div className="mode-toggle-group">
+                        <button 
+                            className={selectorMode ? 'active' : ''} 
+                            onClick={() => setSelectorMode(true)}
+                        >
+                            Visual
+                        </button>
+                        <button 
+                            className={!selectorMode ? 'active' : ''} 
+                            onClick={() => setSelectorMode(false)}
+                        >
+                            Code
+                        </button>
+                    </div>
                 </div>
                 
-                <div className="selector-inputs">
-                  <div className="input-group">
-                    <label>Template Name</label>
-                    <input
-                      type="text"
-                      value={selectorTemplate.name}
-                      onChange={(e) => setSelectorTemplate({ ...selectorTemplate, name: e.target.value })}
-                      placeholder="My Custom Template"
-                    />
-                  </div>
-                  
-                  <div className="input-row">
-                    <div className="input-group">
-                      <label>Work Duration (min)</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="120"
-                        value={selectorTemplate.work}
-                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, work: parseInt(e.target.value) || 25 })}
-                      />
-                    </div>
-                    
-                    <div className="input-group">
-                      <label>Short Break (min)</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="60"
-                        value={selectorTemplate.short}
-                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, short: parseInt(e.target.value) || 5 })}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="input-row">
-                    <div className="input-group">
-                      <label>Long Break (min)</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="120"
-                        value={selectorTemplate.long}
-                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, long: parseInt(e.target.value) || 15 })}
-                      />
-                    </div>
-                    
-                    <div className="input-group">
-                      <label>Cycles</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={selectorTemplate.cycles}
-                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, cycles: parseInt(e.target.value) || 4 })}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Typing Mode UI (Original) */
-              <div style={{ display: "flex", gap: 12 }}>
-                <div
-                  style={{
-                    marginTop: 12.5,
-                    width: 60,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      marginBottom: 20,
-                      fontSize: 12,
-                      color: "var(--color-muted)",
-                      textAlign: "center",
-                      height: "auto",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    Line
-                  </div>
-                  <div
-                    ref={editorScrollRef}
-                    style={{
-                      maxHeight: 380,
-                      overflowY: "auto",
-                      lineHeight: "1.6",
-                      paddingTop: 12,
-                      paddingBottom: 12,
-                      paddingRight: 8,
-                      scrollbarWidth: "none",
-                      msOverflowStyle: "none",
-                      background: "rgba(255, 255, 255, 0.02)",
-                      borderRadius: 6,
-                      paddingLeft: 8,
-                    }}
-                    className="line-numbers-scrollable"
-                  >
-                    {editorLines.map((_, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          padding: 0,
-                          textAlign: "center",
-                          opacity: 0.7,
-                          fontSize: 13,
-                          lineHeight: "1.6",
-                          fontFamily: '"Fira Code", monospace',
-                          height: "auto",
-                          color: "var(--color-muted)",
-                        }}
-                      >
-                        {i + 1}
-                      </div>
-                    ))}
-                  </div>
+                <div className="editor-body">
+                    {selectorMode ? (
+                        /* Selector Mode UI */
+                        <div className="selector-mode">
+                             <div className="selector-inputs">
+                                <div className="input-group">
+                                    <label>Template Name</label>
+                                    <input
+                                    type="text"
+                                    value={selectorTemplate.name}
+                                    onChange={(e) => setSelectorTemplate({ ...selectorTemplate, name: e.target.value })}
+                                    placeholder="My Custom Template"
+                                    />
+                                </div>
+                                
+                                <div className="input-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginTop:'12px'}}>
+                                    <div className="input-group">
+                                    <label>Work Duration (min)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="120"
+                                        value={selectorTemplate.work}
+                                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, work: parseInt(e.target.value) || 25 })}
+                                    />
+                                    </div>
+                                    
+                                    <div className="input-group">
+                                    <label>Short Break (min)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="60"
+                                        value={selectorTemplate.short}
+                                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, short: parseInt(e.target.value) || 5 })}
+                                    />
+                                    </div>
+                                </div>
+                                
+                                <div className="input-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginTop:'12px'}}>
+                                    <div className="input-group">
+                                    <label>Long Break (min)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="120"
+                                        value={selectorTemplate.long}
+                                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, long: parseInt(e.target.value) || 15 })}
+                                    />
+                                    </div>
+                                    
+                                    <div className="input-group">
+                                    <label>Cycles</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="10"
+                                        value={selectorTemplate.cycles}
+                                        onChange={(e) => setSelectorTemplate({ ...selectorTemplate, cycles: parseInt(e.target.value) || 4 })}
+                                    />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Code Mode UI */
+                        <div style={{ display: "flex", gap: 12, height: '100%' }}>
+                            <div className="line-numbers-scrollable" ref={editorScrollRef} style={{ width: 40, textAlign:'right', opacity: 0.5, paddingTop: 10, fontFamily: 'monospace' }}>
+                                {editorLines.map((_, i) => <div key={i}>{i+1}</div>)}
+                            </div>
+                            <textarea
+                                value={editorContent}
+                                onChange={(e) => setEditorContent(e.target.value)}
+                                onScroll={(e) => {
+                                    if(editorScrollRef.current) editorScrollRef.current.scrollTop = e.target.scrollTop;
+                                }}
+                                style={{
+                                    flex: 1,
+                                    background: 'var(--bg-1)',
+                                    border: '1px solid var(--glass-border)',
+                                    borderRadius: '8px',
+                                    padding: '10px',
+                                    color: 'var(--color-text)',
+                                    fontFamily: 'monospace',
+                                    lineHeight: 1.6,
+                                    resize: 'none',
+                                    height: '300px'
+                                }}
+                            />
+                        </div>
+                    )}
                 </div>
 
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 8,
-                    }}
-                  >
-                    <div style={{ color: "var(--muted)" }}>
-                      Templates Editor (simple format)
-                    </div>
-                    <div>
-                      <button onClick={() => setEditorOpen(false)}>Close</button>
-                      <button style={{ marginLeft: 8 }} onClick={saveEditor}>
-                        Save
-                      </button>
-                    </div>
-                  </div>
-
-                  <textarea
-                    value={editorContent}
-                    onChange={(e) => setEditorContent(e.target.value)}
-                    onScroll={(e) => {
-                      if (editorScrollRef.current) {
-                        editorScrollRef.current.scrollTop = e.target.scrollTop;
-                      }
-                    }}
-                    style={{
-                      width: "100%",
-                      height: 380,
-                      background: "var(--color-bg-dark)",
-                      color: "var(--color-secondary)",
-                      border: "1px solid rgba(255,255,255,0.03)",
-                      padding: 12,
-                      borderRadius: 6,
-                      fontFamily: '"Fira Code", monospace',
-                      fontSize: 13,
-                      lineHeight: "1.6",
-                      resize: "vertical",
-                    }}
-                  />
+                <div className="editor-footer">
+                    <button className="btn-ghost" onClick={() => setEditorOpen(false)}>Cancel</button>
+                    <button className="btn-primary" onClick={selectorMode ? saveSelectorTemplate : saveEditor}>
+                        Save Changes
+                    </button>
                 </div>
-              </div>
-            )}
-          </motion.div>
+            </motion.div>
+          </div>
         )}
 
         {/* --- ANTI-ABUSE CLAIM MODAL --- */}

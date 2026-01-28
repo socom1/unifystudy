@@ -58,8 +58,43 @@ const STUDY_TIPS = [
   "Vary your study locations to improve retention.",
   "Review your notes within 24 hours of taking them.",
   "Listen to instrumental music to help focus.",
-  "Set a specific goal for each study session."
+  "Set a specific goal for each study session.",
+  "Use color coding for different subjects to stay organized.",
+  "Review your most difficult subjects first while your brain is fresh.",
+  "Drink a glass of water before starting your study session.",
+  "Use a physical planner to track your deadlines.",
+  "Try the Feynman Technique: explain a concept in simple terms.",
+  "Keep your workspace clean and decluttered.",
+  "Reward yourself after finishing a major task.",
+  "Don't multitask; focus on one subject at a time.",
+  "Use noise-canceling headphones if you're in a loud environment.",
+  "Join a study group for complex subjects.",
+  "Take deep breaths if you start feeling overwhelmed.",
+  "Ensure you have good lighting to avoid eye strain.",
+  "Review your goals every morning.",
+  "Use digital tools like flashcards for memorization.",
+  "Stay consistent; even 15 minutes of study is better than none.",
+  "Focus on understanding, not just memorizing.",
+  "Draft an outline before you start writing an essay.",
+  "Keep a healthy snack nearby to fuel your brain.",
+  "Disable notifications on all your devices.",
+  "Summarize each chapter in your own words."
 ];
+
+const MOTIVATIONAL_QUOTES = [
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+  { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+  { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+  { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "Don’t stop when you’re tired. Stop when you’re done.", author: "Unknown" },
+  { text: "Wake up with determination. Go to bed with satisfaction.", author: "Unknown" },
+  { text: "Do something today that your future self will thank you for.", author: "Unknown" },
+  { text: "Little things make big days.", author: "Unknown" },
+  { text: "It’s going to be hard, but hard does not mean impossible.", author: "Unknown" }
+];
+
 
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
@@ -85,11 +120,13 @@ export default function Dashboard({ user }) {
   const [urgentTasks, setUrgentTasks] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [todaysTip, setTodaysTip] = useState("");
+  const [todaysQuote, setTodaysQuote] = useState({ text: "", author: "" });
 
   useEffect(() => {
-    // Select study tip based on day of year
+    // Select based on day of year
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
     setTodaysTip(STUDY_TIPS[dayOfYear % STUDY_TIPS.length]);
+    setTodaysQuote(MOTIVATIONAL_QUOTES[dayOfYear % MOTIVATIONAL_QUOTES.length]);
   }, []);
 
   useEffect(() => {
@@ -130,21 +167,10 @@ export default function Dashboard({ user }) {
        ]);
        setUnlockedAchievements(['focus-master', 'first-steps']);
        setSubjects(['Math', 'Physics', 'CS']);
-       // Gamification Context (Mocking it requires context level change or just ignoring it for visual widgets if they use local vars, 
-       // but LevelWidget uses `level` and `xp` from context. 
-       // Wait, LevelWidget in the JSX uses `level` and `xp` variables. 
-       // I need to see where `level` and `xp` come from. 
-       // Line 12: `const { ... } = useGamification()`. 
-       // I cannot easily mock context values from here without touching context.
-       // However, I can shadow the variables if I destructure them and then override them in render? 
-       // Or simpler: I'll accept that Level might show real data, or I'll try to 'mock' it by ignoring the context return.
-       
-       // actually, `level` and `progress` are used in the JSX later.
-       // I will define overrides inside the component scope if I can.
+       // Override local state for visualization testing if needed.
     }
 
-    // Since I can't easily conditionally wrap all hooks without breaking "Rules of Hooks" (fetching logic inside useEffect is fine, but declaring hooks isn't),
-    // I will just use an early return in the useEffect if MOCK_MODE is true.
+    // Prevent real data fetching when in Mock Mode to avoid conflicts.
 
     if (MOCK_MODE) return; // Stop Real Fetching
 
@@ -295,8 +321,7 @@ export default function Dashboard({ user }) {
                 let streakCount = 0;
                 const checkDate = new Date(lastSessionDate);
                 
-                // Naive approach: check existence of session for each previous day
-                // Better approach: Iterate sessions and check continuity
+                // Calculate consecutive days by iterating backwards
                 
                 const currentDatePointer = new Date(lastSessionDate);
                 
@@ -525,8 +550,8 @@ export default function Dashboard({ user }) {
                     <div className="card-decoration quote-deco"><Quote size={80} /></div>
                     <div className="quote-content">
                         <Quote size={20} className="small-icon" />
-                        <p className="quote-text">"The secret of getting ahead is getting started."</p>
-                        <span className="quote-author">— Mark Twain</span>
+                        <p className="quote-text">"{todaysQuote.text}"</p>
+                        <span className="quote-author">— {todaysQuote.author}</span>
                     </div>
                 </div>
                 {/* Tip */}
@@ -621,7 +646,6 @@ export default function Dashboard({ user }) {
                                     <div className="hover-arrow"><ArrowRight size={14}/></div>
                                 </div>
                             )) : <div className="empty-state">All caught up! 🎉</div>}
-                            <Link to="/todo" className="view-all-bottom">Go to Tasks <ArrowRight size={14}/></Link>
                         </div>
                     ) : (
                         <div className="events-list-compact">
@@ -637,10 +661,14 @@ export default function Dashboard({ user }) {
                                     </div>
                                 </div>
                             )) : <div className="empty-state">No events today</div>}
-                            <Link to="/timetable" className="view-all-bottom">Go to Calendar <ArrowRight size={14}/></Link>
                         </div>
                     )}
                 </div>
+                {activeTab === 'tasks' ? (
+                    <Link to="/todo" className="view-all-bottom" style={{ position: 'relative', zIndex: 100, cursor: 'pointer' }}>Go to Tasks <ArrowRight size={14}/></Link>
+                ) : (
+                    <Link to="/timetable" className="view-all-bottom" style={{ position: 'relative', zIndex: 100, cursor: 'pointer' }}>Go to Calendar <ArrowRight size={14}/></Link>
+                )}
             </div>
 
         </div>

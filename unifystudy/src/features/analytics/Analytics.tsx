@@ -158,7 +158,6 @@ export default function Analytics() {
                          <div className="stat-item">
                              <span className="label">Avg Daily</span>
                              <span className="value">{Math.round(totalStudyTime / Math.max(1, studySessions.length))} min</span> 
-                             {/* Note: simplistic avg per session, not per day, but good enough for now */}
                          </div>
                      </div>
                      <div className="chart-container">
