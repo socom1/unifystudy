@@ -32,7 +32,6 @@ export const GroupedTaskTable: React.FC<GroupedTaskTableProps> = ({
   folders, 
   onUpdateTask, 
   onToggleTask,
-  onToggleTask,
   onEditTask,
   onDeleteTask
 }) => {

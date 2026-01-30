@@ -155,7 +155,6 @@ export default function TdlF() {
                         folders={folders}
                         onUpdateTask={(tid, fid, updates) => updateTask(tid, fid, updates)}
                         onToggleTask={(tid, status, fid) => updateTaskStatus(tid, status === 'done' ? 'backlog' : 'done', fid)}
-                        onToggleTask={(tid, status, fid) => updateTaskStatus(tid, status === 'done' ? 'backlog' : 'done', fid)}
                         onEditTask={handleEditTask}
                         onDeleteTask={deleteTask}
                     />
