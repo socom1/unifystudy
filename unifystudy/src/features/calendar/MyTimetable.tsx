@@ -2,12 +2,23 @@ import React, { useState, useEffect, useMemo, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/services/firebaseConfig";
 import { ref, onValue, push, set, remove, update } from "firebase/database";
-import { Plus, Bell, BellOff, X, Trash2, Save, Wand2, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Bell, BellOff, X, Trash2, Save, Wand2, Calendar as CalendarIcon, BookOpen, Dumbbell, Code, Coffee, Music, Briefcase, GraduationCap } from "lucide-react";
 import Modal from "@/components/common/Modal"; 
 import { toast } from "sonner";
 import { connectGoogleCalendar, fetchUpcomingEvents } from "@/services/googleCalendar";
 import "./MyTimetable.scss";
 import { User, CalendarEvent } from "@/types";
+
+const getEventIcon = (type?: string) => {
+    switch(type) {
+        case 'Lecture': return <BookOpen size={14} />;
+        case 'Gym': return <Dumbbell size={14} />;
+        case 'Study': return <GraduationCap size={14} />;
+        case 'Workshop': return <Code size={14} />;
+        case 'Other': return <Coffee size={14} />;
+        default: return <Briefcase size={14} />;
+    }
+};
 
  
 
@@ -47,6 +58,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
     start: 8,
     end: 9,
     color: colors[0],
+    type: 'Lecture' as const,
   });
   
   // Magic Fill State
@@ -134,6 +146,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
       start: 8,
       end: 9,
       color: colors[0],
+      type: 'Lecture',
     });
     setIsFormOpen(false);
   };
@@ -151,6 +164,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
         start: 8,
         end: 9,
         color: colors[0],
+        type: 'Lecture',
       });
       setIsFormOpen(false);
     }
@@ -165,6 +179,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
       start: ev.start,
       end: ev.end,
       color: ev.color,
+      type: ev.type || 'Lecture',
     });
     setEditingEventId(ev.id);
     setIsFormOpen(true);
@@ -333,62 +348,8 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
   }, [allEvents]);
 
   return (
-    <div className="calendar-container">
+    <div className="calendar-wrapper" onClick={() => { setEditingEventId(null); setIsFormOpen(false); }}>
       <NotificationManager events={events} userId={userId} />
-
-      <div className="calendar-nav">
-        <h2>Weekly Timetable</h2>
-        <div style={{ display: "flex", gap: "1rem" }}>
-          {"Notification" in window &&
-            Notification.permission !== "granted" && (
-              <button
-                onClick={() => {
-                  Notification.requestPermission().then(() => {
-                    window.location.reload();
-                  });
-                }}
-                title="Enable Notifications"
-              >
-                <BellOff size={20} />
-              </button>
-            )}
-          <div className="header-actions">
-
-            <button 
-                className="magic-btn" 
-                onClick={() => setIsMagicFillOpen(true)}
-                title="Auto-fill empty slots"
-                style={{ 
-                    background: 'var(--color-secondary)', 
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    marginRight: '0.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                }}
-            >
-                <Wand2 size={18} />
-                Magic Fill
-            </button>
-            <button className="add-btn" onClick={() => {
-              setForm({
-                title: "",
-                description: "",
-                day: "Monday",
-                start: 8,
-                end: 9,
-                color: colors[0],
-              });
-              setEditingEventId(null);
-              setIsFormOpen(true);
-            }}>
-              <Plus size={20} />
-              Add Event
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Magic Fill Modal */}
       <Modal
@@ -559,6 +520,33 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
                   </div>
                 </div>
               </div>
+              
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label>Event Type</label>
+                <div className="type-selector" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {['Lecture', 'Workshop', 'Study', 'Other'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={`type-btn ${form.type === t ? 'selected' : ''}`}
+                      onClick={() => setForm({...form, type: t as any})}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        border: `1px solid ${form.type === t ? 'var(--color-primary)' : 'var(--glass-border)'}`,
+                        background: form.type === t ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent',
+                        color: form.type === t ? 'var(--color-primary)' : 'var(--color-text-dim)',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="form-group">
                 <div className="cl">
                   <label>Color</label>
@@ -623,11 +611,24 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
                 {/* Layer B: Event Columns */}
                 <div className="events-layer">
                   {days.map((day) => (
-                    <DayColumn
+                      <DayColumn
                       key={day}
                       day={day}
                       events={eventsByDay[day]}
                       onEditEvent={editEvent}
+                      onAddEvent={(startHour) => {
+                          setForm({
+                              title: "",
+                              description: "",
+                              day: day,
+                              start: startHour,
+                              end: startHour + 1,
+                              color: colors[0],
+                              type: 'Lecture'
+                          });
+                          setEditingEventId(null);
+                          setIsFormOpen(true);
+                      }}
                     />
                   ))}
                 </div>
@@ -783,12 +784,35 @@ interface DayColumnProps {
   day: string;
   events: CalendarEvent[];
   onEditEvent: (ev: CalendarEvent) => void;
+  onAddEvent: (startHour: number) => void;
 }
 
 // Memoized Day Column (Events Only)
-const DayColumn = memo(({ day, events, onEditEvent }: DayColumnProps) => {
+const DayColumn = memo(({ day, events, onEditEvent, onAddEvent }: DayColumnProps) => {
   return (
     <div className="day-column">
+      {/* Click zones with Hover Effect */}
+      <div className="day-click-zones" style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
+          {hours.map(h => (
+              <div 
+                key={h} 
+                className="hour-click-zone"
+                style={{ height: ROW_HEIGHT, width: '100%' }}
+              >
+                  <button 
+                    className="add-event-ghost-btn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onAddEvent(h);
+                    }}
+                    title={`Add event at ${h}:00`}
+                  >
+                      <Plus size={16} strokeWidth={3} />
+                  </button>
+              </div>
+          ))}
+      </div>
+
       <div className="day-content">
         {/* Events for this day */}
         <AnimatePresence>
@@ -799,22 +823,37 @@ const DayColumn = memo(({ day, events, onEditEvent }: DayColumnProps) => {
               return (
                 <motion.div
                   key={ev.id}
+                  layoutId={ev.id}
                   className="event-box"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
                   style={{
                     top: `${top}px`,
                     height: `${height}px`,
-                    "--event-color": ev.color,
-                  } as React.CSSProperties}
-                  onClick={() => onEditEvent(ev)}
+                    ['--event-color' as any]: ev.color,
+                  }}
+                  onClick={(e) => {
+                      e.stopPropagation();
+                      onEditEvent(ev);
+                  }}
                 >
-                  <div className="event-title">{ev.title}</div>
-                  <div className="event-time">
-                    {ev.start}:00 - {ev.end}:00
+                  <div className="event-header">
+                      <span className="event-title">{ev.title}</span>
+                      <span className="event-icon">{getEventIcon(ev.type)}</span>
                   </div>
+                  
+                  <div className="event-meta">
+                      <span className="event-time">
+                        {ev.start}:00 - {ev.end}:00
+                      </span>
+                      <span className="event-duration">
+                          {(ev.end - ev.start)}h
+                      </span>
+                  </div>
+
+                  {ev.description && (height > 60) && (
+                      <div className="event-desc">
+                          {ev.description}
+                      </div>
+                  )}
                 </motion.div>
               );
             })}

@@ -299,68 +299,70 @@ export default function Flashcards() {
                     onDelete={(cid) => handleDeleteCard(activeListDeck, cid)}
                 />
 
-                <div className="decks-grid">
-                    {decks.map(deck => {
-                        const stats = deckStats[deck.id] || { new: 0, learn: 0, review: 0 };
-                        const hasCards = stats.new + stats.learn + stats.review > 0;
+                {decks.length > 0 && (
+                    <div className="decks-grid">
+                        {decks.map(deck => {
+                            const stats = deckStats[deck.id] || { new: 0, learn: 0, review: 0 };
+                            const hasCards = stats.new + stats.learn + stats.review > 0;
 
-                        return (
-                            <div
-                                key={deck.id}
-                                onClick={() => startStudy(deck)}
-                                className="deck-card"
-                            >
-                                <div className="deck-card-header">
-                                    <h2>{deck.name}</h2>
-                                    <div className="deck-actions">
-                                        <button 
-                                            className="add-card-btn"
-                                            onClick={(e) => { e.stopPropagation(); setShowAddModal(true); }}
-                                            title="Add Card"
+                            return (
+                                <div
+                                    key={deck.id}
+                                    onClick={() => startStudy(deck)}
+                                    className="deck-card"
+                                >
+                                    <div className="deck-card-header">
+                                        <h2>{deck.name}</h2>
+                                        <div className="deck-actions">
+                                            <button 
+                                                className="add-card-btn"
+                                                onClick={(e) => { e.stopPropagation(); setShowAddModal(true); }}
+                                                title="Add Card"
+                                            >
+                                                + Add
+                                            </button>
+                                            <button 
+                                                className="delete-deck-btn"
+                                                onClick={(e) => handleDeleteDeck(e, deck.id)}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="divider"></div>
+
+                                    <div className="deck-stats">
+                                        <div 
+                                            className="stat-box is-new"
+                                            onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'new'); }}
                                         >
-                                            + Add
-                                        </button>
-                                        <button 
-                                            className="delete-deck-btn"
-                                            onClick={(e) => handleDeleteDeck(e, deck.id)}
+                                            <div className="count">{stats.new}</div>
+                                            <div className="label">NEW</div>
+                                        </div>
+                                        <div 
+                                            className="stat-box is-learn"
+                                            onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'learn'); }}
                                         >
-                                            <Trash2 size={18} />
-                                        </button>
+                                            <div className="count">{stats.learn}</div>
+                                            <div className="label">LEARN</div>
+                                        </div>
+                                        <div 
+                                            className="stat-box is-due"
+                                            onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'due'); }}
+                                        >
+                                            <div className="count">{stats.review}</div>
+                                            <div className="label">DUE</div>
+                                        </div>
                                     </div>
+                                    <button className={`study-btn ${hasCards ? 'primary' : 'disabled'}`}>
+                                        {hasCards ? 'STUDY NOW' : 'ALL CAUGHT UP'}
+                                    </button>
                                 </div>
-
-                                <div className="divider"></div>
-
-                                <div className="deck-stats">
-                                    <div 
-                                        className="stat-box is-new"
-                                        onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'new'); }}
-                                    >
-                                        <div className="count">{stats.new}</div>
-                                        <div className="label">NEW</div>
-                                    </div>
-                                    <div 
-                                        className="stat-box is-learn"
-                                        onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'learn'); }}
-                                    >
-                                        <div className="count">{stats.learn}</div>
-                                        <div className="label">LEARN</div>
-                                    </div>
-                                    <div 
-                                        className="stat-box is-due"
-                                        onClick={(e) => { e.stopPropagation(); handleShowCards(deck, 'due'); }}
-                                    >
-                                        <div className="count">{stats.review}</div>
-                                        <div className="label">DUE</div>
-                                    </div>
-                                </div>
-                                <button className={`study-btn ${hasCards ? 'primary' : 'disabled'}`}>
-                                    {hasCards ? 'STUDY NOW' : 'ALL CAUGHT UP'}
-                                </button>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {decks.length === 0 && !loading && (
                     <div className="empty-state">

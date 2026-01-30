@@ -121,6 +121,7 @@ export default function Dashboard({ user }) {
   const [subjects, setSubjects] = useState([]);
   const [todaysTip, setTodaysTip] = useState("");
   const [todaysQuote, setTodaysQuote] = useState({ text: "", author: "" });
+  const [allTasksForOpt, setAllTasksForOpt] = useState([]);
 
   useEffect(() => {
     // Select based on day of year
@@ -128,6 +129,32 @@ export default function Dashboard({ user }) {
     setTodaysTip(STUDY_TIPS[dayOfYear % STUDY_TIPS.length]);
     setTodaysQuote(MOTIVATIONAL_QUOTES[dayOfYear % MOTIVATIONAL_QUOTES.length]);
   }, []);
+
+  // Check for Pinned Focus Task
+  const [pinnedFocusTask, setPinnedFocusTask] = useState(null);
+  const [nextStudySession, setNextStudySession] = useState(null);
+  
+  useEffect(() => {
+     if(user) {
+         const pinnedId = localStorage.getItem(`daily_focus_task_${user.uid}`);
+         if(pinnedId) {
+             // Retrieve task details (Optimized: we could just store text in localStorage, 
+             // but simpler to fetch if we want status updates. 
+             // For now, let's fetch from the folders ref if we don't have it.)
+             // Actually, since we fetch all tasks anyway for the urgency list, we can just find it there.
+         }
+     }
+  }, [user]);
+
+  // Update pinned task when tasks change
+  useEffect(() => {
+     if(!allTasksForOpt.length || !user) return;
+     const pinnedId = localStorage.getItem(`daily_focus_task_${user.uid}`);
+     if(pinnedId) {
+         const found = allTasksForOpt.find(t => t.id === pinnedId);
+         if(found) setPinnedFocusTask(found);
+     }
+  }, [allTasksForOpt, user]);
 
   useEffect(() => {
     if (!user) return;
@@ -372,6 +399,24 @@ export default function Dashboard({ user }) {
           .slice(0, 3);
 
         setUpcomingEvents(upcoming);
+
+        // Detect upcoming Study Session (within 1 hour)
+        const studyEvents = eventsList.filter(e => e.type === 'Study' && e.day === currentDay);
+        const nextStudy = studyEvents.find(e => {
+            // Convert e.start (e.g. 14.5) to date object for comparison?
+            // Simpler: Compare hours. 
+            // If event is in future but within 1 hour.
+            return e.start > (currentHour + now.getMinutes()/60) && e.start <= (currentHour + 1 + now.getMinutes()/60);
+        });
+
+        if (nextStudy) {
+           // Calculate minutes until
+           const diffHours = nextStudy.start - (currentHour + now.getMinutes()/60);
+           const diffMins = Math.round(diffHours * 60);
+           setNextStudySession({...nextStudy, minutesUntil: diffMins});
+        } else {
+           setNextStudySession(null);
+        }
       }
     });
 
@@ -429,7 +474,6 @@ export default function Dashboard({ user }) {
   /* --- Smart Schedule Logic --- */
   const [scheduleSuggestions, setScheduleSuggestions] = useState([]);
   const [rawEvents, setRawEvents] = useState([]);
-  const [allTasksForOpt, setAllTasksForOpt] = useState([]);
 
   // Optimize when tasks or events change
   useEffect(() => {
@@ -479,6 +523,51 @@ export default function Dashboard({ user }) {
              <span className="current-date">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
         </div>
       </div>
+      
+      {/* PINNED DAILY FOCUS */}
+      {pinnedFocusTask && !pinnedFocusTask.completed && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="pinned-focus-banner"
+            onClick={() => navigate('/todo', { state: { taskId: pinnedFocusTask.id } })}
+          >
+             <div className="focus-label">
+                 <Target size={16} /> 
+                 <span>Daily Focus</span>
+             </div>
+             <div className="focus-text">
+                 {pinnedFocusTask.text}
+             </div>
+             <button className="start-pinned-focus">
+                <ArrowRight size={16}/>
+             </button>
+          </motion.div>
+      )}
+
+      {/* UPCOMING STUDY ALERT */}
+      {nextStudySession && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="pinned-focus-banner study-alert"
+            style={{ 
+                background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%)',
+                borderColor: 'rgba(245, 158, 11, 0.3)'
+            }}
+          >
+             <div className="focus-label" style={{ color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)' }}>
+                 <Clock size={16} /> 
+                 <span>Study Time Soon</span>
+             </div>
+             <div className="focus-text">
+                 {nextStudySession.title} starts in {nextStudySession.minutesUntil}m
+             </div>
+             <button className="start-pinned-focus" style={{ background: 'rgba(245, 158, 11, 0.8)' }}>
+                <ArrowRight size={16}/>
+             </button>
+          </motion.div>
+      )}
 
       <div className="dashboard-grid-layout">
         {/* === LEFT: MAIN CONTENT AREA === */}

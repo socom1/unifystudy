@@ -279,6 +279,8 @@ const YearlyCalendar = () => {
     today.setHours(0, 0, 0, 0);
 
     const now = new Date(); // Actual current time
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
 
     // Get all events for all days
     // This is inefficient but functional for small datasets. 
@@ -312,6 +314,11 @@ const YearlyCalendar = () => {
     .filter(e => {
         // Filter out past dates (yesterday or earlier)
         if (e.dateObj < today) return false;
+        
+        // ONLY SHOW EVENTS FROM CURRENT MONTH
+        if (e.dateObj.getMonth() !== currentMonth || e.dateObj.getFullYear() !== currentYear) {
+          return false;
+        }
         
         // If it's today, check if time has passed
         if (e.dateObj.getTime() === today.getTime() && e.time) {

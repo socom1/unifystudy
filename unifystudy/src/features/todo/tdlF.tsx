@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useTodo, Task } from './hooks/useTodo';
 import { BoardView } from './components/BoardView';
-import { ListView } from './components/ListView';
+import { GroupedTaskTable } from './components/GroupedTaskTable';
 import { CalendarView } from './components/CalendarView';
 import { TaskDrawer } from './components/TaskDrawer'; // Import Drawer
-import { Search, Filter, LayoutGrid, List as ListIcon, Calendar as CalendarIcon, Plus, ChevronDown, Folder, FileText } from 'lucide-react';
+import { WorkspaceSwitcher } from './components/WorkspaceSwitcher';
+import { Search, LayoutGrid, List as ListIcon, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Modal from "@/components/common/Modal";
 import "./tdlF.scss";
@@ -19,12 +20,14 @@ export default function TdlF() {
       addTask,
       updateTaskStatus,
       updateTask,
-      deleteTask
+      updateFolder,
+      deleteTask,
+      addFolder,
+      deleteFolder
   } = useTodo();
 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isFolderMenuOpen, setIsFolderMenuOpen] = useState(false);
 
   const currentFolder = folders.find(f => f.id === currentFolderId);
 
@@ -37,23 +40,15 @@ export default function TdlF() {
   const closeDrawer = () => {
       setEditingTask(null);
   };
-
-  // Keep simple modal for "New Task" quick add if preferred, 
-  // OR we can make the drawer open empty.
-  // For now: "New Task" opens simple modal, "Edit" opens premium drawer?
-  // User asked for the POPUP (edit) to be the drawer. Let's make "New Task" also open drawer?
-  // Let's stick to: "New Task" -> Simple Modal (Quick), "Edit" -> Drawer (Detail).
-  // Actually, User reference suggests "Add Task" also opens a detail view.
-  // I will make `handleCreateTask` open the simple modal for now to keep it fast, but Edit uses Drawer.
   
   const handleCreateTask = () => {
       setEditingTask(null); // Clear edit
       setIsTaskModalOpen(true); // Open simple create modal
   };
 
-  const handleSaveTask = (e) => {
+  const handleSaveTask = (e: React.FormEvent) => {
       e.preventDefault();
-      const form = e.target;
+      const form = e.target as any;
       const text = form.taskText.value;
       const status = form.taskStatus.value;
       const date = form.taskDate.value;
@@ -72,37 +67,13 @@ export default function TdlF() {
         <main className="todo-main">
             <header>
                 <div className="title-area">
-                    <div className="collection-selector" onClick={() => setIsFolderMenuOpen(!isFolderMenuOpen)}>
-                        <span className="icon">
-                            {currentFolder?.type === 'list' ? <FileText size={18} /> : <Folder size={18} />}
-                        </span>
-                        <span className="current-name">
-                            {currentFolder ? currentFolder.text : "All Tasks"}
-                        </span>
-                        <ChevronDown size={14} className={`chevron ${isFolderMenuOpen ? 'open' : ''}`} />
-                        
-                        {isFolderMenuOpen && (
-                            <div className="folder-dropdown-menu custom-scrollbar" onClick={(e) => e.stopPropagation()}>
-                                <div 
-                                    className={`dropdown-item ${!currentFolderId ? 'active' : ''}`}
-                                    onClick={() => { setCurrentFolderId(null); setIsFolderMenuOpen(false); }}
-                                >
-                                    <Folder size={16} /> All Tasks
-                                </div>
-                                <div className="divider" />
-                                {folders.map(f => (
-                                    <div 
-                                        key={f.id} 
-                                        className={`dropdown-item ${currentFolderId === f.id ? 'active' : ''}`}
-                                        onClick={() => { setCurrentFolderId(f.id); setIsFolderMenuOpen(false); }}
-                                    >
-                                        <span style={{ color: f.color }}>{f.type === 'list' ? <FileText size={16} /> : <Folder size={16} />}</span>
-                                        {f.text}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <WorkspaceSwitcher 
+                        folders={folders}
+                        currentFolderId={currentFolderId}
+                        onSelectFolder={setCurrentFolderId}
+                        onAddFolder={addFolder}
+                        onDeleteFolder={deleteFolder}
+                    />
                 </div>
 
                 <div className="center-actions">
@@ -141,7 +112,7 @@ export default function TdlF() {
                         />
                     </div>
                     <button className="primary-btn" onClick={handleCreateTask}>
-                        <Plus size={16} /> New
+                        <Plus size={16} /> New Task
                     </button>
                 </div>
             </header>
@@ -150,15 +121,21 @@ export default function TdlF() {
                 {activeView === 'board' && (
                     <BoardView 
                         tasks={tasks}
-                        onUpdateStatus={(tid, status) => updateTaskStatus(tid, status, tasks.find(t=>t.id===tid)?.folderId)}
+                        columns={currentFolder?.columns || null}
+                        folderId={currentFolderId}
+                        onUpdateFolder={updateFolder}
+                        onUpdateStatus={(tid, status) => updateTaskStatus(tid, status, tasks.find(t=>t.id===tid)?.folderId || currentFolderId || '')}
+                        onUpdateTask={(tid, payload) => updateTask(tid, tasks.find(t=>t.id===tid)?.folderId || currentFolderId || '', payload)}
                         onEditTask={handleEditTask}
                         onAddTask={() => setIsTaskModalOpen(true)}
                     />
                 )}
                 {activeView === 'list' && (
-                    <ListView 
+                    <GroupedTaskTable 
                         tasks={tasks}
-                        onToggleTask={(tid, status) => updateTaskStatus(tid, status === 'done' ? 'backlog' : 'done', tasks.find(t=>t.id===tid)?.folderId)}
+                        folders={folders}
+                        onUpdateTask={(tid, fid, updates) => updateTask(tid, fid, updates)}
+                        onToggleTask={(tid, status, fid) => updateTaskStatus(tid, status === 'done' ? 'backlog' : 'done', fid)}
                         onEditTask={handleEditTask}
                     />
                 )}
@@ -177,6 +154,7 @@ export default function TdlF() {
             onClose={() => setIsTaskModalOpen(false)}
             title="Create Task"
             className="todo-task-modal"
+            footer={null}
         >
             <form onSubmit={handleSaveTask} className="task-form">
                 <div className="form-group">

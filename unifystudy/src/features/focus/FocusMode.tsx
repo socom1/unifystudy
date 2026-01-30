@@ -7,8 +7,8 @@ import './FocusMode.scss';
 import Pomodoro from '../pomodoro/Pomdoro';
 
 const AUDIO_URLS = {
-    rain: 'https://github.com/isyuricunha/rain-for-relax/raw/main/assets/audio/rain-chill.mp3', 
-    wind: 'https://github.com/tareksherif/art/raw/gh-pages/theatre-at-the-end/sound/wind.mp3'
+    rain: 'https://cdn.pixabay.com/download/audio/2022/05/13/audio_257112181f.mp3?filename=rain-and-thunder-16705.mp3',
+    wind: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1fb2c.mp3?filename=wind-arance-7053.mp3'
 };
 
 const FocusMode = ({ isActive, onClose }) => {

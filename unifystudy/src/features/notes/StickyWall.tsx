@@ -60,12 +60,35 @@ export default function StickyWall() {
 
   return (
     <div className="sticky-wall">
-      <header className="wall-header">
-        <h1>Sticky Wall</h1>
-        <button onClick={addNote}>+ New Note</button>
-      </header>
+      {/* Floating Toolbar */}
+      <div className="floating-toolbar">
+         <div className="toolbar-actions">
+            <button onClick={addNote}>+ New Note</button>
+         </div>
+      </div>
 
-      <div className="wall-area" ref={containerRef}>
+      <div 
+        className="wall-area" 
+        ref={containerRef}
+        onDoubleClick={(e) => {
+            if (e.target === containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                const x = e.clientX - rect.left - 100; // Center the 200px note
+                const y = e.clientY - rect.top - 100;
+                
+                if (!userId) return;
+                const notesRef = ref(db, `users/${userId}/sticky_notes`);
+                const newNoteRef = push(notesRef);
+                set(newNoteRef, {
+                  text: "",
+                  color: colors[Math.floor(Math.random() * colors.length)],
+                  x: Math.max(0, x),
+                  y: Math.max(0, y),
+                  rotation: Math.random() * 6 - 3, 
+                });
+            }
+        }}
+      >
         <AnimatePresence>
           {notes.map((note) => (
             <StickyNote
@@ -79,7 +102,7 @@ export default function StickyWall() {
         </AnimatePresence>
         {notes.length === 0 && (
           <div className="empty-state">
-            <p>Click "+ New Note" to add a sticky note!</p>
+            <p>Double-click anywhere to add a sticky note!</p>
           </div>
         )}
       </div>
@@ -94,7 +117,7 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
   const dragControls = useDragControls();
 
   const renderText = (text) => {
-    if (!text) return "Double click to edit...";
+    if (!text) return <span className="empty-note-hint">Double click to edit...</span>;
 
     const parts = text.split(/(\[\[.*?\]\])/g);
 
@@ -125,18 +148,21 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
       dragControls={dragControls}
       dragConstraints={containerRef}
       dragMomentum={false}
+      dragElastic={0} // Fix "ice" feeling
       initial={{ scale: 0, opacity: 0 }}
       animate={{
-        scale: 1,
+        scale: isEditing ? 1.05 : 1, // Slight pop when editing
         opacity: 1,
         x: note.x,
         y: note.y,
         width: size.width,
         height: size.height,
-        backgroundColor: note.color || '#2d3436' 
+        backgroundColor: note.color || '#2d3436',
+        rotate: isEditing ? 0 : (note.rotation || 0), // Straighten when editing
+        zIndex: isEditing ? 100 : 20, // Bring to front when editing
       }}
       exit={{ scale: 0, opacity: 0 }}
-      whileDrag={{ zIndex: 100, cursor: "grabbing" }}
+      whileDrag={{ scale: 1.05, zIndex: 100, cursor: "grabbing" }}
       onDragEnd={(e, info) => {
         onUpdate(note.id, {
           x: note.x + info.offset.x,
@@ -154,8 +180,11 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
       <div
         className="note-header"
         onPointerDown={(e) => dragControls.start(e)}
-        style={{ height: '24px', width: '100%', cursor: 'grab', position: 'absolute', top: 0, left: 0, zIndex: 10 }}
+        style={{ height: '30px', width: '100%', cursor: 'grab', position: 'absolute', top: 0, left: 0, zIndex: 10 }}
       />
+      
+      {/* ... rest of component ... */}
+      
       <div className="note-actions">
         <button 
             className="action-btn"

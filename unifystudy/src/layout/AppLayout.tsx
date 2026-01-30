@@ -28,6 +28,8 @@ const Flashcards = React.lazy(() => import("@/features/flashcards/Flashcards"));
 const Analytics = React.lazy(() => import("@/features/analytics/Analytics"));
 const HabitTracker = React.lazy(() => import("@/features/habits/HabitTracker"));
 const SettingsPage = React.lazy(() => import("@/features/settings/SettingsPage"));
+const PrivacyPolicy = React.lazy(() => import("@/features/legal/PrivacyPolicy"));
+const TermsOfService = React.lazy(() => import("@/features/legal/TermsOfService"));
 
 const FocusMode = React.lazy(() => import("@/features/focus/FocusMode"));
 const DailyStandup = React.lazy(() => import("@/features/standup/DailyStandup"));
@@ -277,6 +279,18 @@ const AppLayout = () => {
                 <Route path="/settings" element={
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="full-size scrollable">
                     <SettingsPage />
+                  </motion.div>
+                } />
+
+                <Route path="/privacy" element={
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="full-size scrollable">
+                    <PrivacyPolicy />
+                  </motion.div>
+                } />
+
+                <Route path="/terms" element={
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="full-size scrollable">
+                    <TermsOfService />
                   </motion.div>
                 } />
 

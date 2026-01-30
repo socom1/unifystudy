@@ -25,4 +25,5 @@ export interface CalendarEvent {
   start: number;
   end: number;
   color: string;
+  type?: 'Lecture' | 'Workshop' | 'Study' | 'Other';
 }

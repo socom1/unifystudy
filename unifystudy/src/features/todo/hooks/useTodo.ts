@@ -26,6 +26,7 @@ export type Task = {
   description: string;
   color: string;
   folderId?: string;
+  isHalfWidth?: boolean;
   tags?: Array<{ label: string; color: string }>;
   dueDate?: string;
   priority?: 'low' | 'medium' | 'high';
@@ -36,6 +37,9 @@ export type Task = {
   comments?: Comment[];
   attachments?: Attachment[];
   assignees?: Assignee[];
+  workspace?: string; // e.g. "Personal", "Work", "School"
+  duration?: number; // in minutes
+  label?: string; // e.g. "Feature", "Bug", "Enhancement"
   
   [key: string]: any;
 };
@@ -47,6 +51,7 @@ export type Folder = {
   color: string;
   tasks?: Record<string, Task>;
   parentId: string | null;
+  columns?: Array<{ id: string; label: string; color: string }>;
   [key: string]: any;
 };
 
@@ -93,6 +98,7 @@ export function useTodo() {
         order: val.order ?? 0,
         createdAt: val.createdAt ?? 0,
         type: val.type || (val.tasks ? 'list' : 'folder'),
+        columns: val.columns || null,
         tasks: val.tasks || {},
       }));
       // Sort
@@ -109,7 +115,7 @@ export function useTodo() {
   useEffect(() => {
     if (!userId) return;
 
-    if (activeView === 'folder' && currentFolderId) {
+    if (currentFolderId) {
         const tasksRef = databaseRef(db, `users/${userId}/folders/${currentFolderId}/tasks`);
         const unsub = onValue(tasksRef, (snap) => {
              const data = snap.val() || {};
@@ -128,7 +134,7 @@ export function useTodo() {
         });
         return () => unsub();
     } else {
-        let allTasks: Task[] = [];
+        const allTasks: Task[] = [];
         foldersFlat.forEach(f => {
             if (f.tasks) {
                 Object.entries(f.tasks).forEach(([tid, t]: [string, any]) => {
@@ -145,7 +151,8 @@ export function useTodo() {
                 });
             }
         });
-        // Sort by order/date if needed, currently raw order from folder iteration+push
+        // Sort by order
+        allTasks.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
         setTasks(allTasks);
     }
   }, [userId, currentFolderId, activeView, foldersFlat]); 
@@ -239,6 +246,11 @@ export function useTodo() {
       await update(databaseRef(db, `users/${userId}/folders/${folderId}/tasks/${taskId}`), payload);
   };
 
+  const updateFolder = async (folderId: string, payload: Partial<Folder>) => {
+      if (!userId || !folderId) return;
+      await update(databaseRef(db, `users/${userId}/folders/${folderId}`), payload);
+  };
+
   const deleteTask = async (taskId: string, folderId: string) => {
       if (!userId || !folderId) return;
       await remove(databaseRef(db, `users/${userId}/folders/${folderId}/tasks/${taskId}`));
@@ -255,6 +267,77 @@ export function useTodo() {
 
        await update(databaseRef(db, `users/${userId}/folders/${targetFolderId}/tasks/${taskId}`), task);
        await remove(databaseRef(db, `users/${userId}/folders/${sourceFolderId}/tasks/${taskId}`));
+  };
+
+  // Initialize Default Workspaces
+  useEffect(() => {
+      if (!userId) return;
+      
+      const initDefaults = async () => {
+          const defaults = [
+              { text: "Personal", color: "#e86e68" }, // Red
+              { text: "Work", color: "#376cff" },     // Blue
+              { text: "School", color: "#f8b724" }    // Yellow
+          ];
+          
+          const foldersRef = databaseRef(db, `users/${userId}/folders`);
+          
+          // Check which defaults are missing
+          // We can't rely solely on foldersFlat here as it might not be fully loaded yet?
+          // Actually, we can check foldersFlat but we need to span a check.
+          // Let's just do a check against current loaded state.
+          
+          for (const d of defaults) {
+              const exists = foldersFlat.some(f => f.text === d.text && !f.parentId);
+              if (!exists) {
+                 // Double check simple existence to avoid duplicates on re-render race conditions
+                 // (Though React strict mode might trigger this twice, Firebase handles keys)
+                 // We'll trust the checked state.
+                 await push(foldersRef, {
+                      text: d.text,
+                      type: 'folder',
+                      color: d.color,
+                      order: Date.now(),
+                      createdAt: Date.now()
+                  });
+              }
+          }
+      };
+      
+      // Wait for initial load
+      const t = setTimeout(() => {
+          if (foldersFlat !== undefined) initDefaults();
+      }, 1000);
+      
+      return () => clearTimeout(t);
+  }, [userId, foldersFlat.length]);
+
+  const addFolder = async (type: 'folder' | 'list' = 'folder', name: string = "New Folder", parentId: string | null = null) => {
+      if (!userId) return;
+      try {
+          const foldersRef = databaseRef(db, `users/${userId}/folders`);
+          const newFolderRef = await push(foldersRef, {
+              text: name,
+              type: type,
+              parentId: parentId,
+              color: '#' + Math.floor(Math.random()*16777215).toString(16),
+              order: Date.now(),
+              createdAt: Date.now()
+          });
+          toast.success("Folder created");
+          return newFolderRef.key;
+      } catch (err) {
+          toast.error("Failed to create folder");
+      }
+  };
+
+  const deleteFolder = async (folderId: string) => {
+      if (!userId || !folderId) return;
+      if (confirm("Are you sure you want to delete this folder and all its tasks?")) {
+          await remove(databaseRef(db, `users/${userId}/folders/${folderId}`));
+          if (currentFolderId === folderId) setCurrentFolderId(null);
+          toast.success("Folder deleted");
+      }
   };
 
   // --- Sub-Entity Actions ---
@@ -312,11 +395,14 @@ export function useTodo() {
     // Actions
     addTask,
     updateTask,
+    updateFolder,
     updateTaskStatus,
     deleteTask,
     moveTask,
     addChecklistItem,
     toggleChecklistItem,
-    addComment
+    addComment,
+    addFolder,
+    deleteFolder
   };
 }

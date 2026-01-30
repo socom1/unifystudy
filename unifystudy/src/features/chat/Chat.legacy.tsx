@@ -1027,14 +1027,22 @@ const Chat = () => {
     u.displayName.toLowerCase().includes(userSearch.toLowerCase())
   );
 
-  const renderRow = useCallback((msg, index) => (
+  const renderRow = useCallback((msg, index) => {
+    // Message Grouping Logic: Check if message should be grouped with previous
+    const prevMsg = messages[index - 1];
+    const isGrouped = prevMsg && 
+      prevMsg.uid === msg.uid && 
+      msg.timestamp && prevMsg.timestamp &&
+      (msg.timestamp - prevMsg.timestamp) < 5 * 60 * 1000; // Within 5 minutes
+    
+    return (
     <motion.div
     key={msg.id}
     initial={{ opacity: 0, y: 10 }} // Keep simple entrance
     animate={{ opacity: 1, y: 0 }}
     className={`message-row ${
         msg.uid === user.uid ? "own" : ""
-    }`}
+    } ${isGrouped ? "grouped" : ""}`}
     >
      {!anonymousMode && (
         <div 
@@ -1117,7 +1125,8 @@ const Chat = () => {
         </div>
     </div>
     </motion.div>
-), [user, anonymousMode, openProfile, handleReply, handleEdit, handleDelete, renderMessageText]);
+  );
+  }, [user, anonymousMode, openProfile, handleReply, handleEdit, handleDelete, renderMessageText, messages]);
 
   return (
     <div className="chat-layout">
@@ -1354,70 +1363,74 @@ const Chat = () => {
           >
              <GraduationCap size={14} /> Verify Email
           </button>
-       )}
-
-          {/* Collaborative Works */}
-        {(channelSearch === "" || filteredCollabChannels.length > 0) && (
-            <div className="section-label" style={{ marginTop: '1.5rem' }}>
-                <span>COLLABORATIVE WORKS</span>
-            </div>
         )}
-        
-        {collabChannels.length === 0 && channelSearch === "" && (
-            <div style={{ padding: '0 1rem', fontSize: '0.8rem', opacity: 0.5 }}>
-                No pending works.
-            </div>
-        )}
-             {filteredCollabChannels.map(ch => (
-                 <div
-                    key={ch.id}
-                    className={`channel-item ${activeChannel === ch.id ? "active" : ""}`}
-                    onClick={() => {
-                        setActiveChannel(ch.id);
-                        setActiveChannelName(ch.name);
-                    }}
-                 >
-                     <div className="channel-icon-wrapper" style={{marginRight: 6, display: 'flex', alignItems: 'center'}}>
-                        <Code size={14} />
-                     </div>
-                     <span>{ch.name}</span>
-                     {unreadChannels[ch.id] > 0 && <span className="channel-badge">{unreadChannels[ch.id]}</span>}
-                 </div>
-             ))}
 
           
-       {/* UNIVERSITY SECTION - Grouped */}
+       {/* UNIVERSITY SECTION - Enhanced Design */}
        {(uniChannels.length > 0) && (
            <>
-            <div className="section-label mt-4" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ textTransform: 'uppercase' }}>
-                    {uniChannels[0].name.replace(' (Student)', '').replace(' Student', '')}
+            <div className="section-label mt-4 university-section-header" style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              marginBottom: '8px',
+              border: '1px solid rgba(59, 130, 246, 0.2)'
+            }}>
+                <span style={{ 
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.5px',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                    🎓 {uniChannels[0].name.replace(' (Student)', '').replace(' Student', '')}
                 </span>
                 <Plus 
-                    size={14} 
-                    style={{ cursor: 'pointer' }} 
+                    size={16} 
+                    style={{ 
+                      cursor: 'pointer',
+                      color: '#3b82f6',
+                      transition: 'transform 0.2s'
+                    }} 
+                    className="university-add-btn"
                     onClick={() => setShowCreateCourse(true)} 
                     title="Add Course by Code"
                 />
             </div>
 
-            {/* Main University Channels */}
+            {/* Main University Global Chat - Enhanced */}
             {filteredUniChannels.map((uni) => (
                 <div
                 key={uni.id}
-                className={`channel-item ${activeChannel === uni.id ? "active" : ""}`}
+                className={`channel-item university-global ${activeChannel === uni.id ? "active" : ""}`}
                 onClick={() => {
                     setActiveChannel(uni.id);
                     setActiveChannelName(uni.name);
                 }}
+                style={{
+                  background: activeChannel === uni.id 
+                    ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%)'
+                    : 'rgba(59, 130, 246, 0.08)',
+                  borderRadius: '8px',
+                  marginBottom: '6px',
+                  border: '1px solid rgba(59, 130, 246, 0.2)'
+                }}
                 >
-                <div className="channel-icon-wrapper" style={{marginRight: 6}}>
-                    <span style={{ fontSize: '1.1em' }}>{uni.icon}</span>
+                <div className="channel-icon-wrapper" style={{marginRight: 8}}>
+                    <span style={{ fontSize: '1.2em' }}>{uni.icon}</span>
                 </div>
-                {/* Always display as "Global Chat" for the main university channel in this view */}
-                <span className="channel-name-truncate">Global Chat</span>
+                <span className="channel-name-truncate" style={{ fontWeight: 500 }}>Global Chat</span>
                 {unreadChannels[uni.id] > 0 && (
-                    <span className="channel-badge">{unreadChannels[uni.id]}</span>
+                    <span className="channel-badge" style={{
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                      boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                    }}>{unreadChannels[uni.id]}</span>
                 )}
                 </div>
             ))}

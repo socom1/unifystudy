@@ -156,10 +156,26 @@
         height: 10px;
         border-radius: 50%;
         background: var(--color-muted);
+        transition: background 0.2s, box-shadow 0.2s;
 
         &.online {
           background: #238636;
           box-shadow: 0 0 5px rgba(35, 134, 54, 0.5);
+        }
+        
+        &.dnd {
+          background: #ef4444;
+          box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+        }
+        
+        &.idle {
+          background: #f59e0b;
+          box-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
+        }
+        
+        &.offline {
+          background: #6b7280;
+          box-shadow: none;
         }
       }
 
@@ -356,13 +372,26 @@
         gap: 12px;
         max-width: 85%;
         width: fit-content;
-        /* Ensure row wraps content, doesn't span full 85% always */
         animation: messageSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 
-        /* Spacing Fix for removed container padding */
+        /* Enhanced spacing for better visual hierarchy */
         padding: 0 20px;
-        margin-bottom: 16px;
+        margin-bottom: 32px; /* More space between different users */
         box-sizing: border-box;
+        
+        /* Grouped message styling - consecutive messages from same user */
+        &.grouped {
+          margin-bottom: 12px; /* Increased spacing for grouped messages */
+          margin-top: 4px;
+          
+          .message-avatar {
+            visibility: hidden; /* Keep layout but hide avatar */
+          }
+          
+          .message-sender {
+            display: none; /* Hide name/time for grouped messages */
+          }
+        }
 
         &.own {
           margin-left: auto;
@@ -404,15 +433,15 @@
         }
 
         .message-avatar {
-          width: 32px;
-          min-width: 32px;
+          width: 40px; /* Increased from 32px for better visual weight */
+          min-width: 40px;
           margin-right: 12px;
           flex-shrink: 0;
           margin-top: 4px;
 
           .msg-avatar {
-            width: 32px;
-            height: 32px;
+            width: 40px; /* Increased from 32px */
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
             cursor: pointer;
@@ -428,9 +457,9 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 14px;
-            width: 32px;
-            height: 32px;
+            font-size: 16px; /* Larger initial for bigger avatar */
+            width: 40px; /* Increased from 32px */
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
           }
@@ -467,16 +496,20 @@
           .message-bubble {
             background-color: var(--bg-3);
             color: var(--color-text);
-            padding: 10px 16px;
-            border-radius: 4px 18px 18px 18px;
-            /* Modern "Chat" look */
+            padding: 12px 16px; /* More vertical padding for premium feel */
+            border-radius: 8px 16px 16px 16px; /* Softer, more rounded corners */
             font-size: 15px;
-            /* Slightly larger text */
             line-height: 1.5;
             word-wrap: break-word;
             border: 1px solid rgba(255, 255, 255, 0.05);
             position: relative;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* More depth */
+            transition: box-shadow 0.2s ease;
+            
+            /* Add subtle hover effect for interactivity */
+            &:hover {
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
 
             .mention-highlight {
               background: rgba(59, 130, 246, 0.2);
@@ -1278,4 +1311,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+// University section enhancements
+.university-add-btn:hover {
+  transform: scale(1.1) rotate(90deg);
+}
+
+.university-section-header:hover {
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.08) 100%) !important;
 }

@@ -2,6 +2,7 @@
 // MindMap.jsx
 // React Flow implementation for UnifyStudy
 import React, { useCallback, useEffect, useState, useMemo, useRef } from "react";
+import { Plus, Upload, Download, Trash2, RotateCcw } from "lucide-react";
 import ReactFlow, { 
   useNodesState, 
   useEdgesState, 
@@ -121,6 +122,7 @@ const Sidebar = ({ state, actions }) => {
     selectMap,
     deleteMap,
     renameMap,
+    deleteFolder,
   } = actions;
 
   const activeFolder =
@@ -149,9 +151,18 @@ const Sidebar = ({ state, actions }) => {
               >
                 {f.name}
               </button>
+              {folders.length > 1 && (
+                <button
+                  className="mm-folder-delete"
+                  onClick={() => deleteFolder(f.id)}
+                  title="Delete Folder"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
             <div className="mm-maps-list">
-              {f.maps.map((m) => (
+              {f.maps && f.maps.length > 0 ? f.maps.map((m) => (
                 <div
                   key={m.id}
                   className={`mm-map-item ${
@@ -170,8 +181,7 @@ const Sidebar = ({ state, actions }) => {
                     </button>
                   </div>
                 </div>
-              ))}
-              {f.maps.length === 0 && <div className="mm-empty">No maps</div>}
+              )) : <div className="mm-empty">No maps</div>}
             </div>
           </div>
         ))}
@@ -264,13 +274,44 @@ const MapEditor = ({ map, onChange, onEditNode }) => {
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
   return (
-    <div className="mm-modal-overlay">
-      <div className="mm-modal">
+    <div className="mm-modal-overlay" onClick={onClose}>
+      <div className="mm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="mm-modal-header">
           <h3>{title}</h3>
           <button onClick={onClose}>×</button>
         </div>
         <div className="mm-modal-content">{children}</div>
+      </div>
+    </div>
+  );
+};
+
+// Confirmation Modal Component
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText = "Delete", isDangerous = false }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="mm-modal-overlay" onClick={onClose}>
+      <div className="mm-modal mm-confirm-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="mm-modal-header">
+          <h3>{title}</h3>
+          <button onClick={onClose}>×</button>
+        </div>
+        <div className="mm-modal-content">
+          <p className="confirm-message">{message}</p>
+          <div className="mm-modal-actions">
+            <button type="button" onClick={onClose}>Cancel</button>
+            <button 
+              type="button"
+              className={`primary ${isDangerous ? 'danger' : ''}`}
+              onClick={() => {
+                onConfirm();
+                onClose();
+              }}
+            >
+              {confirmText}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -297,6 +338,11 @@ const MindMapApp = () => {
   const [modalNodeType, setModalNodeType] = useState("default"); 
   const [modalFontSize, setModalFontSize] = useState("md"); 
   const [targetId, setTargetId] = useState(null); 
+  
+  // Confirmation Modal State
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", message: "", confirmText: "Confirm" }); 
 
   // Debounce Ref
   const saveTimeoutRef = useRef(null);
@@ -345,6 +391,9 @@ const MindMapApp = () => {
     }
     
     if (f) {
+        // Ensure maps array exists
+        if (!f.maps) f.maps = [];
+        
         // If current map is invalid for this folder
         const m = f.maps.find((mm) => mm.id === activeMapId);
         if (!m && f.maps.length > 0) {
@@ -412,7 +461,7 @@ const MindMapApp = () => {
       };
       
       newStore.folders = newStore.folders.map((f) =>
-          f.id === activeFolderId ? { ...f, maps: [...f.maps, map] } : f
+          f.id === activeFolderId ? { ...f, maps: [...(f.maps || []), map] } : f
       );
       newActiveMapId = map.id;
     } else if (modalType === "renameMap") {
@@ -420,7 +469,7 @@ const MindMapApp = () => {
           f.id === activeFolderId
             ? {
                 ...f,
-                maps: f.maps.map((m) =>
+                maps: (f.maps || []).map((m) =>
                   m.id === targetId ? { ...m, name: modalInput } : m
                 ),
               }
@@ -444,7 +493,7 @@ const MindMapApp = () => {
         
         newStore.folders = newStore.folders.map((f) => ({
               ...f,
-              maps: f.maps.map((m) => {
+              maps: (f.maps || []).map((m) => {
                 if (m.id === activeMapId) {
                     return {
                         ...m,
@@ -457,7 +506,7 @@ const MindMapApp = () => {
     } else if (modalType === "editNode") {
        newStore.folders = newStore.folders.map((f) => ({
           ...f,
-          maps: f.maps.map((m) => {
+          maps: (f.maps || []).map((m) => {
             if (m.id === activeMapId) {
                 return {
                     ...m,
@@ -506,17 +555,52 @@ const MindMapApp = () => {
   };
 
   const deleteMap = (folderId, mapId) => {
-    if (!window.confirm("Delete this map?")) return;
-    const newStore = {
+    setConfirmConfig({
+      title: "Delete Map?",
+      message: "This action cannot be undone.",
+      confirmText: "Delete"
+    });
+    setConfirmAction(() => () => {
+      const newStore = {
+          ...store,
+          folders: store.folders.map((f) =>
+              f.id === folderId
+                ? { ...f, maps: (f.maps || []).filter((m) => m.id !== mapId) }
+                : f
+          )
+      };
+      handleStoreUpdate(newStore);
+      if (activeMapId === mapId) setActiveMapId(null);
+    });
+    setConfirmModalOpen(true);
+  };
+
+  const deleteFolder = (folderId) => {
+    if (store.folders.length <= 1) {
+      toast.error("Cannot delete the last folder");
+      return;
+    }
+    
+    setConfirmConfig({
+      title: "Delete Folder?",
+      message: "All maps in this folder will be deleted. This action cannot be undone.",
+      confirmText: "Delete"
+    });
+    setConfirmAction(() => () => {
+      const newStore = {
         ...store,
-        folders: store.folders.map((f) =>
-            f.id === folderId
-              ? { ...f, maps: f.maps.filter((m) => m.id !== mapId) }
-              : f
-        )
-    };
-    handleStoreUpdate(newStore);
-    if (activeMapId === mapId) setActiveMapId(null);
+        folders: store.folders.filter((f) => f.id !== folderId)
+      };
+      
+      handleStoreUpdate(newStore);
+      
+      // If deleting active folder, switch to first remaining folder
+      if (activeFolderId === folderId) {
+        setActiveFolderId(newStore.folders[0].id);
+        setActiveMapId(newStore.folders[0].maps?.[0]?.id || null);
+      }
+    });
+    setConfirmModalOpen(true);
   };
 
   const renameMap = (folderId, mapId) => {
@@ -531,7 +615,7 @@ const MindMapApp = () => {
       ...store,
       folders: store.folders.map((f) => ({
         ...f,
-        maps: f.maps.map((m) =>
+        maps: (f.maps || []).map((m) =>
           m.id === activeMapId
             ? { ...m, nodes: payload.nodes, edges: payload.edges }
             : m
@@ -580,7 +664,7 @@ const MindMapApp = () => {
       const newStore = {
         ...store,
         folders: store.folders.map((f) =>
-          f.id === activeFolderId ? { ...f, maps: [...f.maps, map] } : f
+          f.id === activeFolderId ? { ...f, maps: [...(f.maps || []), map] } : f
         ),
       };
       
@@ -592,9 +676,16 @@ const MindMapApp = () => {
   };
   
   const resetStorage = () => {
-      if(!confirm("This will erase your cloud data. Are you sure?")) return;
+    setConfirmConfig({
+      title: "Reset All Data?",
+      message: "This will erase all your mind maps from cloud storage. This action cannot be undone.",
+      confirmText: "Reset"
+    });
+    setConfirmAction(() => () => {
       handleStoreUpdate(defaultData);
       window.location.reload();
+    });
+    setConfirmModalOpen(true);
   };
 
   const folders = store.folders;
@@ -620,6 +711,7 @@ const MindMapApp = () => {
           selectMap,
           deleteMap,
           renameMap,
+          deleteFolder,
         }}
       />
 
@@ -634,15 +726,19 @@ const MindMapApp = () => {
                 }
               }}
               disabled={!activeMap}
+              className="mm-icon-btn"
+              title="Add Node"
             >
-              Add Node
+              <Plus size={18} />
             </button>
-            <button onClick={exportMap} disabled={!activeMap}>
-              Export
+            <button onClick={exportMap} disabled={!activeMap} className="mm-icon-btn" title="Export Map">
+              <Download size={18} />
             </button>
-            <button onClick={importMap}>Import</button>
-            <button onClick={resetStorage} style={{color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)'}}>
-              Reset Data
+            <button onClick={importMap} className="mm-icon-btn" title="Import Map">
+              <Upload size={18} />
+            </button>
+            <button onClick={resetStorage} className="mm-icon-btn mm-danger" title="Reset All Data">
+              <RotateCcw size={18} />
             </button>
           </div>
         </div>
@@ -776,6 +872,17 @@ const MindMapApp = () => {
           </form>
         </Modal>
       )}
+      
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={confirmAction}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        confirmText={confirmConfig.confirmText}
+        isDangerous={true}
+      />
     </div>
   );
 };

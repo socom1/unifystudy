@@ -145,6 +145,23 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, onClose, folderNam
                             )}
                         </div>
                     </div>
+
+                    <div className="meta-item">
+                        <label>Color</label>
+                        <div className="color-picker-row" style={{ display: 'flex', gap: '6px' }}>
+                            {['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'].map(c => (
+                                <div 
+                                    key={c}
+                                    onClick={() => handleUpdate('color', c)}
+                                    style={{
+                                        width: '18px', height: '18px', borderRadius: '50%', background: c,
+                                        cursor: 'pointer', border: task.color === c ? '2px solid white' : '2px solid transparent',
+                                        boxShadow: task.color === c ? '0 0 0 1px rgba(255,255,255,0.2)' : 'none'
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="divider" />

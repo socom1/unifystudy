@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Lock, Bell, Shield, Database, HelpCircle,
@@ -20,7 +21,7 @@ import {
 import { toast } from 'sonner';
 import { useUI } from '@/context/UIContext';
 import { connectGoogleCalendar, fetchUpcomingEvents } from "@/services/googleCalendar";
-import { version } from '../../../package.json';
+import { releaseNotes, getVersion } from '@/data/releaseNotes';
 import './SettingsPage.scss';
 
 export default function SettingsPage() {
@@ -696,11 +697,11 @@ export default function SettingsPage() {
             <div className="section-body">
               <div className="about-row">
                 <span>Version</span>
-                <span>{version}</span>
+                <span>{getVersion()}</span>
               </div>
               <div className="about-row">
                 <span>Build</span>
-                <span>2024.12.28</span>
+                <span>{__BUILD_DATE__}</span>
               </div>
               <div className="divider" />
               <a href="https://github.com/socom1/unifystudy" target="_blank" rel="noopener noreferrer" className="about-link">
@@ -709,12 +710,12 @@ export default function SettingsPage() {
               <a href="https://github.com/socom1/unifystudy/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="about-link">
                 License
               </a>
-              <a href="/privacy" className="about-link">
+              <Link to="/privacy" className="about-link">
                 Privacy Policy
-              </a>
-              <a href="/terms" className="about-link">
+              </Link>
+              <Link to="/terms" className="about-link">
                 Terms of Service
-              </a>
+              </Link>
             </div>
           </section>
         </div>

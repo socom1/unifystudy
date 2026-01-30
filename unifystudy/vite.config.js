@@ -8,6 +8,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
+  define: {
+    '__BUILD_DATE__': JSON.stringify(new Date().toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('.')) // YYYY.MM.DD
+  },
   plugins: [
     react(),
     VitePWA({
