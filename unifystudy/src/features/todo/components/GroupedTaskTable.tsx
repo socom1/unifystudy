@@ -12,7 +12,8 @@ import {
   ChevronRight,
   CheckCircle2,
   Flag,
-  Maximize2
+  Maximize2,
+  Trash2
 } from 'lucide-react';
 import './GroupedTaskTable.scss';
 import { format, isToday, isTomorrow, isThisWeek, parseISO, isValid } from 'date-fns';
@@ -23,6 +24,7 @@ interface GroupedTaskTableProps {
   onUpdateTask: (taskId: string, folderId: string, updates: Partial<Task>) => void;
   onToggleTask: (taskId: string, status: Task['status'], folderId: string) => void;
   onEditTask: (task: Task) => void;
+  onDeleteTask: (taskId: string, folderId: string) => void;
 }
 
 export const GroupedTaskTable: React.FC<GroupedTaskTableProps> = ({ 
@@ -30,7 +32,9 @@ export const GroupedTaskTable: React.FC<GroupedTaskTableProps> = ({
   folders, 
   onUpdateTask, 
   onToggleTask,
-  onEditTask 
+  onToggleTask,
+  onEditTask,
+  onDeleteTask
 }) => {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
@@ -137,8 +141,16 @@ export const GroupedTaskTable: React.FC<GroupedTaskTableProps> = ({
                                    defaultValue={task.text}
                                    onBlur={(e) => onUpdateTask(task.id, task.folderId || "", { text: e.target.value })}
                                />
-                               <button className="open-task-btn" onClick={() => onEditTask(task)}>
+                               <button className="open-task-btn" onClick={() => onEditTask(task)} title="Open Details">
                                     <Maximize2 size={12}/>
+                               </button>
+                               <button 
+                                   className="open-task-btn delete" 
+                                   onClick={() => onDeleteTask(task.id, task.folderId || "")}
+                                   title="Delete Task"
+                                   style={{ marginLeft: '4px', color: 'var(--color-danger)' }}
+                               >
+                                    <Trash2 size={12}/>
                                </button>
                            </div>
 

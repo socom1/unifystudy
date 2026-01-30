@@ -9,14 +9,14 @@ export interface ReleaseNote {
 export const releaseNotes: ReleaseNote[] = [
   {
     version: '1.1.1',
-    title: 'UnifyStudy 1.1.1 - Hierarchical Workspaces',
-    description: 'Introducing a powerful new way to organize your tasks with nested folders and improved navigation.',
+    title: 'UnifyStudy 1.1.1 - Smart Filters & Organization',
+    description: 'A major productivity update introducing nested folders, advanced task filtering, and streamlined management tools.',
     features: [
       '🗂️ Hierarchical Workspaces: Create folders inside Personal, Work, or School for deeper organization',
-      '🔽 Smart Navigation: New Header Dropdown for instant switching between workspaces and folders',
-      '🛡️ Security Hardening: Strict database rules, owner-only access, and character limits to prevent abuse',
-      '⚡ Default Workspaces: Smartly initializes your core workspaces so you\'re ready to go',
-      '🐛 Fixes: Resolved task filtering issues when switching between folders'
+      '🔍 Advanced Filtering: Filter tasks by Priority and Assignee across all views',
+      '🗑️ Enhanced Management: Delete tasks directly from List View & Sort by Priority',
+      '🚦 Priority UI: Visual priority indicators and selectors for clearer task tracking',
+      '🔽 Smart Navigation: New Header Dropdown for instant switching between workspaces'
     ],
     date: '2026-01-30'
   },

@@ -5,6 +5,7 @@ import { GroupedTaskTable } from './components/GroupedTaskTable';
 import { CalendarView } from './components/CalendarView';
 import { TaskDrawer } from './components/TaskDrawer'; // Import Drawer
 import { WorkspaceSwitcher } from './components/WorkspaceSwitcher';
+import { TaskFilter } from './components/TaskFilter'; // Import Filter
 import { Search, LayoutGrid, List as ListIcon, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import Modal from "@/components/common/Modal";
@@ -17,32 +18,39 @@ export default function TdlF() {
       activeView, setActiveView,
       currentFolderId, setCurrentFolderId,
       searchQuery, setSearchQuery,
+      priorityFilter, setPriorityFilter, // Filter State
+      assigneeFilter, setAssigneeFilter, // Filter State
       addTask,
       updateTaskStatus,
       updateTask,
       updateFolder,
       deleteTask,
       addFolder,
-      deleteFolder
+      deleteFolder,
+      addMember,
+      userProfile,
+      userId
   } = useTodo();
 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const currentFolder = folders.find(f => f.id === currentFolderId);
+  
+  // Computed live task for drawer to ensure reactivity (comments, checklist etc)
+  const editingTask = tasks.find(t => t.id === editingTaskId) || null;
 
   // Handlers for Drawer
   const handleEditTask = (task: Task) => {
-      setEditingTask(task);
-      // Drawer is controlled by editingTask != null
+      setEditingTaskId(task.id);
   };
 
   const closeDrawer = () => {
-      setEditingTask(null);
+      setEditingTaskId(null);
   };
   
   const handleCreateTask = () => {
-      setEditingTask(null); // Clear edit
+      setEditingTaskId(null); // Clear edit
       setIsTaskModalOpen(true); // Open simple create modal
   };
 
@@ -52,11 +60,13 @@ export default function TdlF() {
       const text = form.taskText.value;
       const status = form.taskStatus.value;
       const date = form.taskDate.value;
+      const priority = form.taskPriority.value;
       
       if (text) {
           addTask(text, currentFolderId, { 
               status: status || 'backlog',
-              dueDate: date
+              dueDate: date,
+              priority: priority as any // simplified casting
           });
           setIsTaskModalOpen(false);
       }
@@ -73,6 +83,7 @@ export default function TdlF() {
                         onSelectFolder={setCurrentFolderId}
                         onAddFolder={addFolder}
                         onDeleteFolder={deleteFolder}
+                        onAddMember={addMember}
                     />
                 </div>
 
@@ -103,6 +114,13 @@ export default function TdlF() {
                 </div>
 
                 <div className="controls-area">
+                    <TaskFilter 
+                        priorityFilter={priorityFilter}
+                        setPriorityFilter={setPriorityFilter}
+                        assigneeFilter={assigneeFilter}
+                        setAssigneeFilter={setAssigneeFilter}
+                        tags={[]} 
+                    />
                     <div className="search-box">
                         <Search size={16} className="search-icon" />
                         <input 
@@ -123,6 +141,7 @@ export default function TdlF() {
                         tasks={tasks}
                         columns={currentFolder?.columns || null}
                         folderId={currentFolderId}
+                        userProfile={{...userProfile, userId: userId || undefined}} // Combine ID
                         onUpdateFolder={updateFolder}
                         onUpdateStatus={(tid, status) => updateTaskStatus(tid, status, tasks.find(t=>t.id===tid)?.folderId || currentFolderId || '')}
                         onUpdateTask={(tid, payload) => updateTask(tid, tasks.find(t=>t.id===tid)?.folderId || currentFolderId || '', payload)}
@@ -136,7 +155,9 @@ export default function TdlF() {
                         folders={folders}
                         onUpdateTask={(tid, fid, updates) => updateTask(tid, fid, updates)}
                         onToggleTask={(tid, status, fid) => updateTaskStatus(tid, status === 'done' ? 'backlog' : 'done', fid)}
+                        onToggleTask={(tid, status, fid) => updateTaskStatus(tid, status === 'done' ? 'backlog' : 'done', fid)}
                         onEditTask={handleEditTask}
+                        onDeleteTask={deleteTask}
                     />
                 )}
                 {activeView === 'calendar' && (
@@ -173,6 +194,14 @@ export default function TdlF() {
                         <label>Due Date</label>
                         <input type="date" name="taskDate" />
                      </div>
+                     <div className="form-group">
+                        <label>Priority</label>
+                        <select name="taskPriority" defaultValue="medium">
+                             <option value="low">Low</option>
+                             <option value="medium">Medium</option>
+                             <option value="high">High</option>
+                        </select>
+                     </div>
                 </div>
                 <div className="modal-actions">
                     <button type="button" onClick={() => setIsTaskModalOpen(false)} className="cancel-btn">Cancel</button>
@@ -187,6 +216,7 @@ export default function TdlF() {
                 task={editingTask} 
                 onClose={closeDrawer} 
                 folderName={folders.find(f => f.id === editingTask.folderId)?.text || "Inbox"} 
+                userProfile={{...userProfile, userId: userId || undefined}} // Consistent
             />
         )}
     </div>

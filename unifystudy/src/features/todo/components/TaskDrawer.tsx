@@ -1,19 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Task, useTodo, ChecklistItem } from '../hooks/useTodo';
-import { X, CheckSquare, MessageSquare, Paperclip, MoreHorizontal, Calendar, Plus, User, Flag, Send, Trash2, Save } from 'lucide-react';
+import { X, CheckSquare, MessageSquare, Paperclip, MoreHorizontal, Calendar, Plus, User, Flag, Send, Trash2, Save, Clock, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TaskDrawerProps {
   task: Task | null;
   onClose: () => void;
   folderName: string;
+  userProfile?: { displayName?: string; photoURL?: string; avatarColor?: string; userId?: string };
 }
 
-export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, onClose, folderName }) => {
-  const { updateTask, addChecklistItem, toggleChecklistItem, addComment, userId, deleteTask } = useTodo();
+export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, onClose, folderName, userProfile }) => {
+  const { updateTask, addChecklistItem, toggleChecklistItem, addComment, addAttachment, userId, deleteTask } = useTodo();
   const [newChecklistText, setNewChecklistText] = useState("");
   const [newCommentText, setNewCommentText] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!task) return null;
 
@@ -119,7 +121,54 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, onClose, folderNam
                             <option value="high">High</option>
                         </select>
                     </div>
-                     <div className="meta-item">
+                    <div className="meta-item">
+                        <label>Duration</label>
+                        <div className="input-with-icon styled" style={{ 
+                            background: 'rgba(255,255,255,0.05)', 
+                            border: '1px solid rgba(255,255,255,0.1)', 
+                            borderRadius: '6px', 
+                            padding: '4px 8px',
+                            display: 'flex', alignItems: 'center', gap: '8px'
+                        }}>
+                             <Clock size={14} style={{ color: 'var(--color-muted)' }} />
+                             <input 
+                                 className="value-input-transparent"
+                                 placeholder="min"
+                                 type="number"
+                                 value={task.duration || ""}
+                                 onChange={(e) => handleUpdate('duration', parseInt(e.target.value))}
+                                 style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--color-text)', outline: 'none', fontSize: '0.9rem' }}
+                             />
+                        </div>
+                    </div>
+
+                    <div className="meta-item">
+                        <label>Assignee</label>
+                        <div className="input-with-icon styled" style={{ 
+                            background: 'rgba(255,255,255,0.05)', 
+                            border: '1px solid rgba(255,255,255,0.1)', 
+                            borderRadius: '6px', 
+                            padding: '4px 8px',
+                            display: 'flex', alignItems: 'center', gap: '8px'
+                        }}>
+                             <Users size={14} style={{ color: 'var(--color-muted)' }} />
+                             <select
+                                className="value-select-transparent"
+                                value={task.assignees?.[0]?.userId || ""}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if(val) handleUpdate('assignees', [{ userId: val, name: val }]); 
+                                    else handleUpdate('assignees', []);
+                                }}
+                                style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--color-text)', outline: 'none', fontSize: '0.9rem', cursor: 'pointer' }}
+                             >
+                                 <option value="" style={{color:'#000'}}>Unassigned</option>
+                                 <option value="me" style={{color:'#000'}}>Me</option>
+                             </select>
+                        </div>
+                    </div>
+
+                    <div className="meta-item">
                         <label>Due Date</label>
                         <div style={{position: 'relative'}}>
                             <div 
@@ -211,13 +260,48 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, onClose, folderNam
                     </form>
                 </div>
 
-                {/* Attachments (Mock) */}
+                {/* Attachments */}
                 <div className="section">
                     <div className="section-header">
                         <span className="icon"><Paperclip size={16} /></span>
                         <h3>Attachments</h3>
                     </div>
-                    <button className="add-attachment-btn">
+
+                    <div className="attachments-list" style={{display:'flex', flexDirection:'column', gap:'8px', marginBottom: '12px'}}>
+                        {task.attachments?.map(att => (
+                            <div key={att.id} style={{
+                                display:'flex', alignItems:'center', gap:'10px', 
+                                padding:'8px', background:'rgba(255,255,255,0.05)', 
+                                borderRadius:'6px', border:'1px solid rgba(255,255,255,0.1)'
+                            }}>
+                                <div style={{
+                                    width:'32px', height:'32px', background:'rgba(255,255,255,0.1)', 
+                                    borderRadius:'4px', display:'flex', alignItems:'center', justifyContent:'center',
+                                    fontSize:'0.6rem', fontWeight:'bold', color:'var(--color-muted)'
+                                }}>
+                                    {att.type.split('/')[1]?.toUpperCase() || 'FILE'}
+                                </div>
+                                <div style={{flex:1, overflow:'hidden'}}>
+                                    <div style={{fontSize:'0.85rem', color:'var(--color-text)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{att.name}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        style={{display:'none'}} 
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                                addAttachment(task.id, task.folderId!, e.target.files[0], task.attachments);
+                            }
+                        }}
+                    />
+                    <button 
+                        className="add-attachment-btn"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
                         <Plus size={14} /> Add Attachment
                     </button>
                 </div>
@@ -232,18 +316,34 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, onClose, folderNam
                     </div>
                     
                     <div className="comments-list">
-                        {task.comments?.map(comment => (
-                            <div key={comment.id} className="comment">
-                                <div className="avatar">U</div>
-                                <div className="comment-content">
-                                    <div className="comment-meta">
-                                        <span className="name">User</span>
-                                        <span className="time">{new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        {task.comments?.map(comment => {
+                             const isMe = userProfile && comment.userId === userProfile.userId;
+                             
+                             const display = isMe ? {
+                                 name: 'Me',
+                                 bg: userProfile?.photoURL ? `url(${userProfile.photoURL}) center/cover` : (userProfile?.avatarColor || '#333'),
+                                 initial: userProfile?.photoURL ? '' : 'Me'
+                             } : {
+                                 name: 'User',
+                                 bg: `hsl(${(comment.userId.charCodeAt(0) * 50) % 360}, 70%, 50%)`,
+                                 initial: 'U'
+                             };
+                             
+                             return (
+                                <div key={comment.id} className="comment">
+                                    <div className="avatar" style={{background: display.bg, color:'#fff', fontSize:'0.7rem', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                        {display.initial}
                                     </div>
-                                    <p>{comment.text}</p>
+                                    <div className="comment-content">
+                                        <div className="comment-meta">
+                                            <span className="name">{isMe ? 'You' : 'User'}</span>
+                                            <span className="time">{new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                        </div>
+                                        <p>{comment.text}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                             );
+                        })}
                     </div>
 
                     <form onSubmit={handleAddComment} className="comment-form">

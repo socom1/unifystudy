@@ -6,6 +6,7 @@ interface BoardViewProps {
   tasks: Task[];
   columns: Array<{ id: string; label: string; color: string }> | null;
   folderId: string | null;
+  userProfile?: { displayName?: string; photoURL?: string; avatarColor?: string; userId?: string }; // Added
   onUpdateFolder: (folderId: string, payload: any) => Promise<void>;
   onUpdateStatus: (taskId: string, newStatus: Task['status']) => void;
   onUpdateTask: (taskId: string, payload: Partial<Task>) => void;
@@ -20,8 +21,9 @@ const DEFAULT_COLUMNS = [
   { id: 'done', label: 'Done', color: '#2ecc71' }
 ];
 
-export const BoardView: React.FC<BoardViewProps> = ({ tasks, columns, folderId, onUpdateFolder, onUpdateStatus, onUpdateTask, onEditTask, onAddTask }) => {
+export const BoardView: React.FC<BoardViewProps> = ({ tasks, columns, folderId, userProfile, onUpdateFolder, onUpdateStatus, onUpdateTask, onEditTask, onAddTask }) => {
   const [activeMenuColumn, setActiveMenuColumn] = React.useState<string | null>(null);
+
   const [isAddingColumn, setIsAddingColumn] = React.useState(false);
   const [newColumnName, setNewColumnName] = React.useState("");
   
@@ -249,7 +251,13 @@ export const BoardView: React.FC<BoardViewProps> = ({ tasks, columns, folderId, 
                         onClick={() => onEditTask(task)}
                     >
                         <div className="card-top">
-                            <span className="task-id">#{task.order ? String(task.order).slice(-3) : '---'}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span className={`task-priority ${task.priority || 'low'}`} style={{
+                                    width: '6px', height: '6px', borderRadius: '50%',
+                                    background: (task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#22c55e')
+                                }} title={`Priority: ${task.priority || 'low'}`} />
+                                <span className="task-id">#{task.order ? String(task.order).slice(-3) : '---'}</span>
+                            </div>
                             <button 
                                 className="width-toggle-btn"
                                 onClick={(e) => {
@@ -290,6 +298,44 @@ export const BoardView: React.FC<BoardViewProps> = ({ tasks, columns, folderId, 
                                 {(task.comments?.length ?? 0) > 0 && <div className="meta-pill"><MessageSquare size={12} /> {task.comments?.length}</div>}
                                 {(task.attachments?.length ?? 0) > 0 && <div className="meta-pill"><Paperclip size={12} /> {task.attachments?.length}</div>}
                             </div>
+                            
+                            {/* Assignee Avatar */}
+                            {task.assignees && task.assignees.length > 0 && (
+                                <div className="avatars">
+                                    {task.assignees.slice(0, 3).map((u, i) => {
+                                        // Check if this assignee is the current user
+                                        // userId check might be 'me' if assigned via select
+                                        const isMe = userProfile && (u.userId === userProfile.userId || u.userId === 'me' || u.name === 'Me');
+                                        
+                                        // Use profile data if it's me, otherwise use task data
+                                        const displayParams = isMe ? {
+                                            avatarUrl: userProfile.photoURL,
+                                            name: userProfile.displayName || 'You',
+                                            bg: userProfile.photoURL ? `url(${userProfile.photoURL}) center/cover` : (userProfile.avatarColor || '#333')
+                                        } : {
+                                            avatarUrl: u.avatarUrl,
+                                            name: u.name,
+                                            bg: u.avatarUrl ? `url(${u.avatarUrl}) center/cover` : `hsl(${(u.name.charCodeAt(0) * 50) % 360}, 70%, 50%)`
+                                        };
+
+                                        return (
+                                        <div 
+                                            key={i} 
+                                            className="avatar"
+                                            title={displayParams.name}
+                                            style={{ 
+                                                marginLeft: i > 0 ? '-6px' : '0', 
+                                                zIndex: task.assignees!.length - i,
+                                                background: displayParams.bg,
+                                                color: '#fff',
+                                                border: '1px solid var(--bg-1)'
+                                            }}
+                                        >
+                                            {!displayParams.avatarUrl && displayParams.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )})}
+                                </div>
+                            )}
                         </div>
                     </div>
                     </React.Fragment>

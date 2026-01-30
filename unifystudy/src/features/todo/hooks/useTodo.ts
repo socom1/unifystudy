@@ -52,6 +52,7 @@ export type Folder = {
   tasks?: Record<string, Task>;
   parentId: string | null;
   columns?: Array<{ id: string; label: string; color: string }>;
+  members?: Array<{ email: string; role: 'viewer' | 'editor'; addedAt: number }>;
   [key: string]: any;
 };
 
@@ -72,11 +73,32 @@ export function useTodo() {
   // Filter State
   const [searchQuery, setSearchQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [priorityFilter, setPriorityFilter] = useState<'low' | 'medium' | 'high' | 'all'>('all');
+  const [assigneeFilter, setAssigneeFilter] = useState<'me' | 'all'>('all');
 
-  // Load User
+  const [userProfile, setUserProfile] = useState<{ displayName?: string; photoURL?: string; avatarColor?: string }>({});
+
+  // Load User & Profile
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((u) => setUserId(u ? u.uid : null));
-    return () => unsub();
+    const unsubAuth = auth.onAuthStateChanged((u) => {
+        if (u) {
+            setUserId(u.uid);
+            // Fetch Custom Profile Settings
+            const profileRef = databaseRef(db, `users/${u.uid}/settings/customization`);
+            onValue(profileRef, (snap) => {
+                const data = snap.val() || {};
+                setUserProfile({
+                    displayName: u.displayName || 'User',
+                    photoURL: u.photoURL || undefined,
+                    avatarColor: data.avatarColor || '#333' // Default or Custom
+                });
+            });
+        } else {
+            setUserId(null);
+            setUserProfile({});
+        }
+    });
+    return () => unsubAuth();
   }, []);
 
   // Load Folders
@@ -116,6 +138,7 @@ export function useTodo() {
     if (!userId) return;
 
     if (currentFolderId) {
+        console.log("Loading tasks for folder:", currentFolderId);
         const tasksRef = databaseRef(db, `users/${userId}/folders/${currentFolderId}/tasks`);
         const unsub = onValue(tasksRef, (snap) => {
              const data = snap.val() || {};
@@ -340,6 +363,23 @@ export function useTodo() {
       }
   };
 
+  const addMember = async (folderId: string, email: string) => {
+      if (!userId || !folderId) return;
+      const folder = foldersFlat.find(f => f.id === folderId);
+      if (!folder) return;
+      
+      const currentMembers = folder.members || [];
+      if (currentMembers.some(m => m.email === email)) {
+          toast.error("Member already added");
+          return;
+      }
+
+      await update(databaseRef(db, `users/${userId}/folders/${folderId}`), {
+          members: [...currentMembers, { email, role: 'editor', addedAt: Date.now() }]
+      });
+      toast.success(`Allocated ${email} to workspace`);
+  };
+
   // --- Sub-Entity Actions ---
 
   const addChecklistItem = async (taskId: string, folderId: string, text: string, currentList: ChecklistItem[] = []) => {
@@ -368,21 +408,54 @@ export function useTodo() {
       await updateTask(taskId, folderId, { comments: updatedComments });
   };
 
+  const addAttachment = async (taskId: string, folderId: string, file: File, currentAttachments: Attachment[] = []) => {
+      // In a real app, upload to Storage (Firebase Storage/S3) here.
+      // For this demo, we'll simulate a successful upload and store metadata.
+      if (!userId || !folderId) return;
+      
+      const newAttachment: Attachment = {
+          id: Date.now().toString(),
+          name: file.name,
+          url: "#", // Placeholder
+          type: file.type
+      };
+
+      const updatedAttachments = [...currentAttachments, newAttachment];
+      await updateTask(taskId, folderId, { attachments: updatedAttachments });
+      toast.success("Attachment added");
+  };
+
   // --- Computed ---
   const filteredTasks = useMemo(() => {
       let res = [...tasks];
+      
+      // 1. Search Query
       if (searchQuery) {
           const q = searchQuery.toLowerCase();
           res = res.filter(t => t.text.toLowerCase().includes(q));
       }
+      
+      // 2. Tag Filter
       if (tagFilter) {
           res = res.filter(t => t.tags?.some(tag => tag.label === tagFilter));
       }
+
+      // 3. Priority Filter
+      if (priorityFilter !== 'all') {
+          res = res.filter(t => (t.priority || 'low').toLowerCase() === priorityFilter.toLowerCase());
+      }
+
+      // 4. Assignee Filter
+      if (assigneeFilter === 'me' && userId) {
+          res = res.filter(t => t.assignees?.some(a => a.userId === userId || a.userId === 'me'));
+      }
+
       return res;
-  }, [tasks, searchQuery, tagFilter]);
+  }, [tasks, searchQuery, tagFilter, priorityFilter, assigneeFilter, userId]);
 
   return {
     userId,
+    userProfile,
     folders: foldersFlat,
     tasks: filteredTasks,
     // State
@@ -392,6 +465,8 @@ export function useTodo() {
     isSidebarOpen, setIsSidebarOpen,
     searchQuery, setSearchQuery,
     tagFilter, setTagFilter,
+    priorityFilter, setPriorityFilter,
+    assigneeFilter, setAssigneeFilter,
     // Actions
     addTask,
     updateTask,
@@ -403,6 +478,8 @@ export function useTodo() {
     toggleChecklistItem,
     addComment,
     addFolder,
-    deleteFolder
+    deleteFolder,
+    addMember,
+    addAttachment
   };
 }
