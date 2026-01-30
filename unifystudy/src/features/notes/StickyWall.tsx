@@ -146,7 +146,7 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
       drag
       dragListener={false}
       dragControls={dragControls}
-      dragConstraints={containerRef}
+      dragConstraints={undefined} // Fix jump issue by handling bounds manually
       dragMomentum={false}
       dragElastic={0} // Fix "ice" feeling
       initial={{ scale: 0, opacity: 0 }}
@@ -164,9 +164,22 @@ function StickyNote({ note, containerRef, onUpdate, onDelete }) {
       exit={{ scale: 0, opacity: 0 }}
       whileDrag={{ scale: 1.05, zIndex: 100, cursor: "grabbing" }}
       onDragEnd={(e, info) => {
+        const parentRect = containerRef.current?.getBoundingClientRect();
+        if (!parentRect) return;
+
+        let newX = note.x + info.offset.x;
+        let newY = note.y + info.offset.y;
+
+        // Manual Clamping
+        const maxX = parentRect.width - size.width;
+        const maxY = parentRect.height - size.height;
+
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+
         onUpdate(note.id, {
-          x: note.x + info.offset.x,
-          y: note.y + info.offset.y,
+          x: newX,
+          y: newY,
         });
       }}
       onDoubleClick={(e) => {
