@@ -10,12 +10,12 @@ import { ShoppingBag, Star, Layout, Palette, Image as ImageIcon, Check, Sparkles
 import Modal from "@/components/common/Modal";
 
 // Import real assets
-import NeonPreview from "@/assets/shop/neon-pack.svg";
-import ThreeDPreview from "@/assets/shop/3d-pack.svg";
-import HandDrawnPreview from "@/assets/shop/hand-drawn.svg";
-import CosmosBanner from "@/assets/shop/cosmos-banner.svg";
-import CircuitBanner from "@/assets/shop/circuit-banner.svg";
-import WavesBanner from "@/assets/shop/waves-banner.svg";
+import NeonPreview from "@/assets/shop/neon-pack.svg?url";
+import ThreeDPreview from "@/assets/shop/3d-pack.svg?url";
+import HandDrawnPreview from "@/assets/shop/hand-drawn.svg?url";
+import CosmosBanner from "@/assets/shop/cosmos-banner.svg?url";
+import CircuitBanner from "@/assets/shop/circuit-banner.svg?url";
+import WavesBanner from "@/assets/shop/waves-banner.svg?url";
 
 import "./Shop.scss";
 

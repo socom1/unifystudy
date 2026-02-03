@@ -1,17 +1,19 @@
 .leaderboard-root {
-  min-height: calc(100vh - 60px);
+  height: 100%;
+  width: 100%;
   padding: 2rem;
   background: var(--bg-1);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
   /* Profile Modal Styles */
   /* Avatar Placeholder */
 }
 @media (max-width: 1082px) {
   .leaderboard-root {
-    margin-top: 100px !important;
-    height: calc(100% - 100px) !important;
-    overflow-y: auto !important;
+    margin-top: 100px;
+    height: calc(100% - 100px);
+    padding-top: 2rem;
+    padding-bottom: 2rem;
   }
 }
 .leaderboard-root::before {

@@ -213,4 +213,48 @@
 .profile-modal-card .close-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: rotate(90deg);
+}
+
+/* Light Mode Overrides */
+[data-theme=light] .profile-modal-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1) !important;
+}
+[data-theme=light] .profile-modal-card .modal-avatar {
+  border-color: #ffffff !important; /* Blend with card */
+  background: #f8fafc !important;
+}
+[data-theme=light] .profile-modal-card .modal-user-info h2 {
+  color: #0f172a !important;
+}
+[data-theme=light] .profile-modal-card .modal-user-info .status-pill {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+[data-theme=light] .profile-modal-card .modal-user-info .status-pill.online {
+  color: #00b894 !important;
+  background: rgba(0, 184, 148, 0.1) !important;
+}
+[data-theme=light] .profile-modal-card .modal-stats {
+  border-top-color: #f1f5f9 !important;
+}
+[data-theme=light] .profile-modal-card .modal-stats .stat .label {
+  color: #64748b !important;
+}
+[data-theme=light] .profile-modal-card .modal-stats .stat .value {
+  color: #0f172a !important;
+}
+[data-theme=light] .profile-modal-card .action-btn {
+  /* Primary button usually fine, but ensure text is readable */
+  color: #ffffff !important;
+}
+[data-theme=light] .profile-modal-card .close-btn {
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: #64748b !important;
+}
+[data-theme=light] .profile-modal-card .close-btn:hover {
+  background: rgba(0, 0, 0, 0.2) !important;
+  color: #0f172a !important;
 }/*# sourceMappingURL=UserProfileModal.css.map */

@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -74,6 +75,10 @@
 }
 .mm-sidebar .mm-folders .mm-folder .mm-folder-header {
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 .mm-sidebar .mm-folders .mm-folder .mm-folder-header .mm-folder-name {
   background: none;
@@ -83,11 +88,29 @@
   font-size: 0.9rem;
   cursor: pointer;
   text-align: left;
-  width: 100%;
+  flex: 1;
   padding: 4px 0;
 }
 .mm-sidebar .mm-folders .mm-folder .mm-folder-header .mm-folder-name:hover {
   color: var(--color-text, #ffffff);
+}
+.mm-sidebar .mm-folders .mm-folder .mm-folder-header .mm-folder-delete {
+  background: none;
+  border: none;
+  color: var(--color-muted, #a0a0a0);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.6;
+}
+.mm-sidebar .mm-folders .mm-folder .mm-folder-header .mm-folder-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  opacity: 1;
 }
 .mm-sidebar .mm-folders .mm-folder.active .mm-folder-name {
   color: var(--color-primary, #3b82f6);
@@ -186,7 +209,7 @@
 }
 .mm-main .mm-header .mm-header-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 .mm-main .mm-header .mm-header-actions button {
   padding: 8px 16px;
@@ -205,6 +228,19 @@
 .mm-main .mm-header .mm-header-actions button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.mm-main .mm-header .mm-header-actions .mm-icon-btn {
+  padding: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mm-main .mm-header .mm-header-actions .mm-icon-btn.mm-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
 }
 .mm-main .mm-canvas-area {
   flex: 1;
@@ -226,14 +262,14 @@
   height: 100%;
 }
 .mm-editor-container .mm-background {
-  background-color: #1a1a1a;
+  background-color: var(--bg-1);
 }
 .mm-editor-container .mm-background circle {
-  fill: #ffffff !important;
-  opacity: 0.8 !important;
+  fill: var(--color-text-dim) !important;
+  opacity: 0.2 !important;
 }
 .mm-editor-container .mm-background path {
-  stroke: #ffffff !important;
+  stroke: var(--color-text-dim) !important;
 }
 .mm-editor-container .react-flow__controls button {
   background: #2a2a2a;
@@ -326,9 +362,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  -webkit-backdrop-filter: blur(4px);
-          backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.75);
+  -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,131 +372,305 @@
   animation: fadeIn 0.2s ease-out;
 }
 .mm-modal-overlay .mm-modal {
-  background: #1e1e1e;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
-  border-radius: 16px;
-  width: 400px;
+  background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  width: 420px;
   max-width: 90%;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset, 0 1px 0 rgba(255, 255, 255, 0.1) inset;
   overflow: hidden;
-  animation: fadeIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
 }
 .mm-modal-overlay .mm-modal .mm-modal-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
 }
 .mm-modal-overlay .mm-modal .mm-modal-header h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .mm-modal-overlay .mm-modal .mm-modal-header button {
-  background: none;
+  background: rgba(255, 255, 255, 0.05);
   border: none;
   color: var(--color-muted, #a0a0a0);
   font-size: 1.5rem;
   cursor: pointer;
   line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 .mm-modal-overlay .mm-modal .mm-modal-header button:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: var(--color-text, #ffffff);
 }
 .mm-modal-overlay .mm-modal .mm-modal-content {
-  padding: 20px;
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-input {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #121212;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   color: #fff;
   font-size: 0.95rem;
+  transition: all 0.2s;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-input:focus {
   outline: none;
   border-color: var(--color-primary, #3b82f6);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+.mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-input::-moz-placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+.mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+.mm-modal-overlay .mm-modal .mm-modal-content form textarea.mm-modal-input {
+  resize: vertical;
+  font-family: inherit;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-type-picker {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-type-picker label {
   font-size: 0.85rem;
-  color: var(--color-muted, #a0a0a0);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.3px;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-type-picker select {
-  padding: 8px;
-  border-radius: 6px;
-  background: #121212;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
   color: #fff;
-  border: 1px solid #333;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-type-picker select:focus {
+  outline: none;
+  border-color: var(--color-primary, #3b82f6);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-type-picker select option {
+  background: #1a1a1a;
+  color: #fff;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-color-picker {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-color-picker label {
   font-size: 0.85rem;
-  color: var(--color-muted, #a0a0a0);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.3px;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-color-picker .color-options {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-color-picker .color-options .color-option {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  position: relative;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-color-picker .color-options .color-option:hover {
-  transform: scale(1.1);
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-color-picker .color-options .color-option.selected {
   transform: scale(1.2);
-  box-shadow: 0 0 0 2px #fff;
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3), 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+.mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-color-picker .color-options .color-option.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-actions button {
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
   border: 1px solid transparent;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 500;
   transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-actions button.primary {
-  background: var(--color-primary, #3b82f6);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-actions button.primary:hover {
-  opacity: 0.9;
-  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+.mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-actions button.primary:active {
+  transform: translateY(0);
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-actions button:not(.primary) {
-  background: transparent;
-  color: var(--color-muted, #a0a0a0);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 .mm-modal-overlay .mm-modal .mm-modal-content form .mm-modal-actions button:not(.primary):hover {
+  background: rgba(255, 255, 255, 0.1);
   color: var(--color-text, #ffffff);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.mm-confirm-modal {
+  width: 380px;
+}
+.mm-confirm-modal .confirm-message {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.5;
+  margin: 0;
+}
+.mm-confirm-modal .mm-modal-content {
+  padding: 20px 24px 24px 24px;
+}
+.mm-confirm-modal .mm-modal-actions {
+  margin-top: 24px;
+  padding-top: 0;
+  border-top: none;
+  gap: 8px;
+}
+.mm-confirm-modal .mm-modal-actions button {
+  flex: 1;
+}
+.mm-confirm-modal .mm-modal-actions button.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+.mm-confirm-modal .mm-modal-actions button.danger:hover {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* Light Mode Overrides for MindMap (NUCLEAR OPTION) */
+[data-theme=light] .mm-app,
+[data-theme=light] .mm-main,
+[data-theme=light] .mm-canvas-area,
+[data-theme=light] .mm-editor-container,
+[data-theme=light] .react-flow,
+[data-theme=light] .react-flow__pane,
+[data-theme=light] .mm-background,
+[data-theme=light] .react-flow-wrapper {
+  background: var(--bg-1) !important;
+  background-color: var(--bg-1) !important;
+}
+[data-theme=light] .react-flow__controls {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+[data-theme=light] .react-flow__controls button {
+  border-bottom-color: #e2e8f0;
+  fill: #475569;
+  background: #f8fafc;
+}
+[data-theme=light] .react-flow__controls button:hover {
+  background: #f1f5f9;
+}
+[data-theme=light] .glass-node {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme=light] .glass-node .glass-node-header,
+[data-theme=light] .glass-node .glass-node-subheader,
+[data-theme=light] .glass-node .glass-node-text {
+  color: #0f172a !important;
+}
+[data-theme=light] .glass-node .glass-node-description {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+}
+[data-theme=light] .glass-node .glass-handle {
+  border-color: #ffffff !important;
+}
+[data-theme=light] .mindmap-sidebar {
+  background: #ffffff !important;
+  border-left: 1px solid #e2e8f0 !important;
+}
+[data-theme=light] .mindmap-sidebar h3, [data-theme=light] .mindmap-sidebar label, [data-theme=light] .mindmap-sidebar .mm-folder-name, [data-theme=light] .mindmap-sidebar button {
+  color: #0f172a !important;
+}
+[data-theme=light] .mindmap-sidebar input, [data-theme=light] .mindmap-sidebar select, [data-theme=light] .mindmap-sidebar textarea {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+[data-theme=light] .mindmap-sidebar .mm-sidebar-footer {
+  color: #94a3b8 !important;
+  border-top-color: #e2e8f0 !important;
+}
+[data-theme=light] .mindmap-sidebar .node-style-editor .color-picker .colors-grid .color-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1082px) {
+  .mm-app {
+    margin-top: 100px;
+    height: calc(100% - 100px); /* Adjust height to prevent scroll */
+  }
 }/*# sourceMappingURL=MindMap.css.map */

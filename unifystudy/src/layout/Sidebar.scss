@@ -137,6 +137,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 1rem 0;
+    padding-bottom: 120px; /* Prevent footer from covering bottom links */
 
     /* Hide scrollbar for cleaner look */
     &::-webkit-scrollbar {
@@ -349,7 +350,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 1rem;
-    z-index: 999; /* High Z-Index to stay on top */
+    z-index: 100001; /* Highest layer to overlay everything */
     backdrop-filter: blur(10px);
     flex-shrink: 0; 
 
@@ -396,17 +397,17 @@
     height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    z-index: 101;
+    z-index: 100000;
   }
 
   .mobile-drawer {
     position: fixed;
-    top: 100px; /* Sit below the 100px Top Bar */
+    top: 100px;
     left: 0;
     width: 100vw; /* Full screen width */
     height: calc(100vh - 100px); /* Height minus top bar */
     background: var(--bg-1, #0c1214);
-    z-index: 102;
+    z-index: 100002;
     display: flex;
     flex-direction: column;
     padding: 2rem 1.5rem;
@@ -708,3 +709,13 @@
 }
 
 
+
+// Hide mobile navigation when focus mode is active (top-level rule)
+// Hide mobile navigation when focus mode is active (top-level rule)
+.app-layout.focus-mode-active {
+  .mobile-top-bar,
+  .drawer-backdrop,
+  .mobile-drawer {
+    display: none !important;
+  }
+}

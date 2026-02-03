@@ -4,118 +4,367 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
-  -webkit-backdrop-filter: blur(8px);
-          backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.85);
+  -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
   z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .daily-standup-overlay .standup-card {
-  background: #1e1e1e;
+  background: #121212;
   border: 1px solid #333;
-  border-radius: 24px;
-  padding: 40px;
+  border-radius: 20px;
+  padding: 0;
   width: 90%;
-  max-width: 500px;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-width: 600px;
+  text-align: left;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  animation: fadeScale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Late Night Specifics */
+}
+.daily-standup-overlay .standup-card.late-night-mode {
+  border-color: #4a4a5a;
+  background: #0d0d10;
+  box-shadow: 0 0 50px rgba(99, 102, 241, 0.1);
 }
 .daily-standup-overlay .standup-card .standup-header {
-  margin-bottom: 30px;
+  padding: 30px 30px 0;
+  margin-bottom: 20px;
 }
-.daily-standup-overlay .standup-card .standup-header .icon-wrapper {
-  width: 64px;
-  height: 64px;
-  background: rgba(251, 191, 36, 0.1);
-  border-radius: 50%;
+.daily-standup-overlay .standup-card .standup-header .header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.daily-standup-overlay .standup-card .standup-header .header-top .icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.daily-standup-overlay .standup-card .standup-header .header-top .date-badge {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 12px;
+  border-radius: 100px;
+  color: #888;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+}
+.daily-standup-overlay .standup-card .standup-header .header-top .workload-badge {
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
 }
 .daily-standup-overlay .standup-card .standup-header h2 {
   color: white;
-  margin: 0 0 8px 0;
-  font-size: 24px;
-}
-.daily-standup-overlay .standup-card .standup-header p {
-  color: #888;
   margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
-.daily-standup-overlay .standup-card .goals-input-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 30px;
+.daily-standup-overlay .standup-card .standup-header p.subtitle {
+  color: #888;
+  margin: 6px 0 0;
+  font-size: 15px;
 }
-.daily-standup-overlay .standup-card .goals-input-list .goal-input-row {
+.daily-standup-overlay .standup-card .rundown-conatiner {
+  padding: 0 30px;
+  overflow-y: auto;
+  flex: 1;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section {
+  margin-bottom: 25px;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #555;
+  margin-bottom: 12px;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section h3::after {
+  content: "";
+  flex: 1;
+  height: 1px;
   background: #252526;
-  padding: 4px 16px 4px 4px;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .task-list, .daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item {
+  background: #1c1c1e;
+  border: 1px solid #2c2c2e;
+  padding: 12px 16px;
   border-radius: 12px;
-  border: 1px solid #333;
-  transition: border-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.2s;
+  position: relative;
+  /* Show actions persistent if pinned */
 }
-.daily-standup-overlay .standup-card .goals-input-list .goal-input-row:focus-within {
-  border-color: #6366f1;
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item:hover {
+  background: #252527;
+  transform: translateX(2px);
 }
-.daily-standup-overlay .standup-card .goals-input-list .goal-input-row .goal-number {
-  width: 32px;
-  height: 32px;
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item:hover .item-actions {
+  opacity: 1;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item.urgent {
+  border-left: 3px solid #ff4757;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item.pinned-focus {
+  border: 1px solid #6366f1;
+  background: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item.pinned-focus .item-title {
+  color: #6366f1;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-time {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: #888;
+  min-width: 45px;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-content {
+  flex: 1;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-content .item-title {
+  display: block;
+  font-size: 14px;
+  color: #e5e5e5;
+  font-weight: 500;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-content .item-meta {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-actions {
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-actions .action-btn {
   background: #333;
-  border-radius: 8px;
+  border: none;
+  color: #ccc;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
-  font-weight: bold;
-  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.daily-standup-overlay .standup-card .goals-input-list .goal-input-row input {
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-actions .action-btn:hover {
+  background: #444;
+  color: white;
+  transform: scale(1.1);
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-actions .pin-btn.active {
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.2);
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-actions .focus-btn {
+  color: #4caf50;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item .item-actions .focus-btn:hover {
+  background: #4caf50;
+  color: white;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .rundown-item.pinned-focus .item-actions {
+  opacity: 1;
+}
+.daily-standup-overlay .standup-card .rundown-conatiner .rundown-section .empty-state {
+  color: #444;
+  font-style: italic;
+  font-size: 13px;
+  padding: 10px 0;
+}
+.daily-standup-overlay .standup-card .priorities-section {
+  padding: 0 30px 20px;
+}
+.daily-standup-overlay .standup-card .priorities-section .toggle-priorities-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed #333;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  color: #888;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.daily-standup-overlay .standup-card .priorities-section .toggle-priorities-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ccc;
+  border-color: #444;
+}
+.daily-standup-overlay .standup-card .priorities-section .goals-input-list {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.daily-standup-overlay .standup-card .priorities-section .goals-input-list .goal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1a1a1a;
+  padding: 4px 16px 4px 4px;
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+  transition: all 0.2s;
+}
+.daily-standup-overlay .standup-card .priorities-section .goals-input-list .goal-input-row:focus-within {
+  border-color: #6366f1;
+  background: #202022;
+}
+.daily-standup-overlay .standup-card .priorities-section .goals-input-list .goal-input-row .goal-number {
+  width: 28px;
+  height: 28px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-weight: bold;
+  font-size: 12px;
+}
+.daily-standup-overlay .standup-card .priorities-section .goals-input-list .goal-input-row input {
   flex: 1;
   background: transparent;
   border: none;
   color: white;
-  padding: 12px 0;
-  font-size: 16px;
+  padding: 10px 0;
+  font-size: 14px;
   outline: none;
 }
-.daily-standup-overlay .standup-card .goals-input-list .goal-input-row input::-moz-placeholder {
-  color: #555;
+.daily-standup-overlay .standup-card .priorities-section .goals-input-list .goal-input-row input::-moz-placeholder {
+  color: #444;
 }
-.daily-standup-overlay .standup-card .goals-input-list .goal-input-row input::placeholder {
-  color: #555;
+.daily-standup-overlay .standup-card .priorities-section .goals-input-list .goal-input-row input::placeholder {
+  color: #444;
 }
-.daily-standup-overlay .standup-card .start-day-btn {
-  background: #6366f1;
-  color: white;
+.daily-standup-overlay .standup-card .standup-footer {
+  padding: 20px 30px 30px;
+  border-top: 1px solid #1a1a1a;
+  background: #161616;
+}
+.daily-standup-overlay .standup-card .standup-footer .start-day-btn {
+  background: #e5e5e5;
+  color: #121212;
   border: none;
   width: 100%;
   padding: 16px;
-  border-radius: 12px;
-  font-size: 16px;
+  border-radius: 14px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
-.daily-standup-overlay .standup-card .start-day-btn:hover {
-  background: #4f46e5;
+.daily-standup-overlay .standup-card .standup-footer .start-day-btn:hover {
+  background: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+}
+.daily-standup-overlay .standup-card .standup-footer .start-day-btn.sleep-btn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+}
+.daily-standup-overlay .standup-card .standup-footer .start-day-btn.sleep-btn:hover {
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+}
+.daily-standup-overlay .standup-card .standup-footer .secondary-action {
+  margin-top: 15px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.daily-standup-overlay .standup-card .standup-footer .secondary-action:hover {
+  color: #777;
 }
 .daily-standup-overlay .standup-card .standup-success {
-  padding: 40px 0;
+  padding: 60px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .daily-standup-overlay .standup-card .standup-success h3 {
   color: white;
-  margin: 20px 0 8px 0;
-  font-size: 24px;
+  margin: 25px 0 10px 0;
+  font-size: 22px;
 }
 .daily-standup-overlay .standup-card .standup-success p {
   color: #888;
   margin: 0;
+  font-size: 15px;
+}
+.daily-standup-overlay .standup-card .late-night-content {
+  padding: 0 40px 20px;
+  text-align: center;
+}
+.daily-standup-overlay .standup-card .late-night-content .moon-graphic {
+  margin: 20px auto 30px;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+}
+.daily-standup-overlay .standup-card .late-night-content p {
+  color: #a1a1aa;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }/*# sourceMappingURL=DailyStandup.css.map */

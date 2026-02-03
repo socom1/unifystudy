@@ -3,12 +3,6 @@
   --time-col-width: 70px;
   --header-height: 40px;
   --row-height: 100px; /* Must match ROW_HEIGHT in JSX */
-  --bg-1: #0c1214;
-  --bg-2: #0f1516;
-  --muted: #9fb1bb;
-  --accent: #4b6c82;
-  --accent-2: #8fd2ff;
-  --accent-3: #66c0ff;
 }
 
 .calendar-container {
@@ -16,284 +10,312 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  max-width: 1600px; /* Prevent being too stretched on ultra-wide */
+  margin: 0 auto; /* Center the container */
   overflow: hidden;
   /* Flat background as requested */
-  background: var(--bg-1);
-  /* radial-gradient removed */
-  color: var(--color-text, #fff);
+  /* Use global bg */
+  background: transparent;
+  color: var(--color-text);
   font-family: "Fira Code", monospace;
-  padding: 1rem;
+  padding: 1rem 2rem; /* More side padding */
   position: relative;
 }
 
+/* Nav removed */
 .calendar-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  background: rgba(255, 255, 255, 0.03); /* Glassier */
-  padding: 0.8rem 1.2rem;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
-  -webkit-backdrop-filter: blur(12px);
-          backdrop-filter: blur(12px);
-}
-.calendar-nav h2 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--color-primary);
-}
-.calendar-nav button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--color-primary);
-  color: var(--bg-1, #000);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: opacity 0.2s;
-}
-.calendar-nav button:hover {
-  opacity: 0.9;
-}
-.calendar-nav .header-actions {
-  display: flex;
-  gap: 0.8rem;
-  align-items: center;
+  display: none;
 }
 
+/* Add Button for Slots */
+.hour-click-zone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid transparent;
+  /* Only show button on hover of the zone */
+}
+.hour-click-zone:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.hour-click-zone:hover .add-event-ghost-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.add-event-ghost-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: none;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+}
+.add-event-ghost-btn:hover {
+  transform: scale(1.15) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Cleaned up stray block */
+/* Calendar Wrapper - Main Grid Container */
 .calendar-wrapper {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
-  background: rgba(15, 21, 22, 0.4); /* Semi-transparent */
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-}
-
-.calendar-body {
-  flex: 1;
-  display: flex;
-  overflow-y: auto;
-  overflow-x: auto;
-  position: relative;
-}
-
-/* Time Sidebar */
-.time-sidebar {
-  flex: 0 0 var(--time-col-width);
-  position: sticky;
-  position: sticky;
-  left: 0;
-  background: rgba(15, 21, 22, 0.6); /* Slightly darker glass */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* Parent doesn't scroll, child does */
-  position: relative;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
   background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  position: relative;
 }
 
-/* 1. Sticky Header Row (Days + Spacer) */
+/* Sticky Header Row (Days of Week) */
 .header-row-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
-  height: var(--header-height);
-  background: rgba(15, 21, 22, 0.6); /* Glass header */
-  -webkit-backdrop-filter: blur(5px);
-          backdrop-filter: blur(5px);
-  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
-  z-index: 30;
-  flex-shrink: 0;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .time-header-spacer {
   width: var(--time-col-width);
   flex-shrink: 0;
-  border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
-  background: transparent;
+  background: var(--bg-2);
+  border-right: 1px solid var(--glass-border);
 }
 
 .days-header-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   flex: 1;
-  display: flex;
-  padding: 0.5rem 0;
 }
-.days-header-row .day-header-cell {
-  flex: 1;
+
+.day-header-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Explicitly remove border/background */
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  padding: 0.4rem 0.5rem; /* Reduce padding since no border */
-  /* Remove old border */
+  padding: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  border-right: 1px solid var(--glass-border);
+}
+.day-header-cell:last-child {
   border-right: none;
 }
-.days-header-row .day-header-cell span {
-  font-weight: 700;
-  font-size: 1rem; /* Slightly larger text found in modern designs */
-  color: var(--color-text);
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  /* removed border and radius */
-}
-.days-header-row .day-header-cell .mobile-day {
+.day-header-cell .mobile-day {
   display: none;
 }
-.days-header-row .day-header-cell .desktop-day {
-  display: block;
-}
 @media (max-width: 768px) {
-  .days-header-row .day-header-cell .desktop-day {
+  .day-header-cell .desktop-day {
     display: none;
   }
-  .days-header-row .day-header-cell .mobile-day {
-    display: block;
+  .day-header-cell .mobile-day {
+    display: inline;
   }
 }
 
-/* 2. Scrollable Body (Times + Grid) */
+/* Scrollable Body Area */
 .calendar-scroll-area {
   flex: 1;
-  overflow-y: auto; /* The ONLY scrollbar */
+  overflow-y: auto;
   overflow-x: hidden;
   position: relative;
 }
 
 .calendar-content {
   display: flex;
-  min-height: 100%;
   position: relative;
+  min-height: 100%;
 }
 
-/* A. Time Sidebar */
+/* Time Sidebar (Left Column) */
 .time-sidebar {
   width: var(--time-col-width);
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
   background: var(--bg-1);
+  border-right: 1px solid var(--glass-border);
+  position: relative;
+  z-index: 20;
 }
-.time-sidebar .time-label {
+
+.time-label {
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  padding-top: 0.5rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+.time-label span {
   font-size: 0.75rem;
   color: var(--color-muted);
-}
-.time-sidebar .time-label span {
-  transform: translateY(-50%); /* Center on line */
-  background: var(--bg-1);
-  padding: 2px 4px;
+  font-weight: 600;
+  font-family: "Fira Code", monospace;
 }
 
-/* B. Days Grid Body */
+/* Days Grid Body (Right Side with 7 Columns) */
 .days-grid-body {
   flex: 1;
   position: relative;
-  /* No overflow here, parent handles it */
+  overflow: hidden;
 }
 
-/* Wrapper for grid content */
 .days-content-wrapper {
   position: relative;
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
-/* Layer A: Background Grid */
+/* Background Grid Lines */
 .background-grid {
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 1;
   pointer-events: none;
 }
-.background-grid .grid-line-row {
+
+.grid-line-row {
   width: 100%;
-  border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
-  box-sizing: border-box;
+  border-bottom: 1px solid var(--glass-border);
+}
+.grid-line-row:first-child {
+  border-top: 1px solid var(--glass-border);
 }
 
-/* Layer B: Events Layer */
+/* Events Layer */
 .events-layer {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  display: flex;
-  z-index: 5;
-  pointer-events: none; /* Let clicks pass through to events */
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  z-index: 10;
 }
 
-/* Day Column (Transparent, just holds events) */
+/* Day Column (Each Day) */
 .day-column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
   position: relative;
+  border-right: 1px solid var(--glass-border);
 }
 .day-column:last-child {
   border-right: none;
 }
-.day-column .day-content {
-  flex: 1;
+
+.day-content {
   position: relative;
+  width: 100%;
+  height: calc(24 * var(--row-height)); /* 24 hours */
 }
 
-/* Event Box */
+/* Global Current Time Line */
+.global-time-line-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* New Premium Event Card Styling */
 .event-box {
   position: absolute;
   left: 4px;
   right: 4px;
-  /* Minimal Glass Look with Accent Line */
-  background: rgba(15, 23, 42, 0.6); /* Dark Glass */
-  border-left: 3px solid var(--event-color, #4b6c82); /* Accent Line */
-  border-radius: 4px; /* Sharper corners for modern look */
-  padding: 8px 10px;
-  font-size: 0.75rem;
+  padding: 8px 12px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: auto;
+  /* Base Glassmorphism */
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* Left accent border */
+  border-left: 4px solid var(--event-color);
+  /* Subtle inner border for definition */
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 10;
-  transition: all 0.2s ease;
-  pointer-events: auto;
+  /* Shadow */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 15px rgba(0, 0, 0, 0.1);
+  /* Enriched Layout */
 }
 .event-box:hover {
-  background: rgba(15, 23, 42, 0.8);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 100;
-  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px) scale(1.02);
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 50;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.event-box .event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2px;
+  gap: 4px;
 }
 .event-box .event-title {
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 2px;
-  white-space: nowrap;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  line-height: 1.2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
-.event-box .event-time {
-  opacity: 0.8;
+.event-box .event-icon {
+  opacity: 0.7;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+.event-box .event-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.7rem;
-  color: #fff;
+  color: var(--color-text-dim);
+  margin-top: 1px;
+}
+.event-box .event-duration {
+  opacity: 0.6;
+  font-size: 0.65rem;
+}
+.event-box .event-desc {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.8;
+  margin-top: 4px;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 2px;
 }
 
 .global-time-line-active {
@@ -449,4 +471,71 @@
   .event-form .header h3 {
     font-size: 1.1rem;
   }
+}
+/* Light Mode Container Overrides */
+[data-theme=light] {
+  /* Fixed Premium Light Mode Event Box */
+}
+[data-theme=light] .calendar-container {
+  /* Ensure the main container is explicitly light */
+  background: var(--bg-1) !important;
+}
+[data-theme=light] .calendar-wrapper {
+  background: #ffffff !important; /* Solid white */
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme=light] .event-box {
+  /* Keep white bg but allow color accent */
+  background: #ffffff !important;
+  /* Keep glass border structure */
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-left: 4px solid var(--event-color) !important;
+  /* Softer shadow */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+[data-theme=light] .event-box .event-title {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+[data-theme=light] .event-box .event-time {
+  color: #64748b !important;
+}
+[data-theme=light] .event-box .event-type-badge {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #475569 !important;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+[data-theme=light] .event-box:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+  background: #fafafa !important;
+}
+[data-theme=light] .time-sidebar {
+  background: #f8fafc !important; /* Light slate for sidebar */
+  border-right: 1px solid #e2e8f0 !important;
+}
+[data-theme=light] .time-sidebar .time-label span {
+  color: #64748b !important;
+}
+[data-theme=light] .header-row-sticky {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+[data-theme=light] .days-header-row {
+  background: #ffffff !important;
+}
+[data-theme=light] .day-column {
+  border-right: 1px solid #f1f5f9 !important;
+}
+[data-theme=light] .background-grid .grid-line-row {
+  border-top: 1px solid #f1f5f9 !important;
+}
+[data-theme=light] .day-header-cell span {
+  color: #475569 !important;
+}
+[data-theme=light] .current-time-line {
+  background: #ef4444 !important;
+}
+[data-theme=light] .current-time-line .time-dot {
+  background: #ef4444 !important;
 }/*# sourceMappingURL=MyTimetable.css.map */

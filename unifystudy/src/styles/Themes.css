@@ -17,6 +17,25 @@
   --glow: 0 0 20px rgba(75, 108, 130, 0.3);
 }
 
+/* Explicit Default Theme (Mirrors Root) */
+[data-theme='default'] {
+  --color-primary: #4b6c82;
+  --color-primary-rgb: 75, 108, 130;
+  --color-secondary: #afd4ed;
+  --color-bg: #1e1e1e;
+  --color-text: #f2f2f2;
+  --color-danger: #bf4040;
+  --color-success: #40bf46;
+  --color-muted: #888;
+  --color-bg-dark: #131313;
+  --bg-1: #2a2a2a;
+  --bg-2: #333333;
+  --glass-border: rgba(255,255,255,0.1);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --bg-image: none;
+  --glow: 0 0 20px rgba(75, 108, 130, 0.3);
+}
+
 /* Cute Pink Theme */
 [data-theme='cute'] {
   --bg-1: #fff0f5;        /* Lavender Blush */

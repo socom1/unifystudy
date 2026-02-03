@@ -1,0 +1,84 @@
+.nova-coming-soon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-1);
+  position: relative;
+  overflow: hidden;
+}
+.nova-coming-soon::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(var(--color-primary-rgb), 0.1) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.nova-coming-soon .content-wrapper {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 600px;
+  padding: 2rem;
+}
+.nova-coming-soon .content-wrapper .icon-badge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(var(--color-primary-rgb), 0.4);
+  margin-bottom: 2rem;
+  color: white;
+}
+.nova-coming-soon .content-wrapper .icon-badge svg {
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+.nova-coming-soon .content-wrapper h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #fff, var(--color-primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.nova-coming-soon .content-wrapper .status {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+.nova-coming-soon .content-wrapper .description {
+  font-size: 1.1rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+  margin-bottom: 3rem;
+}
+.nova-coming-soon .content-wrapper .status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  background: rgba(var(--bg-2), 0.8);
+  border: 1px solid var(--glass-border);
+  border-radius: 50px;
+  color: var(--color-text);
+  font-weight: 600;
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+}
+.nova-coming-soon .content-wrapper .status-pill svg {
+  color: var(--color-warning);
+}/*# sourceMappingURL=Nova.css.map */

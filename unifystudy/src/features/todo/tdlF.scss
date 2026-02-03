@@ -8,6 +8,11 @@
   overflow: hidden;
   font-family: var(--font-family-sans);
 
+  @media (max-width: 1082px) {
+    margin-top: 100px;
+    height: calc(100vh - 100px);
+  }
+
   /* --- MAIN AREA --- */
   .todo-main {
     flex: 1;
@@ -382,6 +387,20 @@
             border-color: var(--color-primary);
             color: var(--color-primary);
             background: rgba(var(--color-primary-rgb), 0.05);
+        }
+
+        // Mobile responsive styles
+        @media (max-width: 768px) {
+            padding: 6px;
+            font-size: 0.7rem;
+            gap: 4px;
+        }
+
+        @media (max-width: 480px) {
+            padding: 5px;
+            font-size: 0.65rem;
+            gap: 3px;
+            letter-spacing: 0.03em;
         }
     }
 

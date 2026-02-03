@@ -153,20 +153,18 @@
     opacity: 1;
   }
 }
-/* --- Design System Tokens --- */
 :root {
-  /* Palette - Dark Mode "Hacker" Theme */
-  --bg-1: #0f1012; /* Deepest background (body) */
-  --bg-2: #16181b; /* Panel background */
-  --bg-3: #212429; /* Hover states / inputs */
-  --color-primary: #8fd2ff; /* Main accent (Blue) */
-  --color-secondary: #afd4ed; /* Secondary accent */
+  --bg-1: #0f1012;
+  --bg-2: #16181b;
+  --bg-3: #212429;
+  --color-primary: #8fd2ff;
+  --color-secondary: #afd4ed;
   --color-success: #4ade80;
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
-  --color-text: #e2e8f0; /* Primary text */
-  --color-text-dim: #94a3b8; /* Secondary text */
-  --color-muted: #64748b; /* Muted text */
+  --color-text: #e2e8f0;
+  --color-text-dim: #94a3b8;
+  --color-muted: #64748b;
   --glass-bg: rgba(22, 24, 27, 0.7);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
@@ -177,8 +175,6 @@
   --radius-lg: 16px;
 }
 
-/* Legacy Variable Mapping (For backward compatibility) */
-/* --- Global Reset & Base Styles --- */
 * {
   padding: 0;
   margin: 0;
@@ -192,10 +188,9 @@ html, body {
   width: 100vw;
   background-color: var(--bg-1);
   color: var(--color-text);
-  overflow: hidden; /* App-like feel */
+  overflow: hidden;
 }
 
-/* --- Global Scrollbar --- */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -213,7 +208,6 @@ html, body {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* --- Layout Utils --- */
 .flex {
   display: flex;
 }
@@ -226,20 +220,13 @@ html, body {
 .full-size.scrollable {
   overflow-y: auto;
   overflow-x: hidden;
-  -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* --- App Layout Structure --- */
 .app-layout {
   display: flex;
   height: 100vh;
   width: 100vw;
-  /* Mobile Layout Structure: STACKED BLOCKS */
-}
-@media (max-width: 768px) {
-  .app-layout {
-    /* Removed flex-direction column for standard fixed header layout */
-  }
 }
 .app-layout .main-content {
   flex: 1;
@@ -247,7 +234,6 @@ html, body {
   overflow: hidden;
   position: relative;
   background: var(--bg-1);
-  /* Layout Fix for Fixed Sidebar */
   margin-left: 280px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -259,17 +245,15 @@ html, body {
     margin-left: 0 !important;
     margin-top: 0 !important;
     padding-top: 0 !important;
-    /* NUCLEAR OPTION: Fixed Positioning Strategy */
-    /* We manually place the content rectangle below the navbar rectangle */
     position: fixed !important;
     top: 100px !important;
     left: 0 !important;
-    right: 0 !important; /* Forces width to fill screen */
-    bottom: 0 !important; /* Forces height to bottom of screen */
-    width: auto !important; /* Width is handled by left/right */
-    height: auto !important; /* Height is handled by top/bottom */
+    right: 0 !important;
+    bottom: 0 !important;
+    width: auto !important;
+    /* height controlled by top/bottom anchoring */
     box-sizing: border-box;
-    overflow-y: auto !important; /* APP SHELL SCROLL: The shell connects to the viewport */
+    overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
     flex: none;
@@ -277,17 +261,12 @@ html, body {
   }
 }
 
-/* --- Mobile Scroll Helper --- */
-/* When active, the child grows, pushing the main-content scrollbar */
-@media (max-width: 768px) {
+@media (max-width: 1082px) {
   .full-size.scrollable {
-    height: auto !important;
-    overflow: visible !important;
-    min-height: 100%;
-    padding-bottom: 80px; /* Ensure content isn't hidden behind bottom chrome if any */
+    /* Keep scroll behavior, just add bottom padding for safe area */
+    padding-bottom: 100px;
   }
 }
-/* --- Button Utility Class (Optional Usage) --- */
 .btn {
   display: inline-flex;
   align-items: center;

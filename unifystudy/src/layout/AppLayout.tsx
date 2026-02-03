@@ -95,8 +95,8 @@ const AppLayout = () => {
         if (theme) {
           document.documentElement.setAttribute('data-theme', theme);
         } else {
-            // Enforce default theme by removing override
-            document.documentElement.removeAttribute('data-theme');
+            // Enforce default theme explicit
+            document.documentElement.setAttribute('data-theme', 'default');
         }
       });
 
@@ -150,7 +150,7 @@ const AppLayout = () => {
 
   return (
     <TimerProvider>
-      <div className="app-layout">
+      <div className={`app-layout ${focusModeActive ? 'focus-mode-active' : ''}`}>
         {/* <InvitationModal /> */}
         
         {/* Use Context State for Sidebar */}

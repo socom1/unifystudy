@@ -135,6 +135,10 @@ export default function Pomodoro({ zenMode = false }) {
                 {/* Timer card */}
                 <section className={timerClass} aria-live="polite">
                 
+                {/* Session Title - Always visible on mobile */}
+                <h2 className="timer__session-title">
+                    {zenMode ? "Zen Mode" : selectedTemplate?.name}
+                </h2>
 
                 {/* Hide Status Pill in Zen Mode */}
                 {!zenMode && (
@@ -143,7 +147,7 @@ export default function Pomodoro({ zenMode = false }) {
                         <span className="dot" />
                         <span>
                             {mode === "work"
-                            ? "Focus Mode"
+                            ? "Study Session"
                             : mode === "short"
                             ? "Short Break"
                             : "Long Break"}
@@ -192,16 +196,23 @@ export default function Pomodoro({ zenMode = false }) {
 
                     <div className="timer__center">
                     <div className="timer__time">{formatTime(secondsLeft)}</div>
-                    <div className="timer__sub">
-                        {zenMode 
-                            ? (mode === "work" ? "Focus Mode" : mode === "short" ? "Short Break" : "Long Break")
-                            : selectedTemplate?.name
-                        }
+                    <div className="timer__sub" 
+                        onClick={() => {
+                            const nextMode = mode === "work" ? "short" : mode === "short" ? "long" : "work";
+                            setMode(nextMode);
+                        }}
+                        style={{ cursor: 'pointer', userSelect: 'none' }}
+                    >
+                        {mode === "work" 
+                            ? "Study Session" 
+                            : mode === "short" 
+                            ? "Short Break" 
+                            : "Long Break"}
                     </div>
                     </div>
                 </div>
 
-                {/* Session Progress Visualizer */}
+                {/* Session Progress Visualizer - Below Visuals */}
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '2rem', justifyContent: 'center', opacity: zenMode ? 1 : 0.7 }}>
                     {Array.from({ length: Math.max(4, completedPomodoros + (mode === 'work' ? 1 : 0)) }).map((_, i) => (
                         <div 
@@ -219,9 +230,16 @@ export default function Pomodoro({ zenMode = false }) {
                 {/* controls */}
                 <div className="timer__controls">
                     <button className="primary" onClick={startPause}>
-                    {running ? "Pause" : "Start Focus"}
+                    {running ? "Pause" : "Start Work"}
                     </button>
                     <button onClick={reset}>Reset</button>
+                </div>
+
+                {/* Quick Bar - Always visible, even in Zen Mode */}
+                <div className="quick-bar">
+                    <button className={`quick-bar__btn ${mode === "work" ? "active" : ""}`} onClick={() => setMode("work")}>Work</button>
+                    <button className={`quick-bar__btn ${mode === "short" ? "active" : ""}`} onClick={() => setMode("short")}>Short</button>
+                    <button className={`quick-bar__btn ${mode === "long" ? "active" : ""}`} onClick={() => setMode("long")}>Long</button>
                 </div>
                 </section>
 
@@ -255,30 +273,25 @@ export default function Pomodoro({ zenMode = false }) {
                             ))}
                         </div>
 
-                        <div className="quick-bar">
-                            <button className={`quick-bar__btn ${mode === "work" ? "active" : ""}`} onClick={() => setMode("work")}>Focus</button>
-                            <button className={`quick-bar__btn ${mode === "short" ? "active" : ""}`} onClick={() => setMode("short")}>Short</button>
-                            <button className={`quick-bar__btn ${mode === "long" ? "active" : ""}`} onClick={() => setMode("long")}>Long</button>
-                        </div>
                     </section>
                 )}
             </div>
 
-        {/* BOTTOM: STATS - Show in Zen Mode too to fill space */}
-        <div className="stats-section">
-            <div className="stat-item">
-                <span className="label">Sessions Today</span>
-                <span className="value">{completedPomodoros}</span>
+            {/* BOTTOM: STATS - Show in Zen Mode too to fill space */}
+            <div className="stats-section">
+                <div className="stat-item">
+                    <span className="label">Sessions Today</span>
+                    <span className="value">{completedPomodoros}</span>
+                </div>
+                <div className="stat-item">
+                    <span className="label">Focus Strength</span>
+                    <span className="value">{(completedPomodoros * 25) / 60 > 0 ? ((completedPomodoros * 25) / 60).toFixed(1) : '0'} hrs</span>
+                </div>
+                <div className="stat-item">
+                    <span className="label">Streak</span>
+                    <span className="value">{streak} Days</span>
+                </div>
             </div>
-            <div className="stat-item">
-                <span className="label">Focus Strength</span>
-                <span className="value">{(completedPomodoros * 25) / 60 > 0 ? ((completedPomodoros * 25) / 60).toFixed(1) : '0'} hrs</span>
-            </div>
-            <div className="stat-item">
-                <span className="label">Streak</span>
-                <span className="value">{streak} Days</span>
-            </div>
-        </div>
       </main>
 
       {/* Editor/Selector modal */}

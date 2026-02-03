@@ -1,0 +1,217 @@
+.daily-quests-widget {
+  background: var(--bg-2, #1a1f23);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: 16px;
+  padding: 1rem; /* Reduced padding */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* Reduced gap */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+
+  // Header
+  .widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--color-text, #fff);
+    }
+
+    .timer-badge {
+      font-size: 0.75rem;
+      background: rgba(var(--color-primary-rgb, 59, 130, 246), 0.1);
+      color: var(--color-primary, #3b82f6);
+      padding: 0.25rem 0.6rem;
+      border-radius: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(var(--color-primary-rgb, 59, 130, 246), 0.2);
+    }
+    
+    .all-complete-badge {
+       font-size: 0.75rem;
+       background: rgba(16, 185, 129, 0.1);
+       color: #10b981;
+       padding: 0.25rem 0.6rem;
+       border-radius: 12px;
+       font-weight: 600;
+       border: 1px solid rgba(16, 185, 129, 0.2);
+       display: flex;
+       align-items: center;
+       gap: 4px;
+    }
+  }
+
+  // Quests List
+  .quests-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Side by side for wide view */
+    gap: 1rem;
+    
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr; /* Stack on mobile */
+    }
+  }
+
+  // Individual Quest Item
+  .quest-item {
+    background: var(--bg-1, #0c1214);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+
+    &.completed {
+      background: rgba(16, 185, 129, 0.05);
+      border-color: rgba(16, 185, 129, 0.2);
+      
+      .quest-icon {
+        background: #10b981;
+        color: white;
+        transform: scale(0.9);
+      }
+      
+      .quest-title {
+        text-decoration: line-through;
+        color: var(--color-muted, #9ca3af);
+      }
+    }
+    
+    &:hover:not(.completed):not(.claimed) {
+        transform: translateX(2px);
+        border-color: rgba(255,255,255,0.1);
+    }
+
+    .quest-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-muted, #9ca3af);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.3s;
+      
+      &.active-icon {
+          color: var(--color-primary, #3b82f6);
+          background: rgba(var(--color-primary-rgb, 59,130,246), 0.1);
+      }
+    }
+
+    .quest-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+
+      .quest-header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start; /* Align top for wrapped content */
+          gap: 0.5rem;
+          margin-bottom: 0.2rem;
+          
+          .quest-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text, #fff);
+            line-height: 1.3;
+            /* Allow wrapping but limit width if needed */
+            flex: 1; 
+            min-width: 0; /* Important for flex child text wrapping */
+          }
+          
+          .quest-rewards {
+              display: flex;
+              flex-wrap: wrap; /* Allow rewards to wrap */
+              gap: 4px;
+              justify-content: flex-end;
+              flex-shrink: 0; /* Don't shrink rewards */
+              
+              .reward-pill {
+                  font-size: 0.6rem;
+                  padding: 2px 5px;
+                  border-radius: 4px;
+                  font-weight: 700;
+                  white-space: nowrap;
+                  &.xp { background: rgba(162, 155, 254, 0.15); color: #a29bfe; }
+                  &.lumen { background: rgba(255, 215, 0, 0.15); color: #ffd700; }
+              }
+          }
+      }
+
+      .progress-bar-bg {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 4px;
+
+        .progress-bar-fill {
+          height: 100%;
+          background: var(--color-primary, #3b82f6);
+          border-radius: 2px;
+          transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          
+          &.complete-fill {
+              background: #10b981;
+          }
+        }
+      }
+      
+      .progress-text {
+          font-size: 0.7rem;
+          color: var(--color-muted, #9ca3af);
+          text-align: right;
+          margin-top: 2px;
+      }
+    }
+    
+    .claim-btn {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        animation: pulse 2s infinite;
+        white-space: nowrap;
+        
+        &:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+    }
+  }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@media (max-width: 768px) {
+    .daily-quests-widget {
+        padding: 1rem;
+    }
+}

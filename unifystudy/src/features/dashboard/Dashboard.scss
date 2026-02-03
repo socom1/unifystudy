@@ -1,12 +1,17 @@
 .dashboard-container {
   padding: 2rem;
-  /* margin-top: 100px; Removed as requested */
   min-height: 100vh;
   background: var(--bg-1, #0c1214);
   color: var(--color-text, #fff);
   font-family: "Fira Code", monospace;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 1082px) {
+    margin-top: 0; 
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
 
   a { text-decoration: none; color: inherit; }
 
@@ -16,7 +21,7 @@
     justify-content: space-between;
     align-items: flex-end;
     margin-bottom: 2rem;
-
+    
     .intro-text {
         h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.2rem; .highlight { color: var(--color-primary); } }
         .subtitle { font-size: 0.9rem; color: var(--color-muted); }
@@ -104,7 +109,7 @@
     flex: 1;
     min-height: 0; /* Important for scroll within flex items */
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1082px) {
         grid-template-columns: 1fr;
     }
 
@@ -151,13 +156,17 @@
 
         /* Row 2: Chart Section */
         .chart-section {
-            flex: 1; /* Grow to fill space if needed, or fixed height */
-            min-height: 300px;
+            height: 320px; /* Fixed height to prevent stretching */
+            flex-shrink: 0;
             display: flex;
             flex-direction: column;
 
+            @media (max-width: 1082px) {
+                height: 280px;
+            }
+
             .section-header {
-                display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+                display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;
                 h3 { font-size: 1.1rem; font-weight: 600; }
                 .streak-badge { 
                     background: rgba(255, 165, 2, 0.15); color: #ffa502; 
@@ -203,7 +212,11 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
-            height: 140px; /* Fixed compact height */
+            min-height: 120px; /* Reduced to be more compact */
+
+            @media (max-width: 1082px) {
+                display: none;
+            }
 
             .widget-card {
                 height: 100%;
@@ -238,7 +251,7 @@
 
         /* 2. Achievements Widget */
         .achievements-card {
-             min-height: 180px;
+             min-height: 140px;
              display: flex; flex-direction: column;
              .widget-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; h3 { font-size: 1rem; color: var(--color-muted); } }
              
@@ -272,7 +285,7 @@
         /* 3. Tabs Widget (Tasks/Events) */
         .tabs-widget {
             flex: 1; /* Takes remaining height */
-            min-height: 300px;
+            min-height: 200px;
             display: flex; flex-direction: column;
 
             .tabs-header { 
@@ -374,4 +387,96 @@
       .tip-content { .tip-header { display: flex; align-items: center; gap: 0.5rem; color: #2ed573; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; } p { font-size: 0.85rem; color: var(--color-muted); line-height: 1.4; } }
   }
 
+}
+
+// Mobile responsive fixes for widget text overflow
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1.5rem 1rem;
+    
+    // Intro text sizing
+    .dashboard-intro {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      
+      .intro-text h1 {
+        font-size: 1.5rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      
+      .subtitle {
+        font-size: 0.85rem;
+      }
+    }
+    
+    // Widget card text fixes
+    .widget-card {
+      .widget-header h3 {
+        font-size: 0.9rem !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      
+      h4, .value, .stat-value {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+    }
+    
+    // Level widget fixes
+    .level-widget {
+      .widget-header h3 {
+        font-size: 0.9rem !important;
+      }
+      
+      .level-badge {
+        font-size: 0.75rem !important;
+        padding: 2px 6px !important;
+      }
+      
+      .xp-info {
+        font-size: 0.85rem !important;
+      }
+    }
+    
+    // Stats widget fixes  
+    .stats-carousel {
+      .stat-card {
+        .stat-label {
+          font-size: 0.75rem !important;
+        }
+        
+        .stat-value {
+          font-size: 1.5rem !important;
+        }
+      }
+    }
+    
+    // Pinned focus banner
+    .pinned-focus-banner {
+      padding: 0.75rem 1rem;
+      
+      .focus-text {
+        font-size: 0.95rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    .dashboard-intro .intro-text h1 {
+      font-size: 1.3rem;
+    }
+    
+    .widget-card {
+      .widget-header h3 {
+        font-size: 0.85rem !important;
+      }
+    }
+  }
 }

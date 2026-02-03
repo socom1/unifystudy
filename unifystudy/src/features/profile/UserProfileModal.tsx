@@ -8,9 +8,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Send } from "lucide-react";
 
 // Asset Imports - Match Shop.tsx
-import CosmosBanner from "@/assets/shop/cosmos-banner.svg";
-import CircuitBanner from "@/assets/shop/circuit-banner.svg";
-import WavesBanner from "@/assets/shop/waves-banner.svg";
+import CosmosBanner from "@/assets/shop/cosmos-banner.svg?url";
+import CircuitBanner from "@/assets/shop/circuit-banner.svg?url";
+import WavesBanner from "@/assets/shop/waves-banner.svg?url";
 
 import "./UserProfileModal.scss";
 

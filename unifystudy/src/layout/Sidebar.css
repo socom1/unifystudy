@@ -121,6 +121,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 1rem 0;
+  padding-bottom: 120px; /* Prevent footer from covering bottom links */
   /* Hide scrollbar for cleaner look */
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
@@ -304,7 +305,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 1rem;
-    z-index: 999; /* High Z-Index to stay on top */
+    z-index: 100001; /* Highest layer to overlay everything */
     -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
     flex-shrink: 0;
@@ -348,16 +349,16 @@
     background: rgba(0, 0, 0, 0.5);
     -webkit-backdrop-filter: blur(4px);
             backdrop-filter: blur(4px);
-    z-index: 101;
+    z-index: 100000;
   }
   .mobile-drawer {
     position: fixed;
-    top: 100px; /* Sit below the 100px Top Bar */
+    top: 100px;
     left: 0;
     width: 100vw; /* Full screen width */
     height: calc(100vh - 100px); /* Height minus top bar */
     background: var(--bg-1, #0c1214);
-    z-index: 102;
+    z-index: 100002;
     display: flex;
     flex-direction: column;
     padding: 2rem 1.5rem;
@@ -552,4 +553,64 @@
   50% {
     transform: scale(1.1);
   }
+}
+/* Light Mode Specific Overrides */
+[data-theme=light] {
+  /* Mobile Top Bar */
+}
+[data-theme=light] .sidebar {
+  background: var(--bg-2); /* Use pure white for sidebar usually in light mode apps */
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  /* User Section */
+  /* Scrollbar for light mode */
+}
+[data-theme=light] .sidebar .sidebar-header .logo-container .logo-icon {
+  background: rgba(59, 130, 246, 0.1); /* Blue tint */
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+[data-theme=light] .sidebar .nav-item {
+  color: #64748b; /* Slate-500 */
+}
+[data-theme=light] .sidebar .nav-item:hover {
+  background: rgba(0, 0, 0, 0.05); /* Darken on hover */
+  color: #0f172a; /* Dark text */
+}
+[data-theme=light] .sidebar .nav-item.active {
+  background: rgba(59, 130, 246, 0.1); /* Blue tint */
+  color: var(--color-primary);
+}
+[data-theme=light] .sidebar .nav-item .section-label {
+  color: #94a3b8;
+}
+[data-theme=light] .sidebar .sidebar-footer .user-section .user-info .avatar {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+[data-theme=light] .sidebar .sidebar-footer .user-section .logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+[data-theme=light] .sidebar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+}
+[data-theme=light] .sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+[data-theme=light] .mobile-top-bar {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+[data-theme=light] .mobile-top-bar .logo-container .logo-icon {
+  background: rgba(59, 130, 246, 0.1);
+}
+[data-theme=light] .mobile-top-bar .mobile-menu-btn {
+  color: #333;
+}
+
+.app-layout.focus-mode-active .mobile-top-bar,
+.app-layout.focus-mode-active .drawer-backdrop,
+.app-layout.focus-mode-active .mobile-drawer {
+  display: none !important;
 }/*# sourceMappingURL=Sidebar.css.map */

@@ -183,18 +183,8 @@ const SidebarContent = React.memo(({
         {/* PROGRESS Section */}
         <div className="nav-section">
           {(!isCollapsed || isMobileState) && <div className="section-label">PROGRESS</div>}
-          <NavItem
-            item={{ iconElement: <BarChart2 size={22} />, label: "Analytics", to: "/analytics" }}
-            location={location}
-            isCollapsed={isCollapsed}
-            isMobile={isMobileState}
-          />
-          <NavItem
-            item={{ iconElement: <Activity size={22} />, label: "Habit Tracker", to: "/habits" }}
-            location={location}
-            isCollapsed={isCollapsed}
-            isMobile={isMobileState}
-          />
+          {renderNavItem({ icon: BarChart2, label: "Analytics", to: "/analytics" })}
+          {renderNavItem({ icon: Activity, label: "Habit Tracker", to: "/habits" })}
 
           {renderNavItem({ icon: GraduationCap, label: "Grades", to: "/grades" })}
           {renderNavItem({ icon: Trophy, label: "Leaderboard", to: "/leaderboard" })}

@@ -94,6 +94,7 @@
 }
 .grades-root .grades-container .subjects-sidebar {
   width: 280px;
+  flex-shrink: 0; /* Prevent sidebar from squashing */
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -114,12 +115,14 @@
   padding: 0.5rem;
   color: var(--color-text);
   font-size: 0.9rem;
+  min-width: 0; /* Allow input to shrink if needed */
 }
 .grades-root .grades-container .subjects-sidebar .add-subject-form input:focus {
   outline: none;
   border-color: var(--color-primary);
 }
 .grades-root .grades-container .subjects-sidebar .add-subject-form .add-subject-btn {
+  flex-shrink: 0; /* Don't squash button */
   background: var(--color-primary);
   color: white;
   border: none;

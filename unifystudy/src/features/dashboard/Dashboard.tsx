@@ -10,6 +10,7 @@ import {
 } from "@/utils/achievements";
 import { toast } from "sonner";
 import { useGamification } from "@/context/GamificationContext";
+import DailyQuests from "./components/DailyQuests";
 import { 
   Lightbulb, 
   GraduationCap, 
@@ -652,6 +653,9 @@ export default function Dashboard({ user }) {
                     </div>
                 </div>
             </div>
+
+            {/* Row 4: Daily Quests (Wide) */}
+            <DailyQuests user={user} />
         </div>
 
         {/* === RIGHT: SIDEBAR === */}
@@ -674,6 +678,8 @@ export default function Dashboard({ user }) {
                     <p className="xp-subtext">{Math.round((level + 1) * 1000 - xp)} XP to next level</p>
                 </div>
             </div>
+
+
 
             {/* 2. Achievements Widget */}
             <div className="widget-card achievements-card styled-card">

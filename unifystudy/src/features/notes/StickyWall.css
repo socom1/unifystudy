@@ -2,50 +2,54 @@
   width: 100%;
   height: 100%;
   background-color: var(--bg-1);
-  background-color: var(--bg-1);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
   /* Sticky Note Styles */
 }
-.sticky-wall .wall-header {
-  width: 100%;
+.sticky-wall .floating-toolbar {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 50;
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 20px 30px;
-  background-color: var(--bg-1);
-  border-bottom: 1px solid var(--glass-border);
-  margin: 0;
-  flex-shrink: 0;
-}
-.sticky-wall .wall-header h1 {
-  color: var(--color-text);
-  margin: 0;
-  font-size: 24px;
-}
-.sticky-wall .wall-header button {
-  background: var(--color-primary);
-  color: var(--bg-1);
+  justify-content: center;
+  padding: 6px;
+  background: transparent;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
+  box-shadow: none;
+}
+.sticky-wall .floating-toolbar button {
+  background: var(--color-primary);
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px; /* Pill shape */
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
 }
-.sticky-wall .wall-header button:hover {
-  background: var(--color-secondary);
+.sticky-wall .floating-toolbar button:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.5);
+}
+.sticky-wall .floating-toolbar button:active {
+  transform: scale(0.95);
 }
 .sticky-wall .wall-area {
   width: 100%;
   flex: 1;
   position: relative;
-  background-image: radial-gradient(var(--glass-border) 1px, transparent 1px);
-  background-size: 20px 20px;
+  /* Subtle dot grid */
+  background-image: radial-gradient(var(--color-text-dim) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.5;
   overflow: hidden;
-  /* Ensure notes don't fly out improperly */
   z-index: 10;
 }
 .sticky-wall .empty-state {
@@ -53,60 +57,81 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: var(--color-muted);
-  font-size: 18px;
+  color: var(--color-text-dim);
+  font-size: 16px;
   pointer-events: none;
   z-index: 5;
+  opacity: 0.6;
+  background: var(--bg-1);
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
 }
 .sticky-wall .sticky-note {
   position: absolute;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 2px; /* Less rounded for sticky note feel */
+  padding: 20px;
   color: var(--color-text);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
+  /* Deep shadow for lift */
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  /* Basic z-index, handled by drag controls usually but set logic here */
   z-index: 20;
-  background-color: rgb(30, 30, 40);
-  /* Solid background for legibility */
-  background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.95));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  /* Paper Texture effect */
+  background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.1);
   min-width: 200px;
   min-height: 200px;
+  min-height: 200px;
+}
+.sticky-wall .sticky-note:hover {
+  z-index: 50 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 .sticky-wall .sticky-note .note-actions {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 30;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 .sticky-wall .sticky-note .note-actions button {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.1);
   border: none;
-  color: #888;
+  color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
-  font-size: 18px;
-  padding: 4px;
+  font-size: 16px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
 }
 .sticky-wall .sticky-note .note-actions button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ff5f56;
+  background: rgba(255, 0, 0, 0.1);
+  color: #d63031;
+}
+.sticky-wall .sticky-note:hover .note-actions {
+  opacity: 1;
 }
 .sticky-wall .sticky-note .note-content {
   flex: 1;
-  font-family: "Inter", sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  margin-top: 10px;
-  color: #e2e8f0;
+  font-family: "Patrick Hand", "Inter", sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.95); /* Bright white text */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+}
+.sticky-wall .sticky-note .note-content .empty-note-hint {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  font-size: 16px;
+  pointer-events: none;
 }
 .sticky-wall .sticky-note .note-content .note-textarea {
   width: 100%;
@@ -119,6 +144,13 @@
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+  caret-color: #fff; /* White cursor */
+}
+.sticky-wall .sticky-note .note-content .note-textarea::-moz-placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+.sticky-wall .sticky-note .note-content .note-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 .sticky-wall .sticky-note .note-content .note-view {
   white-space: pre-wrap;
@@ -127,15 +159,15 @@
   cursor: text;
 }
 .sticky-wall .sticky-note .note-content .wiki-link {
-  color: #6366f1;
-  font-weight: 500;
+  color: #fff;
+  font-weight: 700;
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: rgba(99, 102, 241, 0.3);
+  text-decoration: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
 }
 .sticky-wall .sticky-note .note-content .wiki-link:hover {
-  color: #818cf8;
-  text-decoration-color: #818cf8;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
 }
 .sticky-wall .sticky-note .resize-handle {
   position: absolute;
@@ -145,43 +177,58 @@
   height: 20px;
   cursor: nwse-resize;
   z-index: 30;
+  opacity: 0;
 }
 .sticky-wall .sticky-note .resize-handle::after {
   content: "";
   position: absolute;
-  bottom: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid rgba(255, 255, 255, 0.3);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  bottom: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+}
+.sticky-wall .sticky-note:hover .resize-handle {
+  opacity: 1;
 }
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
-  .sticky-wall .wall-header {
-    /* On mobile, we might need space for top nav if it's fixed */
-    margin-top: 130px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  .sticky-wall .floating-toolbar {
+    top: 10px;
+    width: 90%;
+    justify-content: space-between;
   }
-  .sticky-wall .wall-header h1 {
-    font-size: 20px;
+  .sticky-wall .floating-toolbar h1 {
+    font-size: 16px;
   }
-  .sticky-wall .wall-header button {
+  .sticky-wall .floating-toolbar button {
+    font-size: 12px;
     padding: 6px 12px;
-    font-size: 14px;
-  }
-  .sticky-wall .empty-state {
-    font-size: 14px;
-    padding: 0 20px;
   }
   .sticky-wall .sticky-note {
-    max-width: calc(100vw - 40px) !important;
-    min-width: 180px !important;
+    padding: 15px;
+    /* Always show actions on mobile */
   }
-  .sticky-wall .sticky-note .note-content {
-    font-size: 13px;
+  .sticky-wall .sticky-note .note-actions {
+    opacity: 1;
   }
+  .sticky-wall .sticky-note .resize-handle {
+    opacity: 1;
+  }
+}
+/* Light Mode Specific Overrides */
+[data-theme=light] .sticky-wall {
+  background-color: #f8fafc !important;
+}
+[data-theme=light] .sticky-wall .floating-toolbar {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: #e2e8f0;
+}
+[data-theme=light] .sticky-wall .floating-toolbar h1 {
+  color: #0f172a;
+}
+[data-theme=light] .sticky-wall .wall-area {
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px) !important;
 }/*# sourceMappingURL=StickyWall.css.map */

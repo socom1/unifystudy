@@ -216,4 +216,61 @@
   40% {
     transform: scale(1);
   }
+}
+/* Light Mode Overrides for Nova */
+[data-theme=light] .nova-container {
+  background: var(--bg-1) !important;
+}
+[data-theme=light] .nova-chat-interface {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+[data-theme=light] .nova-header {
+  border-bottom: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.8);
+}
+[data-theme=light] .nova-header h2 {
+  color: #0f172a;
+}
+[data-theme=light] .nova-header p {
+  color: #64748b;
+}
+[data-theme=light] .nova-messages {
+  background: var(--bg-1);
+}
+[data-theme=light] .message.user .message-bubble {
+  background: #3b82f6; /* Keep blue but ensure contrast */
+  color: white;
+}
+[data-theme=light] .message.nova .message-bubble {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+[data-theme=light] .message .message-time {
+  color: #94a3b8;
+}
+[data-theme=light] .nova-input-area {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+[data-theme=light] .nova-input-area .input-wrapper {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+[data-theme=light] .nova-input-area .input-wrapper textarea {
+  color: #0f172a;
+}
+[data-theme=light] .nova-input-area .input-wrapper textarea::-moz-placeholder {
+  color: #94a3b8;
+}
+[data-theme=light] .nova-input-area .input-wrapper textarea::placeholder {
+  color: #94a3b8;
+}
+[data-theme=light] .nova-input-area .input-wrapper .send-btn {
+  color: var(--color-primary);
+}
+[data-theme=light] .nova-input-area .input-wrapper .send-btn:disabled {
+  color: #cbd5e1;
 }/*# sourceMappingURL=AIAssistant.css.map */
