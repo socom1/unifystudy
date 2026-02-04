@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Maximize2, Minimize2 } from "lucide-react";
 import "./pomodoro.scss";
 import { useTimer } from "./TimerContext";
 
@@ -31,6 +32,7 @@ export default function Pomodoro({ zenMode = false }) {
   const [selectorMode, setSelectorMode] = useState(
     typeof window !== 'undefined' && window.innerWidth < 768
   ); // Auto-detect mobile
+  const [showTemplates, setShowTemplates] = useState(true);
   const [editorContent, setEditorContent] = useState(
     templateList
       .map(
@@ -131,14 +133,41 @@ export default function Pomodoro({ zenMode = false }) {
       <main className="main">
 
         {/* MIDDLE: GRID */}
-        <div className="pomodoro-grid" style={zenMode ? { display: 'flex', justifyContent: 'center' } : {}}>
+        <motion.div 
+            className={`pomodoro-grid ${!showTemplates ? "single-view" : ""}`} 
+            layout 
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            style={(zenMode || !showTemplates) ? { display: 'flex', justifyContent: 'center' } : {}}
+        >
                 {/* Timer card */}
-                <section className={timerClass} aria-live="polite">
+                <motion.section 
+                    className={timerClass} 
+                    aria-live="polite"
+                    layout
+                >
                 
                 {/* Session Title - Always visible on mobile */}
                 <h2 className="timer__session-title">
                     {zenMode ? "Zen Mode" : selectedTemplate?.name}
                 </h2>
+
+                <button 
+                  className="toggle-templates-btn"
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  title={showTemplates ? "Hide Templates" : "Show Templates"}
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--color-muted)',
+                    cursor: 'pointer',
+                    display: zenMode ? 'none' : 'block'
+                  }}
+                >
+                  {showTemplates ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
+                </button>
 
                 {/* Hide Status Pill in Zen Mode */}
                 {!zenMode && (
@@ -241,11 +270,18 @@ export default function Pomodoro({ zenMode = false }) {
                     <button className={`quick-bar__btn ${mode === "short" ? "active" : ""}`} onClick={() => setMode("short")}>Short</button>
                     <button className={`quick-bar__btn ${mode === "long" ? "active" : ""}`} onClick={() => setMode("long")}>Long</button>
                 </div>
-                </section>
+                </motion.section>
 
+                <AnimatePresence mode="popLayout">
                 {/* Templates area - Hide in Zen Mode */}
-                {!zenMode && (
-                    <section className="templates">
+                {!zenMode && showTemplates && (
+                    <motion.section 
+                        className="templates"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
+                        layout
+                    >
                         <div className="templates__header">
                             <h2>Sessions</h2>
                             <div className="actions">
@@ -273,9 +309,10 @@ export default function Pomodoro({ zenMode = false }) {
                             ))}
                         </div>
 
-                    </section>
+                    </motion.section>
                 )}
-            </div>
+                </AnimatePresence>
+            </motion.div>
 
             {/* BOTTOM: STATS - Show in Zen Mode too to fill space */}
             <div className="stats-section">

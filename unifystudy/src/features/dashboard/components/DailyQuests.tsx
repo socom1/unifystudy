@@ -31,38 +31,14 @@ const QUEST_TEMPLATES = [
     { type: 'LOGIN', title: "Night Owl", desc: "Check in after 8 PM", target: 1, xp: 50, lumen: 5 }
 ];
 
-export default function DailyQuests({ user }) {
+export default function DailyQuests({ user }: { user: any }) {
     const { addXP } = useGamification();
     const [quests, setQuests] = useState<Quest[]>([]);
     const [loading, setLoading] = useState(true);
 
     const todayStr = new Date().toISOString().split('T')[0];
 
-    useEffect(() => {
-        if (!user) return;
 
-        const questsRef = ref(db, `users/${user.uid}/quests/${todayStr}`);
-        
-        const unsub = onValue(questsRef, async (snapshot) => {
-            const data = snapshot.val();
-            
-            if (data) {
-                // Quests exist for today
-                setQuests(Object.values(data));
-                
-                // --- PROGRESS CHECKERS ---
-                checkStudyProgress(user.uid, todayStr, Object.values(data));
-
-            } else {
-                // Generate New Quests
-                const newQuests = generateDailyQuests();
-                await set(questsRef, newQuests);
-            }
-            setLoading(false);
-        });
-
-        return () => unsub();
-    }, [user, todayStr]);
 
     // Helper: Select 2 Random Quests
     const generateDailyQuests = () => {
@@ -94,29 +70,65 @@ export default function DailyQuests({ user }) {
         return selected;
     };
 
-    // Helper: Check actual study time from DB to update quest
-    const checkStudyProgress = (uid, dateStr, currentQuests) => {
-        // Fetch todays sessions
-        // For brevity in MVP, we might rely on the StudyTimer component explicitly updating these quests
-        // But let's do a strict check for 'LOGIN' here as an example
-        
-        const loginQuest = currentQuests.find((q: any) => q.type === 'LOGIN' && !q.claimed && q.current < 1);
-        if (loginQuest) {
-            const hour = new Date().getHours();
-            if (hour < 12) {
-                 updateQuestProgress(uid, loginQuest.id, 1);
-            }
+    useEffect(() => {
+        if (!user) {
+            setLoading(false);
+            return;
         }
-    };
 
-    const updateQuestProgress = (uid, questId, amount) => {
-        const qRef = ref(db, `users/${uid}/quests/${todayStr}/${questId}`);
-        runTransaction(qRef, (q) => {
-            if (!q) return null;
-            if (q.current >= q.target) return; // Already done
-            return { ...q, current: Math.min(q.target, amount) };
+        // Helper: Update specific quest (Transaction)
+        const updateQuestProgress = (uid: string, questId: string, amount: number) => {
+            const qRef = ref(db, `users/${uid}/quests/${todayStr}/${questId}`);
+            runTransaction(qRef, (q) => {
+                if (!q) return; // Abort if null
+                if (q.current >= q.target) return; // Already done
+                return { ...q, current: Math.min(q.target, amount) };
+            }).catch(err => console.error("Quest transaction failed:", err));
+        };
+
+        // Helper: Check actual study time from DB to update quest
+        const checkStudyProgress = (uid: string, currentQuests: Quest[]) => {
+            try {
+                const loginQuest = currentQuests.find(q => q.type === 'LOGIN' && !q.claimed && q.current < 1);
+                if (loginQuest) {
+                    const hour = new Date().getHours();
+                    // Update based on title/time rules
+                    if (loginQuest.title === "Early Bird" && hour < 12) {
+                         updateQuestProgress(uid, loginQuest.id, 1);
+                    } else if (loginQuest.title === "Night Owl" && hour >= 20) {
+                         updateQuestProgress(uid, loginQuest.id, 1);
+                    }
+                }
+            } catch (e) {
+                console.error("Error in checkStudyProgress:", e);
+            }
+        };
+
+        const questsRef = ref(db, `users/${user.uid}/quests/${todayStr}`);
+        
+        const unsub = onValue(questsRef, async (snapshot) => {
+            const data = snapshot.val();
+            
+            if (data) {
+                const questsArray = Object.values(data) as Quest[];
+                setQuests(questsArray);
+                
+                // --- PROGRESS CHECKERS ---
+                checkStudyProgress(user.uid, questsArray);
+
+            } else {
+                // Generate New Quests
+                const newQuests = generateDailyQuests();
+                await set(questsRef, newQuests);
+            }
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching quests:", error);
+            setLoading(false);
         });
-    };
+
+        return () => unsub();
+    }, [user, todayStr]);
 
     const handleClaim = async (quest: Quest) => {
         if (quest.claimed) return;
@@ -124,9 +136,10 @@ export default function DailyQuests({ user }) {
         try {
             // 1. Mark Claimed
             const qRef = ref(db, `users/${user.uid}/quests/${todayStr}/${quest.id}`);
+            // Use transaction to ensure we don't double claim
             await runTransaction(qRef, (q) => {
-                if (!q) return null;
-                if (q.claimed) return undefined; // Abort
+                if (!q) return; // Must return undefined to abort
+                if (q.claimed) return; // Already claimed, abort
                 return { ...q, claimed: true };
             });
 
@@ -136,7 +149,7 @@ export default function DailyQuests({ user }) {
             // Add Lumens (Currency)
             const userRef = ref(db, `users/${user.uid}`);
             await runTransaction(userRef, (u) => {
-                if (!u) return null;
+                if (!u) return; 
                 return { ...u, currency: (u.currency || 0) + quest.lumenReward };
             });
 

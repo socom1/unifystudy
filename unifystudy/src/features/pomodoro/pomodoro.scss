@@ -137,12 +137,26 @@ header {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  align-items: center; /* Vertically center in the avail space */
+  align-items: stretch; /* Vertically stretch to match height */
+
+  &.single-view {
+    display: flex;
+    justify-content: center;
+    
+    .timer {
+      width: 100%;
+      max-width: 1100px; /* Wider view for emphasis */
+    }
+  }
 
   @media (max-width: 1082px) {
     display: flex;
     flex-direction: column;
     height: auto;
+    
+    &.single-view .timer {
+        width: 100%;
+    }
   }
 }
 
@@ -156,6 +170,7 @@ header {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; /* Center content vertically */
   /* Remove harsh shadows/backdrop filters that don't match app */
 
   @media (max-width: 1082px) {
@@ -402,8 +417,8 @@ header {
   border-radius: 32px;
   border: 1px solid var(--glass-border);
   padding: 2rem;
-  height: 100%;
-  max-height: 600px; /* Align roughly with timer card height */
+  height: 100%; /* Match grid height */
+  /* Remove fixed/max heights */
   display: flex;
   flex-direction: column;
 
@@ -672,4 +687,24 @@ header {
       }
     }
   }
+
+.templates__list {
+    flex: 1;
+    overflow-y: auto;
+    /* Custom Scrollbar for templates list */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--glass-border);
+        border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--color-muted);
+    }
+}
+
 }
