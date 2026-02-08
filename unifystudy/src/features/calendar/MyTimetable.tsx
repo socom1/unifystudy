@@ -6,7 +6,9 @@ import { Plus, Bell, BellOff, X, Trash2, Save, Wand2, Calendar as CalendarIcon, 
 import Modal from "@/components/common/Modal"; 
 import { toast } from "sonner";
 import { connectGoogleCalendar, fetchUpcomingEvents } from "@/services/googleCalendar";
+import { fetchOutlookEvents } from "@/services/microsoftIntegration";
 import "./MyTimetable.scss";
+
 import { User, CalendarEvent } from "@/types";
 
 const getEventIcon = (type?: string) => {
@@ -333,7 +335,14 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
 
 
 
-  const allEvents = [...events, ...googleEvents];
+
+  const [outlookEvents, setOutlookEvents] = useState<CalendarEvent[]>([]);
+
+  // Expose function to trigger sync from outside if needed, or just let user manually sync via a new button
+  // For now, let's try to load from local storage if we had a persistent token, but we don't.
+  // We can add a "Sync External" button in this component too.
+
+  const allEvents = [...events, ...googleEvents, ...outlookEvents];
 
   // Memoize events grouped by day to avoid re-filtering on every render
   const eventsByDay = useMemo(() => {
@@ -347,9 +356,73 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
     return grouped;
   }, [allEvents]);
 
+  // Sync Handlers
+  const handleSyncCalendars = async () => {
+      setIsSyncing(true);
+      try {
+          // Google
+          try {
+              const gToken = await import("@/services/googleCalendar").then(m => m.connectGoogleCalendar());
+              const gEvents = await import("@/services/googleCalendar").then(m => m.fetchUpcomingEvents(gToken));
+              setGoogleEvents(gEvents); 
+              toast.success("Synced Google Calendar");
+          } catch(e) { console.log(e); }
+
+          // Outlook
+          try {
+              const msToken = await import("@/services/microsoftIntegration").then(m => m.connectMicrosoft());
+              const msEvents = await import("@/services/microsoftIntegration").then(m => m.fetchOutlookEvents(msToken));
+              
+              const normEvents = msEvents.map((e: any) => {
+                  const d = new Date(e.start.dateTime);
+                  // Outlook returns UTC or specified timezone. We requested UTC preferred.
+                  // Simple day mapping:
+                  const dayIndex = d.getDay(); // 0=Sun, 1=Mon...
+                  const dayName = days[dayIndex === 0 ? 6 : dayIndex - 1]; // MyTimetable 'days' array is Mon(0)...Sun(6)
+                  
+                  return {
+                      id: `outlook-${e.id}`,
+                      title: e.subject,
+                      description: e.bodyPreview || "",
+                      day: dayName,
+                      start: d.getHours(), // Simple hour extraction
+                      end: new Date(e.end.dateTime).getHours() || (d.getHours() + 1),
+                      color: "#0078D4",
+                      type: 'Other'
+                  };
+              });
+              
+              setOutlookEvents(normEvents);
+              toast.success("Synced Outlook Calendar");
+          } catch(e) { console.log(e); }
+
+      } catch (err) {
+          toast.error("Sync failed");
+      } finally {
+          setIsSyncing(false);
+      }
+  };
+
   return (
-    <div className="calendar-wrapper" onClick={() => { setEditingEventId(null); setIsFormOpen(false); }}>
-      <NotificationManager events={events} userId={userId} />
+    <div className="calendar-container" onClick={() => { setEditingEventId(null); setIsFormOpen(false); }}>
+      <NotificationManager events={allEvents} userId={userId} />
+
+      {/* Header Controls */}
+      <div className="header-actions">
+          <button onClick={handleSyncCalendars} disabled={isSyncing}>
+              {isSyncing ? "Syncing..." : "Sync Calendars"}
+          </button>
+          <button onClick={() => setIsMagicFillOpen(true)}>
+             <Wand2 size={16} style={{ marginRight: 6 }} /> Magic Fill
+          </button>
+          <button onClick={() => {
+              setForm({ ...form, id: undefined } as any);
+              setEditingEventId(null);
+              setIsFormOpen(true);
+          }}>
+             <Plus size={16} style={{ marginRight: 6 }} /> Add Event
+          </button>
+      </div>
 
       {/* Magic Fill Modal */}
       <Modal
@@ -691,13 +764,24 @@ const NotificationManager = ({ events, userId }: { events: CalendarEvent[], user
           const currentTimeInMinutes = currentHour * 60 + currentMinute;
           const diff = eventTimeInMinutes - currentTimeInMinutes;
 
-          if (diff === 10 && !notifiedEvents[evt.id]) {
-            new Notification(`Upcoming Event: ${evt.title}`, {
-              body: `Starts in 10 minutes at ${evt.start}:00`,
+          // Notify 10 minutes before
+          // Also explicitly mention Lecture/Lab/Study if applicable for flavor
+          if (diff <= 15 && diff > 0 && !notifiedEvents[evt.id]) {
+            const isStudyRelated = ['Lecture', 'Study', 'Workshop', 'Lab'].includes(evt.type || '');
+            const bodyText = isStudyRelated 
+                ? `Get ready for ${evt.title}! Starting in ${Math.round(diff)} mins.`
+                : `Upcoming: ${evt.title} at ${evt.start}:00`;
+            
+            new Notification(`UnifyStudy: ${evt.title}`, {
+              body: bodyText,
+              icon: '/logo.png',
+              badge: '/logo.png'
             });
             setNotifiedEvents((prev) => ({ ...prev, [evt.id]: true }));
           }
-          if (diff < 10 && notifiedEvents[evt.id]) {
+          
+          if (diff <= 0 && notifiedEvents[evt.id]) {
+             // Cleanup
             setNotifiedEvents((prev) => {
               const newState = { ...prev };
               delete newState[evt.id];

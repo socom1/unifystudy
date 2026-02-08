@@ -35,6 +35,8 @@ import { User } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
 import { useNotification } from "@/context/NotificationContext";
+import { db } from "@/services/firebaseConfig";
+import { ref, onValue } from "firebase/database";
 
 /* 
 // Props Removed - using Context
@@ -103,11 +105,33 @@ const SidebarContent = React.memo(({
 
   // Mobile check hook locally if not in context
   const [localIsMobile, setLocalIsMobile] = useState(window.innerWidth < 1082);
+  const [dbPhotoURL, setDbPhotoURL] = useState(user?.photoURL);
+
   useEffect(() => {
       const handler = () => setLocalIsMobile(window.innerWidth < 1082);
       window.addEventListener('resize', handler);
       return () => window.removeEventListener('resize', handler);
   }, []);
+
+  // Listen to DB photoURL for updates (handles large Base64)
+  useEffect(() => {
+      if (!user?.uid) return;
+      
+      // Check local cache first
+      const cached = localStorage.getItem(`avatar_${user.uid}`);
+      if (cached) setDbPhotoURL(cached);
+
+      const cancelRef = ref(db, `users/${user.uid}/photoURL`);
+      return onValue(cancelRef, (snap) => {
+          const val = snap.val();
+          if (val) {
+              setDbPhotoURL(val);
+              localStorage.setItem(`avatar_${user.uid}`, val);
+          }
+      });
+  }, [user?.uid]);
+
+  const displayPhoto = dbPhotoURL || user?.photoURL;
 
   const isCollapsed = isNavCollapsed;
   const isMobileState = localIsMobile;
@@ -228,8 +252,8 @@ const SidebarContent = React.memo(({
           <div className="user-section">
             <Link to="/profile" className="user-info">
               <div className="avatar">
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="User" />
+                {displayPhoto ? (
+                  <img src={displayPhoto} alt="User" />
                 ) : (
                   <div style={{ 
                     width: '100%', 
@@ -285,6 +309,19 @@ export default function Sidebar() {
   // Local Mobile State
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1082);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dbPhotoURL, setDbPhotoURL] = useState(user?.photoURL);
+  
+  // Sidebar-level listener for mobile header
+  useEffect(() => {
+      if (!user?.uid) return;
+      const photoRef = ref(db, `users/${user.uid}/photoURL`);
+      return onValue(photoRef, (snap) => {
+          const val = snap.val();
+          if (val) setDbPhotoURL(val);
+      });
+  }, [user?.uid]);
+  
+  const displayPhoto = dbPhotoURL || user?.photoURL;
   
   useEffect(() => {
     const handleResize = () => {
@@ -341,32 +378,61 @@ export default function Sidebar() {
               >
                 <div className="drawer-header">
                   {user ? (
-                    <div className="mobile-user-profile">
-                      <div className="avatar-large">
-                        {user.photoURL ? ( 
-                          <img src={user.photoURL} alt="User" /> 
-                        ) : (
-                          <div style={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '18px',
-                            fontWeight: 600,
-                            color: 'white'
-                          }}>
-                            {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                    <>
+                      <div className="mobile-user-profile">
+                        <Link 
+                          to="/profile" 
+                          style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: 'inherit', width: '100%' }}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <div className="avatar-large">
+                            {displayPhoto ? ( 
+                              <img src={displayPhoto} alt="User" /> 
+                            ) : (
+                              <div style={{ 
+                                width: '100%', 
+                                height: '100%', 
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '18px',
+                                fontWeight: 600,
+                                color: 'white'
+                              }}>
+                                {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                              </div>
+                            )}
                           </div>
-                        )}
+                          <div className="user-info-large">
+                            <span className="user-name-large">{user.displayName || "Student"}</span>
+                            <span className="user-role-large">Free Plan</span>
+                          </div>
+                        </Link>
                       </div>
-                      <div className="user-info-large">
-                        <span className="user-name-large">{user.displayName || "Student"}</span>
-                        <span className="user-role-large">Free Plan</span>
-                      </div>
-                    </div>
+                      <button 
+                        onClick={() => {
+                          signOut();
+                          setIsMobileMenuOpen(false);
+                        }} 
+                        style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                          color: '#ef4444',
+                          padding: '10px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginLeft: 'auto'
+                        }}
+                        title="Sign Out"
+                      >
+                        <LogOut size={20} />
+                      </button>
+                    </>
                   ) : (
                     <div className="logo-container">
                       <div className="logo-icon">&gt;_</div>

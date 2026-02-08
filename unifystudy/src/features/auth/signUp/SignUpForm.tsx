@@ -48,7 +48,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
     formState: { errors },
   } = useForm<SignUpFormValues>({
     resolver: zodResolver(isLogin ? loginSchema : signupSchema),
-    mode: "onBlur"
+    mode: "onSubmit"
   });
 
   return (

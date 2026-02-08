@@ -20,6 +20,7 @@ import GoogleUsernameModal from "./modal/passwordM/GoogleUsernameModal";
 import EmailVerificationModal from "./modal/verfM/EmailVerificationModal";
 import SignUpForm from "./SignUpForm";
 import "./signup.scss";
+import { getVersion } from "@/data/releaseNotes";
 // Helper to map Firebase errors to user-friendly messages
 const getFriendlyErrorMessage = (error) => {
   const code = error.code;
@@ -260,79 +261,87 @@ export default function SignUp({ onLoginSuccess }) {
   const toggleLoginMode = () => setIsLogin(!isLogin);
 
   return (
-    <div className="signup-container">
-      <AnimatePresence mode="wait">
-        {!isBlockingUI && (
-          <motion.div
-            key={isLogin ? "login" : "signup"}
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-          >
-            <h2 className="signup-title">{isLogin ? "Log In" : "Sign Up"}</h2>
-
-            <SignUpForm
-              isLogin={isLogin}
-              onSubmit={handleSubmit}
-              handleGoogleSignIn={handleGoogleSignIn}
-              toggleLoginMode={toggleLoginMode}
-              serverError={error}
-              isLoading={isBlockingUI} // Reusing blocking state for loading indicator
-              keepLoggedIn={keepLoggedIn}
-              setKeepLoggedIn={setKeepLoggedIn}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {showGoogleUsernameModal && (
-        <GoogleUsernameModal
-          googleUsername={googleUsername}
-          setGoogleUsername={setGoogleUsername}
-          handleSetGoogleUsername={handleSetGoogleUsername}
-          handleCancel={handleCancelGoogleUsername}
-          error={error}
-          isOpen={showGoogleUsernameModal}
-        />
-      )}
-
-      {showEmailVerificationModal && (
-        <EmailVerificationModal
-          isOpen={showEmailVerificationModal}
-          onClose={() => setShowEmailVerificationModal(false)}
-          email={userEmail}
-        />
-      )}
-      {/* Download Section for Web Users */}
-      {!window.require && (
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            className="web-download-prompt"
-        >
-            <p>Want the best experience?</p>
-            <div className="download-buttons">
-                <a 
-                    href="https://github.com/rejuszuzevicius/unifystudy/releases/latest/download/UnifyStudy-mac.dmg" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="download-link"
-                >
-                    🍎 Mac
-                </a>
-                <a 
-                    href="https://github.com/rejuszuzevicius/unifystudy/releases/latest/download/UnifyStudy-Setup.exe" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="download-link"
-                >
-                    🪟 Windows
-                </a>
+    <div className="terminal-auth-wrapper">
+      <div className="terminal-window">
+        {/* Terminal Header / Controls */}
+        <div className="terminal-header">
+            <div className="window-controls">
+                <span className="control red"></span>
+                <span className="control yellow"></span>
+                <span className="control green"></span>
             </div>
-        </motion.div>
-      )}
+            <div className="terminal-title">user_auth.exe — -bash — 80x24</div>
+        </div>
+
+        {/* Terminal Content */}
+        <div className="terminal-body">
+            <AnimatePresence mode="wait">
+            {!isBlockingUI && (
+                <motion.div
+                key={isLogin ? "login" : "signup"}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="terminal-content-grid"
+                >
+                <div className="terminal-branding">
+                    <pre className="ascii-logo">
+{` __  __     ______     __     __
+/\\ \\/\\ \\   /\\  ___\\   /\\ \\   /\\ \\
+\\ \\ \\_\\ \\  \\ \\___  \\  \\ \\ \\  \\ \\ \\
+ \\ \\_____\\  \\/\\_____\\  \\ \\_\\  \\ \\_\\
+  \\/_____/   \\/_____/   \\/_/   \\/_/ `}
+                    </pre>
+                    <div className="system-status">
+                        <p>&gt; SYSTEM_STATUS: <span className="status-ok">ONLINE</span></p>
+                        <p>&gt; VERSION: <span className="status-ver">v{getVersion()}</span></p>
+                        <p>&gt; ENCRYPTION: <span className="status-enc">ENABLED</span></p>
+                    </div>
+                </div>
+
+                <div className="terminal-form-section">
+                    <div className="command-prompt">
+                        <span className="prompt-user">guest@unifystudy</span>
+                        <span className="prompt-symbol">:~$</span>
+                        <span className="prompt-command">{isLogin ? "./login.sh" : "./create_user.sh"}</span>
+                    </div>
+
+                    <SignUpForm
+                        isLogin={isLogin}
+                        onSubmit={handleSubmit}
+                        handleGoogleSignIn={handleGoogleSignIn}
+                        toggleLoginMode={toggleLoginMode}
+                        serverError={error}
+                        isLoading={isBlockingUI} 
+                        keepLoggedIn={keepLoggedIn}
+                        setKeepLoggedIn={setKeepLoggedIn}
+                    />
+                </div>
+                </motion.div>
+            )}
+            </AnimatePresence>
+        </div>
+      </div>
+
+       {showGoogleUsernameModal && (
+          <GoogleUsernameModal
+            googleUsername={googleUsername}
+            setGoogleUsername={setGoogleUsername}
+            handleSetGoogleUsername={handleSetGoogleUsername}
+            handleCancel={handleCancelGoogleUsername}
+            error={error}
+            isOpen={showGoogleUsernameModal}
+          />
+        )}
+
+        {showEmailVerificationModal && (
+          <EmailVerificationModal
+            isOpen={showEmailVerificationModal}
+            onClose={() => setShowEmailVerificationModal(false)}
+            email={userEmail}
+          />
+        )}
     </div>
   );
 }

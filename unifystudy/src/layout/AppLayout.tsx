@@ -46,6 +46,7 @@ import PatchNotesModal from "@/components/PatchNotesModal/PatchNotesModal";
 import { getLatestReleaseNote } from "@/data/releaseNotes";
 import UserProfileModal from "@/features/profile/UserProfileModal";
 
+
 import { auth, db } from "@/services/firebaseConfig";
 
 import { ref, onValue } from "firebase/database";
@@ -311,27 +312,16 @@ const AppLayout = () => {
             <UpdateNotification />
           </Suspense>
           
-          <PatchNotesModal 
+          <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} user={user} />
+          <UserProfileModal />
+
+        </div>
+        
+        <PatchNotesModal 
             isOpen={showPatchNotes} 
             onClose={handleClosePatchNotes} 
             releaseNote={latestRelease} 
-          />
-
-          <AnimatePresence>
-            {focusModeActive && (
-              <Suspense fallback={<div className="focus-loader" />}>
-                <FocusMode
-                  key="focus-mode-overlay"
-                  isActive={true}
-                  onClose={() => setFocusModeActive(false)}
-                />
-              </Suspense>
-            )}
-          </AnimatePresence>
-
-          <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} user={user} />
-          <UserProfileModal />
-        </div>
+        />
       </div>
     </TimerProvider>
   );

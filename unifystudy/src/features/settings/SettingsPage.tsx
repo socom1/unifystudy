@@ -63,6 +63,28 @@ export default function SettingsPage() {
 
   // Google Sync State
   const [isSyncingCalendar, setIsSyncingCalendar] = useState(false);
+  const [isSyncingOutlook, setIsSyncingOutlook] = useState(false);
+
+  // Microsoft Sync
+  const handleSyncOutlook = async () => {
+    try {
+      setIsSyncingOutlook(true);
+      // We just connect here, the actual fetching happens in the respective components (Timetable/Todo)
+      // or we can store the token/status here if we want to trigger a global fetch.
+      // For now, let's just authenticate to ensure we have permissions.
+      const token = await import("@/services/microsoftIntegration").then(m => m.connectMicrosoft());
+      
+      // Optionally fetch immediately to cache or verify
+      await import("@/services/microsoftIntegration").then(m => m.fetchOutlookEvents(token));
+      
+      toast.success("Connected to Outlook!");
+    } catch (err) {
+      toast.error("Failed to connect Outlook");
+      console.error(err);
+    } finally {
+      setIsSyncingOutlook(false);
+    }
+  };
 
 
   // Track initial settings for dirty checking
@@ -618,12 +640,29 @@ export default function SettingsPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <CalendarIcon size={24} className="text-secondary" />
                   <div>
-                    <div className="setting-title">Google Calendar</div>
-                    <div className="setting-description">Sync upcoming events to your timetable</div>
+                    <div className="setting-title">Google Calendar & Tasks</div>
+                    <div className="setting-description">Sync upcoming events and tasks</div>
                   </div>
                 </div>
                 <button className="btn secondary" onClick={handleSyncGoogle} disabled={isSyncingCalendar}>
-                  {isSyncingCalendar ? "Syncing..." : "Sync Now"}
+                  {isSyncingCalendar ? "Syncing..." : "Sync Google"}
+                </button>
+              </div>
+
+              <div className="setting-item">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/commons/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg" 
+                    alt="Outlook" 
+                    style={{ width: 24, height: 24 }} 
+                  />
+                  <div>
+                    <div className="setting-title">Outlook Calendar & To Do</div>
+                    <div className="setting-description">Sync events and tasks from Microsoft</div>
+                  </div>
+                </div>
+                <button className="btn secondary" onClick={handleSyncOutlook} disabled={isSyncingOutlook}>
+                  {isSyncingOutlook ? "Syncing..." : "Sync Outlook"}
                 </button>
               </div>
             </div>

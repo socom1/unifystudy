@@ -9,48 +9,9 @@ import { THEMES } from "@/constants/themes";
 import { ShoppingBag, Star, Layout, Palette, Image as ImageIcon, Check, Sparkles } from "lucide-react";
 import Modal from "@/components/common/Modal";
 
-// Import real assets
-import NeonPreview from "@/assets/shop/neon-pack.svg?url";
-import ThreeDPreview from "@/assets/shop/3d-pack.svg?url";
-import HandDrawnPreview from "@/assets/shop/hand-drawn.svg?url";
-import CosmosBanner from "@/assets/shop/cosmos-banner.svg?url";
-import CircuitBanner from "@/assets/shop/circuit-banner.svg?url";
-import WavesBanner from "@/assets/shop/waves-banner.svg?url";
+import { BANNERS, PROFILE_TAGS } from "@/constants/shopItems";
 
 import "./Shop.scss";
-
-// Cleaned up inventory as requested
-const PROFILE_TAGS = [
-  { id: "scholar", name: "🎓 Scholar", description: "For the dedicated learner", price: 150, color: "#6c5ce7" },
-  { id: "champion", name: "🏆 Champion", description: "Top performer", price: 500, color: "#ffd700" },
-  { id: "night-owl", name: "🦉 Night Owl", description: "Studies past midnight", price: 200, color: "#4b6c82" },
-  { id: "early-bird", name: "🌅 Early Bird", description: "Starts before dawn", price: 200, color: "#e17055" },
-  { id: "coffee-club", name: "☕ Coffee Club", description: "Fueled by caffeine", price: 100, color: "#6f4e37" },
-  { id: "verified", name: "✅ Verified", description: "Official status", price: 1000, color: "#00b894" },
-  { id: "vip", name: "💎 VIP", description: "Very Important Pupil", price: 2000, color: "#E91E63" },
-  { id: "legend", name: "👑 Legend", description: "Study Legend", price: 5000, color: "#FFD700" },
-  { id: "goat", name: "🐐 G.O.A.T", description: "Greatest of All Time", price: 7500, color: "#fff" },
-  { id: "coder", name: "👨‍💻 Coder", description: "Born to code", price: 300, color: "#00ff41" },
-];
-
-const ICON_SETS = [
-  { id: "neon", name: "Neon Glow", description: "High-contrast neon style", price: 2500, preview: NeonPreview, type: "pack" },
-  { id: "3d-pack", name: "3D Render", description: "Modern 3D style icons", price: 3000, preview: ThreeDPreview, type: "pack" },
-  { id: "hand-drawn", name: "Hand Drawn", description: "Sketchy, organic look", price: 1800, preview: HandDrawnPreview, type: "pack" },
-  { id: "minimal", name: "Minimalist", description: "Clean lines, no fuss", price: 1200, preview: null, type: "pack" },
-  { id: "retro", name: "Retro Pixel", description: "8-bit nostalgia", price: 2200, preview: null, type: "pack" },
-];
-
-const BANNERS = [
-  { id: "cosmos", name: "Cosmos", type: "svg", price: 500, preview: CosmosBanner },
-  { id: "circuit", name: "Circuit", type: "svg", price: 450, preview: CircuitBanner },
-  { id: "waves", name: "Teal Waves", type: "svg", price: 350, preview: WavesBanner },
-  { id: "cyber", name: "Cyberpunk", type: "gradient", price: 200, preview: "#00d4ff" },
-  { id: "matrix", name: "Matrix", type: "gradient", price: 200, preview: "#00ff41" },
-  { id: "sunset", name: "Sunset", type: "gradient", price: 200, preview: "#f5576c" },
-  { id: "galaxy", name: "Galaxy", type: "gradient", price: 300, preview: "linear-gradient(to right, #654ea3, #eaafc8)" },
-  { id: "fire", name: "Inferno", type: "gradient", price: 300, preview: "linear-gradient(to right, #f12711, #f5af19)" },
-];
 
 export default function Shop() {
   const { level } = useGamification();
@@ -61,13 +22,11 @@ export default function Shop() {
   // Inventory State
   const [unlockedThemes, setUnlockedThemes] = useState(["default"]);
   const [unlockedTags, setUnlockedTags] = useState([]);
-  const [unlockedIcons, setUnlockedIcons] = useState(["default"]);
   const [unlockedBanners, setUnlockedBanners] = useState(["default"]);
   
   // Equipped State
   const [currentTheme, setCurrentTheme] = useState("default");
   const [equippedTag, setEquippedTag] = useState([]);
-  const [currentIconSet, setCurrentIconSet] = useState("default");
   const [currentBanner, setCurrentBanner] = useState("default");
 
   // Purchase Modal State
@@ -88,7 +47,6 @@ export default function Shop() {
         setCoins(data.currency || 0);
         setUnlockedThemes(data.unlockedThemes || ["default"]);
         setUnlockedTags(data.unlockedTags || []);
-        setUnlockedIcons(data.unlockedIcons || ["default"]);
         setUnlockedBanners(data.unlockedBanners || ["default"]);
         
         const settings = data.settings || {};
@@ -96,7 +54,6 @@ export default function Shop() {
 
         setCurrentTheme(settings.theme || "default");
         setEquippedTag(customization.profileTags || []); 
-        setCurrentIconSet(settings.iconSet || "default");
         setCurrentBanner(customization.profileBanner || "default");
       }
     });
@@ -129,9 +86,6 @@ export default function Shop() {
             } else if (itemType === "tag") {
               if (!user.unlockedTags) user.unlockedTags = [];
               if (!user.unlockedTags.includes(item.id)) user.unlockedTags.push(item.id);
-            } else if (itemType === "icon") {
-              if (!user.unlockedIcons) user.unlockedIcons = ["default"];
-              if (!user.unlockedIcons.includes(item.id)) user.unlockedIcons.push(item.id);
             } else if (itemType === "banner") {
               if (!user.unlockedBanners) user.unlockedBanners = ["default"];
               if (!user.unlockedBanners.includes(item.id)) user.unlockedBanners.push(item.id);
@@ -159,8 +113,6 @@ export default function Shop() {
             document.documentElement.setAttribute('data-theme', id);
         } else if (type === 'banner') {
             await update(ref(db, `users/${userId}/settings/customization`), { profileBanner: id });
-        } else if (type === 'icon') {
-            await update(ref(db, `users/${userId}/settings`), { iconSet: id });
         } else if (type === 'tag') {
             toast.info("Go to Profile to manage active tags!");
             return;
@@ -185,13 +137,6 @@ export default function Shop() {
             background: type === 'theme' ? item.color : 
                         type === 'banner' && item.type === 'gradient' ? item.preview : 'var(--bg-2)'
         }}>
-           {/* SVG / Image asset rendering */}
-           {type === 'icon' && item.preview && (
-              <img src={item.preview} alt={item.name} className="asset-preview" />
-           )}
-           {type === 'icon' && !item.preview && (
-              <span className="icon-display">📚</span>
-           )}
            
            {/* Banner SVG Rendering */}
            {type === 'banner' && item.type === 'svg' && (
@@ -253,9 +198,6 @@ export default function Shop() {
          <button className={activeTab === 'themes' ? 'active' : ''} onClick={() => setActiveTab('themes')}>
             <Palette size={18} /> Themes
          </button>
-         <button className={activeTab === 'icons' ? 'active' : ''} onClick={() => setActiveTab('icons')}>
-            <Layout size={18} /> Icon Sets
-         </button>
          <button className={activeTab === 'banners' ? 'active' : ''} onClick={() => setActiveTab('banners')}>
             <ImageIcon size={18} /> Banners
          </button>
@@ -270,10 +212,6 @@ export default function Shop() {
                 {(activeTab === 'all' || activeTab === 'themes') && THEMES
                     .filter(i => i.id !== 'default')
                     .map(i => renderItemCard(i, 'theme', unlockedThemes.includes(i.id), currentTheme === i.id))}
-                
-                {(activeTab === 'all' || activeTab === 'icons') && ICON_SETS
-                    .filter(i => i.id !== 'default')
-                    .map(i => renderItemCard(i, 'icon', unlockedIcons.includes(i.id), currentIconSet === i.id))}
                 
                 {(activeTab === 'all' || activeTab === 'banners') && BANNERS
                     .filter(i => i.id !== 'default')
@@ -314,7 +252,7 @@ export default function Shop() {
            {selectedItem && (
                <>
                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-                    {selectedItem.itemType === 'theme' ? '🎨' : selectedItem.itemType === 'icon' ? '📚' : selectedItem.itemType === 'banner' ? '🖼️' : '🏷️'}
+                    {selectedItem.itemType === 'theme' ? '🎨' : selectedItem.itemType === 'banner' ? '🖼️' : '🏷️'}
                  </div>
                  <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{selectedItem.name}</h2>
                  <p style={{ color: 'var(--color-muted)', marginBottom: '1.5rem' }}>

@@ -35,6 +35,8 @@ import { ShoppingBag, Calendar as CalendarIcon, Loader2, Crown, Zap, Shield } fr
 import { toast } from "sonner";
 import PricingModal from "../settings/PricingModal";
 
+import { BANNERS } from "@/constants/shopItems";
+
 export default function ProfilePage() {
   const user = auth.currentUser;
   const uid = user?.uid ?? null;
@@ -42,7 +44,16 @@ export default function ProfilePage() {
   // Local UI state
   const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [photoURL, setPhotoURL] = useState(user?.photoURL || "");
+  
+  // Initialize photoURL from LocalStorage if available, otherwise User, otherwise empty
+  const [photoURL, setPhotoURL] = useState(() => {
+      if (uid) {
+          const local = localStorage.getItem(`avatar_${uid}`);
+          if (local) return local;
+      }
+      return user?.photoURL || "";
+  });
+
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -52,8 +63,10 @@ export default function ProfilePage() {
   // Customization state
   const [ownedTags, setOwnedTags] = useState<string[]>([]);
   const [ownedThemes, setOwnedThemes] = useState<string[]>(["default"]);
+  const [ownedBanners, setOwnedBanners] = useState<string[]>(["default"]);
+  
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedBanner, setSelectedBanner] = useState("");
+  const [selectedBanner, setSelectedBanner] = useState("default");
   const [selectedTheme, setSelectedTheme] = useState("default");
   const [avatarColor, setAvatarColor] = useState("#1f6feb");
 
@@ -80,43 +93,7 @@ export default function ProfilePage() {
     },
   ];
 
-
-
-  // Fetch owned items and current customization
-  useEffect(() => {
-    if (!uid) return;
-
-    // Fetch owned tags
-    const tagsRef = dbRef(db, `users/${uid}/unlockedTags`);
-    const unsubTags = onValue(tagsRef, (snap) => {
-      setOwnedTags(snap.val() || []);
-    });
-
-    // Fetch owned themes
-    const themesRef = dbRef(db, `users/${uid}/unlockedThemes`);
-    const unsubThemes = onValue(themesRef, (snap) => {
-      setOwnedThemes(snap.val() || ["default"]);
-    });
-
-    // Fetch current customization
-    const customRef = dbRef(db, `users/${uid}/settings/customization`);
-    const unsubCustom = onValue(customRef, (snap) => {
-      const data = snap.val();
-      setSelectedTags(data?.profileTags || []);
-      setSelectedBanner(data?.profileBanner || "gradient-1");
-      setSelectedTheme(data?.theme || "default");
-      setAvatarColor(data?.avatarColor || "#1f6feb");
-    });
-
-    return () => {
-      unsubTags();
-      unsubThemes();
-      unsubCustom();
-    };
-  }, [uid]);
-
-  // Avatar upload
-  const fileInputRef = useRef(null);
+  // Avatar upload ref (Optional, for label)
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Profile completeness
@@ -128,16 +105,60 @@ export default function ProfilePage() {
     return Math.min(100, score);
   }, [displayName, email, photoURL]);
 
-  // watch for auth changes (emailVerified may update after verification)
+  // Auth Listener: Just for Email Verification status
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((u) => {
       setEmailVerified(!!u?.emailVerified);
-      setDisplayName(u?.displayName || "");
-      setEmail(u?.email || "");
-      setPhotoURL(u?.photoURL || "");
+      if (u?.email && u.email !== email) setEmail(u.email);
     });
     return () => unsub();
-  }, []);
+  }, []); 
+
+  // Fetch owned items and current customization
+  useEffect(() => {
+    if (!uid) return;
+
+    // Fetch owned tags
+    const tagsRef = dbRef(db, `users/${uid}/unlockedTags`);
+    onValue(tagsRef, (snap) => {
+      setOwnedTags(snap.val() || []);
+    });
+
+    // Fetch owned themes
+    const themesRef = dbRef(db, `users/${uid}/unlockedThemes`);
+    onValue(themesRef, (snap) => {
+      setOwnedThemes(snap.val() || ["default"]);
+    });
+
+    // Fetch owned Banners
+    const bannersRef = dbRef(db, `users/${uid}/unlockedBanners`);
+    onValue(bannersRef, (snap) => {
+        setOwnedBanners(snap.val() || ["default"]);
+    });
+
+    // Fetch current customization
+    const customRef = dbRef(db, `users/${uid}/settings/customization`);
+    onValue(customRef, (snap) => {
+      const data = snap.val();
+      setSelectedTags(data?.profileTags || []);
+      setSelectedBanner(data?.profileBanner || "default");
+      setSelectedTheme(data?.theme || "default");
+      setAvatarColor(data?.avatarColor || "#1f6feb");
+    });
+  }, [uid]); 
+
+  // DB Listener: Primary Source for PhotoURL
+  useEffect(() => {
+      if (!uid) return;
+      const userRef = dbRef(db, `users/${uid}/photoURL`);
+      return onValue(userRef, (snapshot) => {
+          const val = snapshot.val();
+          if (val) {
+              setPhotoURL(val);
+              localStorage.setItem(`avatar_${uid}`, val);
+          }
+      });
+  }, [uid]);
 
   // helpers
   const setTempStatus = (msg, ms = 3500) => {
@@ -200,61 +221,72 @@ export default function ProfilePage() {
 
   // Avatar upload handler
 
+  // Helper: Compress image to small JPEG
+  const compressImage = (file: File, maxWidth = 250, quality = 0.7): Promise<string> => {
+      return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (event) => {
+              const img = new Image();
+              img.src = event.target?.result as string;
+              img.onload = () => {
+                  const elem = document.createElement('canvas');
+                  const scaleFactor = maxWidth / img.width;
+                  elem.width = maxWidth;
+                  elem.height = img.height * scaleFactor;
+                  const ctx = elem.getContext('2d');
+                  ctx?.drawImage(img, 0, 0, elem.width, elem.height);
+                  resolve(elem.toDataURL('image/jpeg', quality));
+              };
+              img.onerror = (error) => reject(error);
+          };
+          reader.onerror = (error) => reject(error);
+      });
+  };
+
   const handleAvatarPick = async (file: any) => {
+    if (!file) return;
     setErrorMsg("");
     setLoading(true);
+    // toast.info("Processing image..."); // Removed debug toast
+
     try {
-      if (!file) throw new Error("No file selected");
-      // If you exported storage in ../firebase, we use Firebase Storage to upload
-      if (storage) {
-        const sRef = storageRef(
-          storage,
-          `users/${uid}/avatar-${Date.now()}-${file.name}`
-        );
-        const uploadTask = uploadBytesResumable(sRef, file);
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const pct = Math.round(
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-            );
-            setUploadProgress(pct);
-          },
-          (err) => {
-            console.error(err);
-            setErrorMsg("Upload failed");
-            setLoading(false);
-          },
-          async () => {
-            const url = await getDownloadURL(uploadTask.snapshot.ref);
-            setPhotoURL(url);
-            // reflect back to user profile
-            // @ts-ignore
-            await fbUpdateProfile(auth.currentUser, { photoURL: url });
-            // mirror to DB
-            if (uid) {
-              await dbUpdate(dbRef(db, `users/${uid}`), { photoURL: url });
-              await dbUpdate(dbRef(db, `public_leaderboard/${uid}`), { photoURL: url });
-            }
-            setUploadProgress(0);
-            setTempStatus("Avatar uploaded");
-            setLoading(false);
-          }
-        );
-      } else {
-        // If no storage configured, use local preview and require manual hosting
-        const reader = new FileReader();
-        reader.onload = () => {
-          setPhotoURL(reader.result as string);
-          setTempStatus("Avatar set (local preview)");
-          setLoading(false);
-        };
-        reader.readAsDataURL(file);
-      }
+        // 1. Compress Image
+        const base64 = await compressImage(file);
+        
+        // 2. Immediate Local Update
+        setPhotoURL(base64);
+        if (uid) localStorage.setItem(`avatar_${uid}`, base64);
+        // toast.success("Image loaded! Saving to cloud..."); // Removed debug toast
+
+        // 3. Cloud Sync (Async)
+        if (uid) {
+            const updates = {};
+            updates[`users/${uid}/photoURL`] = base64;
+            updates[`public_leaderboard/${uid}/photoURL`] = base64;
+            
+            // Try updating DB
+            await dbUpdate(dbRef(db), updates);
+        }
+
+        // 4. Auth Fallback (Best Effort)
+        if (auth.currentUser && base64.length < 2000) { // arbitrary safe limit for auth
+             try {
+                // @ts-ignore
+                await fbUpdateProfile(auth.currentUser, { photoURL: base64 });
+             } catch (e) { console.warn("Auth update skipped (size limit)"); }
+        }
+
+        setTempStatus("Avatar updated!");
+        toast.success("Profile picture saved!");
+
     } catch (err: any) {
-      console.error(err);
-      setErrorMsg(err?.message || "Avatar upload error");
-      setLoading(false);
+        console.error("Avatar upload failed:", err);
+        setErrorMsg("Failed to process image");
+        toast.error("Failed to upload image.");
+    } finally {
+        setLoading(false);
+        setUploadProgress(0);
     }
   };
 
@@ -309,9 +341,10 @@ export default function ProfilePage() {
           <div
             className="profile-banner"
             style={{
-              background:
-                presetBanners.find((b) => b.id === selectedBanner)?.gradient ||
-                presetBanners[0].gradient,
+              background: (() => {
+                 const def = BANNERS.find(b => b.id === selectedBanner) || BANNERS[0];
+                 return def.type === 'gradient' ? def.preview : `url(${def.preview}) center/cover`;
+              })(),
               height: "180px",
               width: "100%",
               borderRadius: "16px 16px 0 0",
@@ -343,6 +376,12 @@ export default function ProfilePage() {
                     objectFit: "cover",
                     background: "var(--bg-secondary)",
                   }}
+                  onError={(e) => {
+                      console.warn("Avatar load failed:", e);
+                      // Fallback to initial
+                      e.currentTarget.style.display = 'none'; 
+                      // or better, retry loading? No, hide for now.
+                  }}
                 />
               ) : (
                 <div
@@ -366,31 +405,37 @@ export default function ProfilePage() {
               )}
               <div className="avatar-actions" style={{ marginTop: "1rem" }}>
                 <input
-                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  name="avatarUpload"
-                  id="avatarUpload"
+                  id="avatar-upload-trigger"
                   style={{ display: "none" }}
-                  onChange={(e) => handleAvatarPick(e.target.files?.[0])}
+                  onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAvatarPick(file);
+                      e.target.value = ''; // Reset
+                  }}
                 />
-                <button className="btn secondary" onClick={openFilePicker}>
-                  Upload
-                </button>
+                <label 
+                  htmlFor="avatar-upload-trigger" 
+                  className="btn secondary" 
+                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                >
+                  Upload New Photo
+                </label>
                 <button
                   className="btn ghost"
                   onClick={() => {
                     setPhotoURL("");
+                    if(uid) {
+                        localStorage.removeItem(`avatar_${uid}`);
+                        // Clear from DB
+                        dbUpdate(dbRef(db, `users/${uid}`), { photoURL: null });
+                    }
                     setTempStatus("Avatar cleared");
                   }}
                 >
                   Clear
                 </button>
-                {uploadProgress > 0 ? (
-                  <div className="upload-progress">
-                    Uploading {uploadProgress}%
-                  </div>
-                ) : null}
               </div>
             </div>
 
@@ -521,20 +566,51 @@ export default function ProfilePage() {
                 </a>
               </div>
               <div className="banner-grid">
-                {presetBanners.map((banner) => (
-                  <motion.div
-                    layout
-                    key={banner.id}
-                    className={`banner-option ${selectedBanner === banner.id ? "selected" : ""
-                      }`}
-                    style={{ background: banner.gradient }}
-                    onClick={() => setSelectedBanner(banner.id)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {banner.name}
-                  </motion.div>
-                ))}
+                {(Array.isArray(ownedBanners) ? ownedBanners : Object.values(ownedBanners || []))
+                  .filter((v, i, a) => a.indexOf(v) === i) // Deduplicate IDs
+                  .map((bannerId) => {
+                    // Find definition
+                    return BANNERS.find(b => b.id === bannerId) || 
+                           presetBanners.find(b => b.id === bannerId);
+                  })
+                  .filter(Boolean) // Remove ones that weren't found (don't fallback to default)
+                  .map((def) => {
+                    const bannerId = def.id;
+                    const isGradient = def.type === 'gradient';
+                    const bgStyle = isGradient 
+                        ? { background: def.preview } 
+                        : { 
+                            background: `url(${def.preview}) center center / cover no-repeat`,
+                        };
+
+                    return (
+                        <motion.div
+                            layout
+                            key={bannerId}
+                            className={`banner-option ${selectedBanner === bannerId ? "selected" : ""}`}
+                            style={{ 
+                                ...bgStyle,
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
+                            onClick={() => setSelectedBanner(bannerId)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <span style={{
+                                position: 'absolute', bottom: 0, left: 0, right: 0, 
+                                background: 'rgba(0,0,0,0.6)', 
+                                color: 'white', 
+                                fontSize: '10px', 
+                                textAlign: 'center', 
+                                padding: '3px 0',
+                                backdropFilter: 'blur(2px)'
+                            }}>
+                                {def.name}
+                            </span>
+                        </motion.div>
+                    )
+                })}
               </div>
             </div>
 

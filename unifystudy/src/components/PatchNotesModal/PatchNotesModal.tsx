@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, CheckCircle2 } from 'lucide-react';
 import './PatchNotesModal.scss';
@@ -11,7 +12,7 @@ interface PatchNotesModalProps {
 }
 
 const PatchNotesModal: React.FC<PatchNotesModalProps> = ({ isOpen, onClose, releaseNote }) => {
-  return (
+  return ReactDOM.createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="patch-notes-overlay">
@@ -66,7 +67,8 @@ const PatchNotesModal: React.FC<PatchNotesModalProps> = ({ isOpen, onClose, rele
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

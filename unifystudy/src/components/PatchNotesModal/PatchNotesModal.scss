@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 2147483647; /* Max integer value to force top */
   padding: 1rem;
 }
 
@@ -23,15 +23,17 @@
 
 .patch-notes-modal {
   position: relative;
-  background: var(--bg-secondary);
+  background: var(--glass-bg, rgba(22, 24, 27, 0.7));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
   border-radius: 20px;
   width: 100%;
-  max-width: 500px;
+  max-width: 800px; /* Increased from 500px */
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-  z-index: 10000;
+  z-index: 10001;
   
   .close-btn {
     position: absolute;
@@ -185,6 +187,7 @@
 
 // Dark Mode Enhancements
 [data-theme='dark'] .patch-notes-modal {
-  background: #1a1b23; // Darker specific bg
+  background: var(--glass-bg); // Use glass in dark mode too
+  backdrop-filter: blur(16px);
   border-color: #2d3748;
 }

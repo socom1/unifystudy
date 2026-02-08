@@ -8,6 +8,20 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.1.2',
+    title: 'UnifyStudy 1.1.2 - Profile & Polish Update',
+    description: 'A major overhaul to the profile system, fixing uploads and banners, plus a fresh new look for authentication.',
+    features: [
+      '✨ Glass Terminal Auth: Futuristic new login design',
+      '🖼️ Instant Profile Uploads: Fixed uploads & banners',
+      '🎵 Global Player: YouTube links persist across sessions',
+      '📊 Analytics 2.0: Added smart insights and advice',
+      '📱 Mobile Polish: Added Sign Out button to menu',
+      '🛒 Shop Cleanup: Streamlined inventory experience'
+    ],
+    date: '2026-02-09'
+  },
+  {
     version: '1.1.1',
     title: 'UnifyStudy 1.1.1 - Hierarchical Workspaces',
     description: 'Introducing a powerful new way to organize your tasks with nested folders and improved navigation.',

@@ -12,7 +12,9 @@ export default function GlobalPlayer({ idPrefix = "", disableDrag = false, class
   const { setShowMusicPlayer } = useUI();
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState("spotify"); // 'spotify' or 'youtube'
-  const [youtubeId, setYoutubeId] = useState("jfKfPfyJRdk"); // Default Lofi Girl
+  const [youtubeId, setYoutubeId] = useState(() => {
+    return localStorage.getItem("last_youtube_id") || "jfKfPfyJRdk"; // Default Lofi Girl
+  });
   const [inputVal, setInputVal] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -97,6 +99,11 @@ export default function GlobalPlayer({ idPrefix = "", disableDrag = false, class
       }
     };
   }, [mode, youtubeId, idPrefix]);
+
+  // Save YouTube ID to local storage
+  useEffect(() => {
+    localStorage.setItem("last_youtube_id", youtubeId);
+  }, [youtubeId]);
 
   // Sync Listener
   useEffect(() => {

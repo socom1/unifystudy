@@ -25,7 +25,9 @@ $radius: 12px;
 .mm-app {
   display: flex;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  padding-top: 100px;
+  box-sizing: border-box;
   background-color: var(--bg-1, #121212);
   color: $text-main;
   font-family: 'Inter', sans-serif;
@@ -768,9 +770,4 @@ $radius: 12px;
   }
 }
 
-@media (max-width: 1082px) {
-  .mm-app {
-    margin-top: 100px;
-    height: calc(100% - 100px); /* Adjust height to prevent scroll */
-  }
-}
+

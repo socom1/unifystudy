@@ -15,6 +15,10 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
+if (!firebaseConfig.storageBucket) {
+    console.warn("Storage Bucket is missing from config. Check VITE_FIREBASE_STORAGE_BUCKET.");
+}
+
 const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth: Auth = getAuth(app);

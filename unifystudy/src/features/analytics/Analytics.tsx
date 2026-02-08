@@ -229,6 +229,56 @@ export default function Analytics() {
                         </ResponsiveContainer>
                     </div>
                 </motion.div>
+                {/* 4. Study Insights (New Feature) */}
+                <motion.div className="chart-card full-width" variants={itemVariants}>
+                     <h3><TrendingUp size={20} /> Study Insights & Advice</h3>
+                     <div className="insights-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+                         {useMemo(() => {
+                             const insights = [];
+                             
+                             // Consistency Check
+                             if (period === 7 && studySessions.length < 3) {
+                                 insights.push({ type: 'warning', text: "Try to study more consistently! Aim for at least 3 sessions a week." });
+                             } else if (studySessions.length > 5) {
+                                 insights.push({ type: 'success', text: "Great consistency! You're building a strong study habit." });
+                             }
+
+                             // Volume Check
+                             if (totalStudyTime < 60 && period === 7) {
+                                 insights.push({ type: 'info', text: "Your study volume is low this week. Try to squeeze in 15 mins a day." });
+                             }
+
+                             // Subject Check
+                             const weakSubject = subjectPerformanceData.sort((a,b) => a.score - b.score)[0];
+                             if (weakSubject && weakSubject.score < 70) {
+                                 insights.push({ type: 'alert', text: `Focus needed on ${weakSubject.subject}. Try dedicating your next session to it.` });
+                             } else if (weakSubject && weakSubject.score > 90) {
+                                  insights.push({ type: 'success', text: "You're crushing it across the board! Keep maintaining your grades." });
+                             }
+                             
+                             // Default if empty
+                             if (insights.length === 0) {
+                                 insights.push({ type: 'info', text: "Keep tracking your study sessions to get more personalized advice!" });
+                             }
+
+                             return insights.map((insight, i) => (
+                                 <div key={i} className={`insight-card ${insight.type}`} style={{ 
+                                     padding: '1rem', 
+                                     borderRadius: '12px', 
+                                     background: insight.type === 'success' ? 'rgba(46, 213, 115, 0.1)' : 
+                                                 insight.type === 'warning' ? 'rgba(255, 165, 2, 0.1)' : 
+                                                 insight.type === 'alert' ? 'rgba(255, 71, 87, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                     borderLeft: `4px solid ${
+                                                 insight.type === 'success' ? '#2ed573' : 
+                                                 insight.type === 'warning' ? '#ffa502' : 
+                                                 insight.type === 'alert' ? '#ff4757' : '#a4b0be'}`
+                                 }}>
+                                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text)' }}>{insight.text}</p>
+                                 </div>
+                             ));
+                         }, [studySessions, totalStudyTime, subjectPerformanceData, period])}
+                     </div>
+                </motion.div>
             </motion.div>
         </div>
     );

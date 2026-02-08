@@ -7,34 +7,18 @@ import { ref, onValue } from "firebase/database";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Send } from "lucide-react";
 
-// Asset Imports - Match Shop.tsx
-import CosmosBanner from "@/assets/shop/cosmos-banner.svg?url";
-import CircuitBanner from "@/assets/shop/circuit-banner.svg?url";
-import WavesBanner from "@/assets/shop/waves-banner.svg?url";
+import { BANNERS as BANNERS_LIST, PROFILE_TAGS as TAGS_LIST } from "@/constants/shopItems";
 
-import "./UserProfileModal.scss";
+// Convert arrays to lookup maps
+const BANNERS = BANNERS_LIST.reduce((acc, b) => ({
+    ...acc,
+    [b.id]: { type: b.type, value: b.preview } 
+}), {});
 
-// Lookup tables (Should strictly ideally be shared constant, but duplicating for safety)
-const BANNERS = {
-  "default": { type: "gradient", value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
-  "cyber": { type: "gradient", value: "linear-gradient(135deg, #00d4ff 0%, #005bea 100%)" },
-  "matrix": { type: "gradient", value: "linear-gradient(135deg, #00ff41 0%, #008f11 100%)" },
-  "sunset": { type: "gradient", value: "linear-gradient(135deg, #f5576c 0%, #f093fb 100%)" },
-  
-  // SVGs
-  "cosmos": { type: "svg", value: CosmosBanner },
-  "circuit": { type: "svg", value: CircuitBanner },
-  "waves": { type: "svg", value: WavesBanner },
-};
-
-const PROFILE_TAGS = {
-  "scholar": "🎓 Scholar",
-  "champion": "🏆 Champion",
-  "night-owl": "🦉 Night Owl",
-  "early-bird": "🌅 Early Bird",
-  "coffee-club": "☕ Coffee Club",
-  "verified": "✅ Verified",
-};
+const PROFILE_TAGS = TAGS_LIST.reduce((acc, t) => ({
+    ...acc,
+    [t.id]: t.name // Using name as the value string
+}), {});
 
 export default function UserProfileModal() {
   const { selectedUserId, closeProfile } = useUI();
