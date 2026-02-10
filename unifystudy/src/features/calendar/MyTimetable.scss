@@ -117,29 +117,79 @@
 
 /* Wrapper Removed - Styles migrated to Container or not needed for flat look */
 
-/* Sticky Header Row (Days of Week) */
-.header-row-sticky {
+/* Main Wrapper covering the whole area */
+.calendar-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  position: relative;
+}
+
+/* Scrollable Body Area */
+.calendar-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+/* 
+   MASTER GRID LAYOUT 
+   Unifies Header and Content into one Grid to guarantee alignment.
+   Col 1: Time Sidebar (Fixed)
+   Col 2: Days Grid (Flexible)
+   Row 1: Header (Sticky)
+   Row 2: Content (Scrollable)
+*/
+.calendar-master-grid {
+  display: grid;
+  grid-template-columns: var(--time-col-width) 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100%;
+  position: relative;
+}
+
+/* --- Grid Items --- */
+
+/* 1. Top Left Spacer (Sticky) - FROZEN CORNER */
+.time-header-spacer {
+  grid-column: 1;
+  grid-row: 1;
+  
+  /* Make it stick to both top and left */
   position: sticky;
   top: 0;
-  z-index: 50;
-  display: flex;
-  background: transparent;
-  /* backdrop-filter: blur(12px); -> Removed for unified glass */
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.time-header-spacer {
-  width: var(--time-col-width);
-  flex-shrink: 0;
-  background: transparent;
-  /* backdrop-filter: blur(12px); -> Removed */
+  left: 0;
+  
+  /* Must be higher than both row header (60) and sidebar (20) */
+  z-index: 80;
+  
+  background: var(--bg-1); /* Needs opaque background */
   border-right: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  
+  /* Alignment Fixes */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
+/* 2. Days Header (Sticky) */
 .days-header-row {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--glass-border);
+  
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  flex: 1;
+  width: 100%;
 }
 
 .day-header-cell {
@@ -152,47 +202,33 @@
   font-size: 0.85rem;
   letter-spacing: 0.5px;
   border-right: 1px solid var(--glass-border);
+  box-sizing: border-box; /* Ensure border doesn't add width */
   
   &:last-child {
     border-right: none;
   }
   
-  .mobile-day {
-    display: none;
-  }
+  .mobile-day { display: none; }
   
   @media (max-width: 768px) {
-    .desktop-day {
-      display: none;
-    }
-    .mobile-day {
-      display: inline;
-    }
+    .desktop-day { display: none; }
+    .mobile-day { display: inline; }
   }
 }
 
-/* Scrollable Body Area */
-.calendar-scroll-area {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  position: relative;
-}
-
-.calendar-content {
-  display: flex;
-  position: relative;
-  min-height: 100%;
-}
-
-/* Time Sidebar (Left Column) */
+/* 3. Time Sidebar (Body) */
 .time-sidebar {
-  width: var(--time-col-width);
-  flex-shrink: 0;
+  grid-column: 1;
+  grid-row: 2;
   background: transparent;
   border-right: 1px solid var(--glass-border);
   position: relative;
   z-index: 20;
+
+  /* Alignment Fixes */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .time-label {
@@ -206,15 +242,15 @@
     font-size: 0.75rem;
     color: var(--color-muted);
     font-weight: 600;
-    font-family: "Fira Code", monospace;
   }
 }
 
-/* Days Grid Body (Right Side with 7 Columns) */
+/* 4. Days Grid Body (Body) */
 .days-grid-body {
-  flex: 1;
+  grid-column: 2;
+  grid-row: 2;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* Constrain content */
 }
 
 .days-content-wrapper {
@@ -226,10 +262,7 @@
 /* Background Grid Lines */
 .background-grid {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: 1;
   pointer-events: none;
 }
@@ -237,10 +270,7 @@
 .grid-line-row {
   width: 100%;
   border-bottom: 1px solid var(--glass-border);
-  
-  &:first-child {
-    border-top: 1px solid var(--glass-border);
-  }
+  /* borders match row height */
 }
 
 /* Events Layer */
@@ -454,6 +484,12 @@
     height: 100vh;
   }
 
+  /* Override Grid Column Width for Tablet/Mobile */
+  .calendar-master-grid {
+      grid-template-columns: 50px 1fr;
+      min-width: 900px; /* Force horizontal scroll */
+  }
+
   .calendar-nav {
     padding: 1rem;
     flex-direction: column;
@@ -475,26 +511,30 @@
     }
   }
 
-  .calendar-wrapper {
+  /* 
+     Update Scroll Area to handle both X and Y scroll 
+     because master-grid is now wider than screen
+  */
+  .calendar-scroll-area {
     overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
   }
 
-  .calendar-body {
-    min-width: 900px; // Force horizontal scroll on mobile
+  .calendar-wrapper {
+    /* Main wrapper just holds the scroll area */
   }
+
+  /* REMOVED .calendar-body legacy class */
 
   .time-sidebar {
-    width: 50px;
-
+    /* Removed fixed width, rely on grid column */
     .time-label span {
       font-size: 0.75rem;
     }
   }
 
   .day-column {
-    min-width: 110px;
+    /* Removed min-width to prevent desync from header */
+    /* Rely on grid column width */
 
     .day-header {
       font-size: 0.8rem;
@@ -538,20 +578,24 @@
 }
 
 @media (max-width: 480px) {
+  /* Override Grid Column Width for Smaller Mobile */
+  .calendar-master-grid {
+      grid-template-columns: 45px 1fr;
+      min-width: 800px;
+  }
+
   .calendar-nav h2 {
     font-size: 1.25rem;
   }
 
-  .calendar-body {
-    min-width: 800px;
-  }
+  /* REMOVED .calendar-body legacy class */
 
   .time-sidebar {
-    width: 45px;
+     /* Removed fixed width */
   }
 
   .day-column {
-    min-width: 100px;
+    /* Removed min-width */
   }
 
   .event-form {
@@ -606,22 +650,24 @@
         }
     }
     
-    .time-sidebar {
+    /* Ensure Header Spacer and Sidebar match in Light Mode */
+    .time-sidebar, .time-header-spacer {
         background: #f8fafc !important; /* Light slate for sidebar */
         border-right: 1px solid #e2e8f0 !important;
-        
-        .time-label span {
-            color: #64748b !important;
-        }
+    }
+
+    /* Fix header spacer bottom border */
+    .time-header-spacer {
+        border-bottom: 1px solid #e2e8f0 !important;
     }
     
-    .header-row-sticky {
-        background: #ffffff !important;
-        border-bottom: 1px solid #e2e8f0 !important;
+    .time-sidebar .time-label span {
+        color: #64748b !important;
     }
     
     .days-header-row {
         background: #ffffff !important;
+        border-bottom: 1px solid #e2e8f0 !important;
     }
     
     .day-column {
@@ -640,4 +686,18 @@
         background: #ef4444 !important;
         .time-dot { background: #ef4444 !important; }
     }
+}
+
+/* Dropdown Interactions */
+.dropdown-item {
+    transition: all 0.2s;
+    &:hover {
+        background: rgba(255,255,255,0.08) !important;
+        transform: translateX(2px);
+    }
+}
+
+.hover-bright:hover {
+    color: var(--color-text) !important;
+    background: rgba(255,255,255,0.1) !important;
 }

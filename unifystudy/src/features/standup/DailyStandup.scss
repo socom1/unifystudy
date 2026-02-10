@@ -6,7 +6,8 @@
   height: 100vh;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(12px);
-  z-index: 10000;
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 2147483647; /* Max integer to cover sidebar */
   display: flex;
   align-items: center;
   justify-content: center;

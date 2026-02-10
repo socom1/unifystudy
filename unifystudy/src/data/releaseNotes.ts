@@ -6,7 +6,20 @@ export interface ReleaseNote {
   date: string;
 }
 
+];
+
 export const releaseNotes: ReleaseNote[] = [
+  {
+    version: '1.1.3',
+    title: 'UnifyStudy 1.1.3 - Timetable List View & Focus Fixes',
+    description: 'A minor update introducing a clean List View for the timetable and resolving issues with Focus Mode activation.',
+    features: [
+      '📅 Timetable List View: A clean, vertical agenda view for your classes',
+      '➕ Quick Add: New "Add Event" button directly in the Timetable header',
+      '🧘 Focus Mode Fixed: Resolved an issue where Focus Mode wouldn\'t activate'
+    ],
+    date: '2026-02-10'
+  },
   {
     version: '1.1.2',
     title: 'UnifyStudy 1.1.2 - Profile & Polish Update',

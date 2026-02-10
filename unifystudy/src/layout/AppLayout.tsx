@@ -322,6 +322,14 @@ const AppLayout = () => {
             onClose={handleClosePatchNotes} 
             releaseNote={latestRelease} 
         />
+
+        {/* Focus Mode Overlay */}
+        <Suspense fallback={null}>
+            <FocusMode 
+                isActive={focusModeActive} 
+                onClose={() => setFocusModeActive(false)} 
+            />
+        </Suspense>
       </div>
     </TimerProvider>
   );
