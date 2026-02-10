@@ -632,6 +632,87 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
       </Modal>
 
       <div className="calendar-wrapper" style={{ position: 'relative' }}>
+          {/* 1. MENU BUTTON (Top Left - List View Only) */}
+          <AnimatePresence>
+            {view === 'list' && (
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: 'var(--time-col-width)',
+                        height: 'var(--header-height, 40px)',
+                        zIndex: 70,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: 'var(--bg-1)', 
+                        backdropFilter: 'blur(8px)',
+                        borderBottom: '1px solid var(--glass-border)',
+                        borderRight: '1px solid var(--glass-border)',
+                        borderBottomRightRadius: '12px' 
+                    }}
+                >
+                    <button 
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--color-text-dim)',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            borderRadius: '4px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transition: 'color 0.2s'
+                        }}
+                        className="hover-bright"
+                    >
+                        <MoreHorizontal size={20} />
+                    </button>
+
+                    <AnimatePresence>
+                        {isMenuOpen && (
+                            <>
+                                <div 
+                                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }} 
+                                    onClick={() => setIsMenuOpen(false)}
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                                    style={{
+                                        position: 'absolute',
+                                        top: '80%', left: '4px',
+                                        background: 'var(--bg-1)',
+                                        border: '1px solid var(--glass-border)',
+                                        borderRadius: '12px',
+                                        padding: '0.5rem',
+                                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                                        zIndex: 100, width: '180px',
+                                        display: 'flex', flexDirection: 'column', gap: '4px'
+                                    }}
+                                >
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-dim)', padding: '4px 8px', textTransform: 'uppercase' }}>View Mode</div>
+                                    <button onClick={() => { setView('grid'); setIsMenuOpen(false); }} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px', background: 'transparent', border: 'none', color: 'var(--color-text)', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem' }}>
+                                        <CalendarIcon size={16} /> Grid View
+                                    </button>
+                                    <button onClick={() => { setView('list'); setIsMenuOpen(false); }} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem' }}>
+                                        <LayoutList size={16} /> List View
+                                    </button>
+                                    <div style={{ height: '1px', background: 'var(--glass-border)', margin: '4px 0' }} />
+                                    <button onClick={() => { setIsMagicFillOpen(true); setIsMenuOpen(false); }} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px', background: 'transparent', border: 'none', color: 'var(--color-secondary)', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600 }}>
+                                        <Wand2 size={16} /> Magic Fill
+                                    </button>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* 2. ADD BUTTON (Top Right - List View Only) */}
           <AnimatePresence>
             {view === 'list' && (
@@ -723,10 +804,10 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
                                     }}
                                 >
                                     <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-dim)', padding: '4px 8px', textTransform: 'uppercase' }}>View Mode</div>
-                                    <button onClick={() => { setView('grid'); setIsMenuOpen(false); }} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px', background: view === 'grid' ? 'rgba(255,255,255,0.05)' : 'transparent', border: 'none', color: view === 'grid' ? 'var(--color-primary)' : 'var(--color-text)', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem' }}>
+                                    <button onClick={() => { setView('grid'); setIsMenuOpen(false); }} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem' }}>
                                         <CalendarIcon size={16} /> Grid View
                                     </button>
-                                    <button onClick={() => { setView('list'); setIsMenuOpen(false); }} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px', background: view === 'list' ? 'rgba(255,255,255,0.05)' : 'transparent', border: 'none', color: view === 'list' ? 'var(--color-primary)' : 'var(--color-text)', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem' }}>
+                                    <button onClick={() => { setView('list'); setIsMenuOpen(false); }} className="dropdown-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px', background: 'transparent', border: 'none', color: 'var(--color-text)', cursor: 'pointer', textAlign: 'left', fontSize: '0.85rem' }}>
                                         <LayoutList size={16} /> List View
                                     </button>
                                     <div style={{ height: '1px', background: 'var(--glass-border)', margin: '4px 0' }} />
