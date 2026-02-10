@@ -6,8 +6,6 @@ export interface ReleaseNote {
   date: string;
 }
 
-];
-
 export const releaseNotes: ReleaseNote[] = [
   {
     version: '1.1.3',
