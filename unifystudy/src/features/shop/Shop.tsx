@@ -52,7 +52,7 @@ export default function Shop() {
         const settings = data.settings || {};
         const customization = settings.customization || {};
 
-        setCurrentTheme(settings.theme || "default");
+        setCurrentTheme(customization.theme || settings.theme || "default");
         setEquippedTag(customization.profileTags || []); 
         setCurrentBanner(customization.profileBanner || "default");
       }

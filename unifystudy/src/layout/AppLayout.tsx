@@ -89,22 +89,18 @@ const AppLayout = () => {
   // Theme & Icon Set Persistence
   useEffect(() => {
     if (user) {
-      // Theme
-      const themeRef = ref(db, `users/${user.uid}/settings/customization/theme`);
-      const unsubTheme = onValue(themeRef, (snapshot) => {
-        const theme = snapshot.val();
-        if (theme) {
-          document.documentElement.setAttribute('data-theme', theme);
-        } else {
-            // Enforce default theme explicit
-            document.documentElement.setAttribute('data-theme', 'default');
-        }
-      });
+      // Settings Listener (Theme & Icons)
+      const settingsRef = ref(db, `users/${user.uid}/settings`);
+      const unsubSettings = onValue(settingsRef, (snapshot) => {
+        const settings = snapshot.val() || {};
+        const customization = settings.customization || {};
+        
+        // Theme Logic with Fallback
+        const theme = customization.theme || settings.theme || 'default';
+        document.documentElement.setAttribute('data-theme', theme);
 
-      // Icon Set
-      const iconRef = ref(db, `users/${user.uid}/settings/iconSet`);
-      const unsubIcon = onValue(iconRef, (snapshot) => {
-        const iconSetVal = snapshot.val();
+        // Icon Set
+        const iconSetVal = settings.iconSet;
         if (iconSetVal) {
            document.documentElement.setAttribute('data-icon-set', iconSetVal);
            setIconSet(iconSetVal);
@@ -112,8 +108,7 @@ const AppLayout = () => {
       });
 
       return () => {
-        unsubTheme();
-        unsubIcon();
+        unsubSettings();
       };
     }
   }, [user]);
