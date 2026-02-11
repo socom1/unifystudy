@@ -480,9 +480,13 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (allTasksForOpt.length > 0 && rawEvents.length >= 0) {
         import("@/utils/scheduleOptimizer").then(({ optimizeSchedule }) => {
-            // Pass subjects to optimizer
-            const suggestions = optimizeSchedule(allTasksForOpt, rawEvents, subjects);
-            setScheduleSuggestions(suggestions);
+            try {
+                // Pass subjects to optimizer
+                const suggestions = optimizeSchedule(allTasksForOpt, rawEvents, subjects);
+                setScheduleSuggestions(suggestions);
+            } catch (error) {
+                console.error("Schedule Optimization Failed:", error);
+            }
         });
     }
   }, [allTasksForOpt, rawEvents, subjects]);

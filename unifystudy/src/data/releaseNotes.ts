@@ -8,6 +8,19 @@ export interface ReleaseNote {
 
 export const releaseNotes: ReleaseNote[] = [
   {
+    version: '1.1.4',
+    title: 'UnifyStudy 1.1.4 - Mobile Polish & Grade Controls',
+    description: 'A significant update focused on mobile responsiveness across the board, plus improved controls for Grades and Flashcards.',
+    features: [
+      '📱 Mobile Polish: Fixed Chat layout, Calendar sizing, and Resource Library spacing',
+      '🎓 Grade Control: Added a proper "Delete Subject/Grade" modal',
+      '🍅 Pomodoro Fix: Fixed "Add Template" button overflow on smaller screens',
+      '🗂️ Flashcards: Fixed "All Caught Up" button overflow and card spacing',
+      '🐞 Stability: Fixed white screen crashes and Timetable scrolling glitches'
+    ],
+    date: '2026-02-11'
+  },
+  {
     version: '1.1.3',
     title: 'UnifyStudy 1.1.3 - Timetable List View & Focus Fixes',
     description: 'A minor update introducing a clean List View for the timetable and resolving issues with Focus Mode activation.',

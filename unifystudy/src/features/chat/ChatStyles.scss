@@ -262,9 +262,9 @@
             align-items: center;
             gap: 8px;
 
-            svg {
-              // padding-top: 5px; // Removed odd padding
-            }
+            // svg {
+            //   // padding-top: 5px; // Removed odd padding
+            // }
           }
 
           .channel-desc {
@@ -805,7 +805,8 @@
 @media (max-width: 1082px) {
   .chat-layout {
     margin-top: 100px !important; // Force visibility
-    height: calc(100% - 100px) !important; // Prevent overflow
+    height: calc(100dvh - 100px) !important; // Prevent overflow and fill viewport
+    min-height: 0; // standard fix for flex items
 
     .chat-sidebar {
       position: absolute;

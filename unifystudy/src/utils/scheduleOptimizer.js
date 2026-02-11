@@ -24,8 +24,8 @@ export const optimizeSchedule = (tasks, events, subjects = [], currentDate = new
   const dayStr = currentDate.toLocaleDateString('en-US', { weekday: 'long' }); // e.g., "Monday"
   
   const occupiedSlots = events.filter(e => e.day === dayStr).map(e => ({
-    start: parseTime(e.startTime),
-    end: parseTime(e.endTime)
+    start: parseTime(e.start || e.startTime),
+    end: parseTime(e.end || e.endTime)
   }));
 
   // Sort occupied slots by start time
@@ -117,10 +117,19 @@ function getTaskScore(task) {
     return score;
 }
 
-function parseTime(timeStr) {
-    // "09:30" -> 570
-    const [h, m] = timeStr.split(':').map(Number);
-    return h * 60 + m;
+function parseTime(timeInput) {
+    // Handle number (e.g. 9.5 -> 9:30 -> 570 mins)
+    if (typeof timeInput === 'number') {
+        const h = Math.floor(timeInput);
+        const m = Math.round((timeInput - h) * 60);
+        return h * 60 + m;
+    }
+    // Handle string "09:30" -> 570
+    if (typeof timeInput === 'string' && timeInput.includes(':')) {
+        const [h, m] = timeInput.split(':').map(Number);
+        return h * 60 + m;
+    }
+    return 0; // Fallback
 }
 
 function formatTime(mins) {

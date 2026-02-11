@@ -351,7 +351,7 @@ export default function WeeklyCalendar({ user }: WeeklyCalendarProps) {
     const grouped: Record<string, CalendarEvent[]> = {};
     days.forEach((day) => (grouped[day] = []));
     allEvents.forEach((ev) => {
-      if (grouped[ev.day]) {
+      if (ev.day && grouped[ev.day]) {
         grouped[ev.day].push(ev);
       }
     });
@@ -1167,7 +1167,6 @@ const DayColumn = memo(({ day, events, onEditEvent, onAddEvent }: DayColumnProps
               return (
                 <motion.div
                   key={ev.id}
-                  layoutId={ev.id}
                   className="event-box"
                   style={{
                     top: `${top}px`,

@@ -45,6 +45,7 @@ import NotificationManager from "@/features/notifications/NotificationManager";
 import PatchNotesModal from "@/components/PatchNotesModal/PatchNotesModal";
 import { getLatestReleaseNote } from "@/data/releaseNotes";
 import UserProfileModal from "@/features/profile/UserProfileModal";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 
 import { auth, db } from "@/services/firebaseConfig";
@@ -150,7 +151,9 @@ const AppLayout = () => {
         {/* <InvitationModal /> */}
         
         {/* Use Context State for Sidebar */}
-        <Sidebar />
+        <ErrorBoundary fallback={<div style={{width: 250, background: '#111', color: 'red', padding: 20}}>Sidebar Error</div>}>
+            <Sidebar />
+        </ErrorBoundary>
 
         <div className={`main-content ${isNavCollapsed ? 'collapsed' : ''}`}>
           <AnimatePresence mode="wait">

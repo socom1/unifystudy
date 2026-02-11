@@ -36,29 +36,15 @@ export const TaskFilter: React.FC<TaskFilterProps> = ({
   return (
     <div className="task-filter-dropdown" ref={containerRef} style={{ position: 'relative', zIndex: 90 }}>
       {/* Trigger */}
+      {/* Trigger */}
       <button 
-        className={`filter-trigger ${hasActiveFilters ? 'active' : ''}`}
+        className={`filter-trigger secondary-btn ${hasActiveFilters ? 'active' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '6px 12px',
-          borderRadius: 'var(--radius-md)',
-          background: hasActiveFilters ? 'rgba(var(--color-primary-rgb), 0.15)' : 'var(--bg-2)',
-          border: hasActiveFilters ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)',
-          color: hasActiveFilters ? 'var(--color-primary)' : 'var(--color-text)',
-          cursor: 'pointer',
-          fontSize: '13px',
-          fontWeight: 500,
-          transition: 'all 0.2s',
-          height: '32px'
-        }}
       >
         <Filter size={14} />
         <span>Filter</span>
-        {hasActiveFilters && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-primary)' }} />}
-        <ChevronDown size={14} style={{ opacity: 0.5, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        {hasActiveFilters && <div className="active-dot" />}
+        <ChevronDown size={14} className={`chevron ${isOpen ? 'open' : ''}`} />
       </button>
 
       {/* Dropdown */}

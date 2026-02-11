@@ -159,6 +159,7 @@ export default function TdlF() {
                 </div>
 
                 <div className="center-actions">
+                    <div className="view-switcher">
                         <button 
                             className={activeView === 'list' ? 'active' : ''} 
                             onClick={() => setActiveView('list')}
@@ -173,6 +174,7 @@ export default function TdlF() {
                         >
                             <LayoutGrid size={16} />
                         </button>
+                    </div>
                 </div>
 
                 <div className="controls-area">
@@ -195,7 +197,7 @@ export default function TdlF() {
                         />
                     </div>
                     <button className="primary-btn" onClick={handleCreateTask}>
-                        <Plus size={16} /> New Task
+                        <Plus size={16} /> <span className="btn-text">New Task</span>
                     </button>
                 </div>
             </header>

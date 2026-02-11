@@ -4,6 +4,7 @@
 .resource-library {
   padding: 2rem;
   height: 100%;
+  min-height: 100vh; /* Ensure it covers full screen height */
   overflow-y: auto;
   color: var(--color-text, #e0e0e0);
   // Make sure scrollbar is styled (optional if global)

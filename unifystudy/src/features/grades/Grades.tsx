@@ -6,6 +6,7 @@ import { ref, onValue, push, set, remove, update } from "firebase/database";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
 import { useUI } from "@/context/UIContext"; // Import useUI
+import { toast } from 'sonner';
 import { 
   GraduationCap, 
   Calendar as CalendarIcon, 
@@ -27,7 +28,10 @@ export default function SubjectHub() {
   const [subjects, setSubjects] = useState([]);
   const [newSubjectName, setNewSubjectName] = useState("");
   const navigate = useNavigate();
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+
+  // Derive selectedSubject from subjects array to ensure responsiveness to updates
+  const selectedSubject = subjects.find(s => s.id === selectedSubjectId) || null;
 
   // Hub Data
   const [allTasks, setAllTasks] = useState([]);
@@ -134,11 +138,7 @@ export default function SubjectHub() {
     setNewSubjectName("");
   };
 
-  const deleteSubject = async (id) => {
-    if (!confirm("Delete this subject and all its grades?")) return;
-    await remove(ref(db, `users/${userId}/grades/${id}`));
-    if (selectedSubject?.id === id) setSelectedSubject(null);
-  };
+
 
   const addAssessment = async (e) => {
     e.preventDefault();
@@ -167,12 +167,7 @@ export default function SubjectHub() {
     setAssessWeight("1.0");
   };
 
-  const deleteAssessment = async (aid) => {
-    if (!selectedSubject || !userId) return;
-    await remove(
-      ref(db, `users/${userId}/grades/${selectedSubject.id}/assessments/${aid}`)
-    );
-  };
+
 
   // Calculations
   const calculateAverage = (assessments) => {
@@ -283,6 +278,34 @@ export default function SubjectHub() {
       });
   };
 
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'subject' | 'assessment', id: string, name: string, subjectId?: string } | null>(null);
+
+  const handleDeleteRequest = (type: 'subject' | 'assessment', id: string, name: string, subjectId?: string) => {
+      setDeleteTarget({ type, id, name, subjectId });
+  };
+
+  const confirmDelete = async () => {
+      if (!deleteTarget || !userId) return;
+      
+      try {
+          if (deleteTarget.type === 'subject') {
+              await remove(ref(db, `users/${userId}/grades/${deleteTarget.id}`));
+              if (selectedSubjectId === deleteTarget.id) setSelectedSubjectId(null);
+              toast.success(`Deleted subject: ${deleteTarget.name}`);
+          } else if (deleteTarget.type === 'assessment' && deleteTarget.subjectId) {
+              await remove(
+                ref(db, `users/${userId}/grades/${deleteTarget.subjectId}/assessments/${deleteTarget.id}`)
+              );
+              toast.success(`Deleted assessment: ${deleteTarget.name}`);
+          }
+      } catch (error) {
+          console.error("Delete failed:", error);
+          toast.error("Failed to delete item.");
+      } finally {
+          setDeleteTarget(null);
+      }
+  };
+
   return (
     <div className="grades-root">
       <header className="grades-header">
@@ -290,7 +313,7 @@ export default function SubjectHub() {
             {/* Mobile Back Button in Header (Optional, or put in panel) */}
             {isMobile && selectedSubject && (
                 <button 
-                    onClick={() => setSelectedSubject(null)}
+                    onClick={() => setSelectedSubjectId(null)}
                     className="mobile-back-btn"
                 >
                     <ChevronLeft size={24} />
@@ -326,9 +349,9 @@ export default function SubjectHub() {
                     <div
                       key={sub.id}
                       className={`subject-card ${
-                        selectedSubject?.id === sub.id ? "active" : ""
+                        selectedSubjectId === sub.id ? "active" : ""
                       }`}
-                      onClick={() => setSelectedSubject(sub)}
+                      onClick={() => setSelectedSubjectId(sub.id)}
                     >
                       <div className="sub-icon">
                         <GraduationCap size={20} />
@@ -357,7 +380,7 @@ export default function SubjectHub() {
                     <div className="title-group">
                        {/* Mobile Back Button in Panel Header (Better placement) */}
                        {isMobile && (
-                           <button onClick={() => setSelectedSubject(null)} className="mobile-back-btn panel-back">
+                           <button onClick={() => setSelectedSubjectId(null)} className="mobile-back-btn panel-back">
                                <ChevronLeft size={20}/>
                            </button>
                        )}
@@ -367,7 +390,7 @@ export default function SubjectHub() {
                       </div>
                     </div>
                     
-                    <button className="delete-sub-btn" onClick={() => deleteSubject(selectedSubject.id)} title="Delete Subject">
+                    <button className="delete-sub-btn" onClick={() => handleDeleteRequest('subject', selectedSubject.id, selectedSubject.name)} title="Delete Subject">
                         <Trash2 size={16} />
                     </button>
                   </header>
@@ -399,7 +422,7 @@ export default function SubjectHub() {
                                             </div>
                                             <div className="a-score">
                                               <span>{a.score}/{a.total}</span>
-                                              <button onClick={() => deleteAssessment(a.id)} className="a-del"><Trash2 size={12}/></button>
+                                              <button onClick={() => handleDeleteRequest('assessment', a.id, a.name, selectedSubject.id)} className="a-del"><Trash2 size={12}/></button>
                                             </div>
                                         </motion.div>
                                     ))}
@@ -486,6 +509,92 @@ export default function SubjectHub() {
             </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {deleteTarget && (
+            <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
+                <motion.div 
+                    className="confirmation-modal"
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    onClick={e => e.stopPropagation()}
+                >
+                    <h3>Delete {deleteTarget.type === 'subject' ? 'Subject' : 'Grade'}?</h3>
+                    <p>
+                        Are you sure you want to delete <span className="highlight">"{deleteTarget.name}"</span>?
+                        {deleteTarget.type === 'subject' && " This will delete all associated grades."}
+                    </p>
+                    <div className="modal-actions">
+                        <button className="cancel-btn" onClick={() => setDeleteTarget(null)}>Cancel</button>
+                        <button className="delete-confirm-btn" onClick={confirmDelete}>Delete</button>
+                    </div>
+                </motion.div>
+            </div>
+        )}
+      </AnimatePresence>
+
+      <style>{`
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .confirmation-modal {
+            background: var(--bg-2, #1e1e2e);
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.1));
+            padding: 24px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .confirmation-modal h3 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--color-text, #fff);
+        }
+        .confirmation-modal p {
+            color: var(--color-muted, #a1a1aa);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .confirmation-modal .highlight {
+            color: var(--color-primary, #6366f1);
+            font-weight: 600;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .cancel-btn {
+            background: transparent;
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.1));
+            color: var(--color-text, #fff);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .delete-confirm-btn {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .delete-confirm-btn:hover {
+            background: #dc2626;
+        }
+      `}</style>
     </div>
   );
 }

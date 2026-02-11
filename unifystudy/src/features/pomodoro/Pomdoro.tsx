@@ -376,7 +376,7 @@ export default function Pomodoro({ zenMode = false }) {
                                     />
                                 </div>
                                 
-                                <div className="input-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginTop:'12px'}}>
+                                <div className="input-row">
                                     <div className="input-group">
                                     <label>Work Duration (min)</label>
                                     <input
@@ -400,7 +400,7 @@ export default function Pomodoro({ zenMode = false }) {
                                     </div>
                                 </div>
                                 
-                                <div className="input-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginTop:'12px'}}>
+                                <div className="input-row">
                                     <div className="input-group">
                                     <label>Long Break (min)</label>
                                     <input

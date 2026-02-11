@@ -536,6 +536,15 @@ header {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+    flex-wrap: wrap; // Allow wrapping
+
+    @media (max-width: 600px) {
+      justify-content: stretch;
+      
+      button {
+        flex: 1;
+      }
+    }
   }
 }
 
@@ -634,6 +643,17 @@ header {
     &:focus {
       border-color: var(--color-primary);
       box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
+    }
+  }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr; // Stack on mobile
     }
   }
 }

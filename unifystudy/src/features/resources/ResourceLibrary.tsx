@@ -156,7 +156,7 @@ const ResourceLibrary = ({ user }) => {
   });
 
   return (
-    <div className="resource-library" style={{ position: 'relative', overflow: 'hidden', minHeight: '80vh' }}>
+    <div className="resource-library" style={{ position: 'relative' }}>
         {/* Coming Soon Overlay */}
         <div style={{
             position: 'absolute',
