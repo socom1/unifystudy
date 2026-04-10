@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/types";
 import { auth } from "@/services/firebaseConfig";
 import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { logEvent } from "firebase/analytics";
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +25,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Sync to public_leaderboard
       if (currentUser) {
           try {
+              const { analytics } = await import("@/services/firebaseConfig");
+              logEvent(analytics, 'login', { method: 'auto' });
+              
               const { uid, displayName, email, photoURL } = currentUser;
               // We only update if necessary, but for now a simple update on load is safe enough
               // and ensures robustness.

@@ -5,6 +5,7 @@ import { ref, onValue, push, set, remove, update } from 'firebase/database';
 import { Plus, Trash2, Check, Zap, Flame, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGamification } from '@/context/GamificationContext';
+import { sanitizeText } from '@/utils/sanitize';
 import './HabitTracker.scss';
 import { calculateCurrentStreak, getCompletionRate, isHabitDue, dateKey, FrequencyType } from './HabitUtils';
 
@@ -64,11 +65,12 @@ export default function HabitTracker() {
 
   const addHabit = async (e) => {
       e.preventDefault();
-      if (!newHabitName.trim() || !userId) return;
+      const cleanName = sanitizeText(newHabitName, 200);
+      if (!cleanName || !userId) return;
       
       const newRef = push(ref(db, `users/${userId}/habits`));
       await set(newRef, {
-          name: newHabitName,
+          name: cleanName,
           color: selectedColor,
           frequency,
           customDays: frequency === 'custom' ? customDays : [],

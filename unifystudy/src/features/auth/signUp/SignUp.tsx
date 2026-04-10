@@ -21,6 +21,12 @@ import EmailVerificationModal from "./modal/verfM/EmailVerificationModal";
 import SignUpForm from "./SignUpForm";
 import "./signup.scss";
 import { getVersion } from "@/data/releaseNotes";
+import {
+  checkRateLimit,
+  recordAttempt,
+  clearAttempts,
+  formatRemainingTime,
+} from "@/utils/rateLimiter";
 // Helper to map Firebase errors to user-friendly messages
 const getFriendlyErrorMessage = (error) => {
   const code = error.code;
@@ -69,14 +75,29 @@ export default function SignUp({ onLoginSuccess }) {
 
   const [isBlockingUI, setIsBlockingUI] = useState(false);
 
+  // Rate-limit constants
+  const RATE_LIMIT_MAX = 5;
+  const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+
   // HANDLER FOR REACT-HOOK-FORM
   const handleSubmit = async (data) => {
     // e.preventDefault(); // handled by hook form
     setError("");
     setSuccess("");
-    setIsBlockingUI(true);
 
     const { email, password, username } = data;
+    const rlKey = isLogin ? "login" : "signup";
+
+    // --- Rate limit check ---
+    const rl = checkRateLimit(rlKey, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
+    if (!rl.allowed) {
+      return setError(
+        `Too many ${isLogin ? "login" : "sign-up"} attempts. Please try again in ${formatRemainingTime(rl.remainingMs)}.`
+      );
+    }
+
+    setIsBlockingUI(true);
+    recordAttempt(rlKey, RATE_LIMIT_WINDOW);
 
     try {
       if (isLogin) {
@@ -95,6 +116,7 @@ export default function SignUp({ onLoginSuccess }) {
           return setError("Please verify your email before logging in.");
         }
 
+        clearAttempts(rlKey);
         setSuccess("Logged in successfully!");
         if (onLoginSuccess) onLoginSuccess(user);
         navigate("/profile");
@@ -115,6 +137,7 @@ export default function SignUp({ onLoginSuccess }) {
           handleCodeInApp: true,
         });
 
+        clearAttempts(rlKey);
         setUserEmail(email);
         setIsBlockingUI(false);
         setShowEmailVerificationModal(true);
@@ -167,14 +190,24 @@ export default function SignUp({ onLoginSuccess }) {
     setError("");
     setSuccess("");
 
+    // --- Rate limit check ---
+    const rl = checkRateLimit("google_signin", RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
+    if (!rl.allowed) {
+      return setError(
+        `Too many sign-in attempts. Please try again in ${formatRemainingTime(rl.remainingMs)}.`
+      );
+    }
+
     // ELECTRON CHECK
     if (window.require) {
         const { shell } = window.require('electron');
-        // Open the Auth Bridge in default browser
-        // TODO: In production, change this to your hosted URL
-        shell.openExternal("http://localhost:5173/desktop-auth");
+        // In production set VITE_DESKTOP_AUTH_URL to the hosted auth bridge URL.
+        const desktopAuthUrl = import.meta.env.VITE_DESKTOP_AUTH_URL || 'http://localhost:5173/desktop-auth';
+        shell.openExternal(desktopAuthUrl);
         return;
     }
+
+    recordAttempt("google_signin", RATE_LIMIT_WINDOW);
 
     try {
       await setPersistence(auth, keepLoggedIn ? browserLocalPersistence : browserSessionPersistence);
@@ -192,6 +225,7 @@ export default function SignUp({ onLoginSuccess }) {
         setShowGoogleUsernameModal(true);
         setIsBlockingUI(true);
       } else {
+        clearAttempts("google_signin");
         if (onLoginSuccess) onLoginSuccess(user);
         navigate("/profile");
       }

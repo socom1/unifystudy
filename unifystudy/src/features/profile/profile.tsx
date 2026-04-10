@@ -34,6 +34,7 @@ import { THEMES } from "@/constants/themes";
 import { ShoppingBag, Calendar as CalendarIcon, Loader2, Crown, Zap, Shield } from "lucide-react";
 import { toast } from "sonner";
 import PricingModal from "../settings/PricingModal";
+import { exportUserData, deleteUserAccount } from "@/utils/compliance";
 
 import { BANNERS } from "@/constants/shopItems";
 
@@ -864,19 +865,54 @@ export default function ProfilePage() {
             </div>
           </div>
 
-
-          {/* Settings Shortcut */}
+          {/* Privacy & Compliance */}
           <div
             className="panel"
+            style={{ marginTop: '1.5rem', border: '1px solid rgba(255, 100, 100, 0.2)' }}
           >
-            <div className="section-title">// account settings</div>
+            <div className="section-title" style={{ color: '#ff6b6b' }}>// data & privacy</div>
             <div className="panel-body">
               <p style={{ fontSize: '0.9rem', color: 'var(--color-muted)', marginBottom: '1rem' }}>
-                Manage your password, linked accounts, and other preferences in Settings.
+                You have full control over your data.
               </p>
-              <a href="/settings" className="btn outline" style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}>
-                Go to Settings
-              </a>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                  <button 
+                    className="btn outline" 
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={async () => {
+                        try {
+                           setTempStatus("Gathering data...");
+                           await exportUserData();
+                           setTempStatus("Export complete!", 5000);
+                        } catch(e: any) {
+                           setErrorMsg(e.message);
+                        }
+                    }}
+                  >
+                    Export My Data (JSON)
+                  </button>
+
+                  <button 
+                    className="btn ghost" 
+                    style={{ width: '100%', justifyContent: 'center', color: '#ff6b6b' }}
+                    onClick={async () => {
+                        if (window.confirm("Are you ABSOLUTELY sure? This will wipe all tasks, habits, and XP. This cannot be undone.")) {
+                            try {
+                                setLoading(true);
+                                await deleteUserAccount();
+                                toast.success("Account deleted.");
+                            } catch(e: any) {
+                                setErrorMsg(e.message);
+                                setLoading(false);
+                            }
+                        }
+                    }}
+                    disabled={loading}
+                  >
+                    Delete Account
+                  </button>
+              </div>
             </div>
           </div>
         </div>

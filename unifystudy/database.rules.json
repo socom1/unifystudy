@@ -4,11 +4,52 @@
       "$uid": {
         ".read": "$uid === auth.uid",
         ".write": "$uid === auth.uid",
+        "tasks": {
+          "$task_id": {
+            ".validate": "newData.hasChildren(['text', 'completed']) && newData.child('text').isString() && newData.child('text').val().length < 500 && newData.child('completed').isBoolean()"
+          }
+        },
+        "folders": {
+          "$folder_id": {
+            ".validate": "(!newData.exists()) || (newData.child('name').isString() && newData.child('name').val().length < 100)"
+          }
+        },
+        "flashcards": {
+          "$deck_id": {
+            ".validate": "(!newData.exists()) || (newData.child('name').isString() && newData.child('name').val().length < 100)",
+            "cards": {
+              "$card_id": {
+                ".validate": "(!newData.exists()) || (newData.child('front').isString() && newData.child('front').val().length < 5000 && newData.child('back').isString() && newData.child('back').val().length < 5000)"
+              }
+            }
+          }
+        },
+        "habits": {
+          "$habit_id": {
+            ".validate": "(!newData.exists()) || (newData.child('name').isString() && newData.child('name').val().length < 200)"
+          }
+        },
+        "events": {
+          "$event_id": {
+            ".validate": "(!newData.exists()) || (newData.child('title').isString() && newData.child('title').val().length < 200)"
+          }
+        },
+        "sticky_notes": {
+          "$note_id": {
+            ".validate": "(!newData.exists()) || (newData.child('text').isString() && newData.child('text').val().length < 2000)"
+          }
+        },
         "invitations": {
-          ".write": "auth != null"
+          ".write": "auth != null",
+          "$inv_id": {
+            ".validate": "(!newData.exists()) || (newData.child('workspaceId').isString() && newData.child('workspaceId').val().length < 100)"
+          }
         },
         "notifications": {
-          ".write": "auth != null"
+          ".write": "auth != null",
+          "$notif_id": {
+             ".validate": "(!newData.exists()) || (newData.child('message').isString() && newData.child('message').val().length < 500)"
+          }
         }
       }
     },
@@ -16,7 +57,7 @@
       ".read": "auth != null",
       "$user_id": {
          ".write": "auth != null && $user_id === auth.uid",
-         ".validate": "newData.hasChildren(['username', 'xp']) && newData.child('username').isString() && newData.child('xp').isNumber()"
+         ".validate": "newData.hasChildren(['username', 'xp']) && newData.child('username').isString() && newData.child('username').val().length < 100 && newData.child('xp').isNumber()"
       },
       ".indexOn": ["username", "email", "xp"]
     },
@@ -24,7 +65,7 @@
       ".read": "auth != null",
       "$msg_id": {
           ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)",
-          ".validate": "newData.hasChildren(['text', 'userId', 'timestamp']) && newData.child('text').val().length < 500"
+          ".validate": "newData.hasChildren(['text', 'userId', 'timestamp']) && newData.child('text').isString() && newData.child('text').val().length < 2000"
       },
       ".indexOn": ["timestamp"]
     },
@@ -40,7 +81,10 @@
         ".write": "root.child('projects').child($channel_id).child('members').child(auth.uid).exists()",
         ".indexOn": ["timestamp"],
         "messages": {
-           ".indexOn": ["timestamp"]
+           ".indexOn": ["timestamp"],
+           "$msg_id": {
+              ".validate": "(!newData.exists()) || (newData.child('text').isString() && newData.child('text').val().length < 2000)"
+           }
         }
       }
     },
@@ -52,7 +96,10 @@
       "$project_id": {
         ".read": "data.child('members').child(auth.uid).exists()",
         ".write": "data.child('members').child(auth.uid).exists() || !data.exists()",
-        ".indexOn": ["members"]
+        ".indexOn": ["members"],
+        "text": {
+           ".validate": "(!newData.exists()) || (newData.isString() && newData.val().length < 50000)"
+        }
       }
     }
   }

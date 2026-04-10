@@ -9,6 +9,7 @@ import Modal from "@/components/common/Modal";
 import { Trash2 } from "lucide-react";
 import { recordStudySession } from "@/services/leaderboardService";
 import { useGamification } from "@/context/GamificationContext";
+import { sanitizeHtml, sanitizeText } from "@/utils/sanitize";
 
 const scheduler = new AnkiScheduler(DEFAULT_DECK_CONFIG);
 
@@ -132,18 +133,19 @@ export default function Flashcards() {
     };
 
     const handleCreateDeck = async (name) => {
-        if (!name.trim()) return;
+        const cleanName = sanitizeText(name, 100);
+        if (!cleanName) return;
         const newDeckRef = push(ref(db, `users/${userId}/flashcards`));
-        await set(newDeckRef, { name: name.trim() });
-        toast.success(`Deck "${name}" created!`);
+        await set(newDeckRef, { name: cleanName });
+        toast.success(`Deck "${cleanName}" created!`);
         setShowCreateDeck(false);
     };
 
     const handleCreateCard = async (deckId, front, back, modelType) => {
         const newCard = {
-            front,
-            back,
-            modelType,
+            front: sanitizeHtml(front, 5000),
+            back: sanitizeHtml(back, 5000),
+            modelType: sanitizeText(modelType, 50),
             ctype: CardType.New,
             queue: 0,
             due: Math.floor(Date.now() / 1000),

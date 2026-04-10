@@ -164,6 +164,7 @@ export default function TdlF() {
                             className={activeView === 'list' ? 'active' : ''} 
                             onClick={() => setActiveView('list')}
                             title="List View"
+                            aria-label="Switch to List View"
                         >
                             <ListIcon size={16} />
                         </button>
@@ -171,6 +172,7 @@ export default function TdlF() {
                             className={activeView === 'board' ? 'active' : ''} 
                             onClick={() => setActiveView('board')}
                             title="Board View"
+                            aria-label="Switch to Board View"
                         >
                             <LayoutGrid size={16} />
                         </button>
@@ -185,7 +187,7 @@ export default function TdlF() {
                         setAssigneeFilter={setAssigneeFilter}
                         tags={[]} 
                     />
-                    <button className="secondary-btn" onClick={handleSyncExternal} disabled={isSyncing} title="Sync External Tasks">
+                    <button className="secondary-btn" onClick={handleSyncExternal} disabled={isSyncing} title="Sync External Tasks" aria-label="Sync External Tasks">
                         {isSyncing ? <div className="spinner-sm" /> : <CalendarIcon size={16} />}
                     </button>
                     <div className="search-box">
@@ -194,9 +196,10 @@ export default function TdlF() {
                             placeholder="Search..." 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            aria-label="Search Tasks"
                         />
                     </div>
-                    <button className="primary-btn" onClick={handleCreateTask}>
+                    <button className="primary-btn" onClick={handleCreateTask} aria-label="Create New Task">
                         <Plus size={16} /> <span className="btn-text">New Task</span>
                     </button>
                 </div>

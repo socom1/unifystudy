@@ -536,6 +536,14 @@ export default function Dashboard({ user }) {
             animate={{ opacity: 1, y: 0 }}
             className="pinned-focus-banner"
             onClick={() => navigate('/todo', { state: { taskId: pinnedFocusTask.id } })}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e: any) => {
+                 if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate('/todo', { state: { taskId: pinnedFocusTask.id } });
+                 }
+            }}
           >
              <div className="focus-label">
                  <Target size={16} /> 
@@ -736,6 +744,14 @@ export default function Dashboard({ user }) {
                                     key={i} 
                                     className="task-row clickable" 
                                     onClick={() => navigate('/todo', { state: { taskId: task.id, folderId: task.folderId } })}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e: any) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            navigate('/todo', { state: { taskId: task.id, folderId: task.folderId } });
+                                        }
+                                    }}
                                 >
                                     <div className={`priority-indicator ${task.priority || "low"}`}></div>
                                     <div className="task-content">

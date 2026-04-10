@@ -60,6 +60,7 @@ import PageLoader from "@/components/ui/PageLoader";
 import EmptyState from "@/components/ui/EmptyState";
 import { toast } from "sonner";
 import VirtualMessageList from "./VirtualMessageList";
+import { sanitizeText } from "@/utils/sanitize";
 // I'll stick to PageLoader/EmptyState first.
 
 const UserAvatar = ({ photoURL, displayName, avatarColor, className }) => {
@@ -608,7 +609,8 @@ const Chat = () => {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user) return;
+    const cleanMsg = sanitizeText(newMessage, 2000);
+    if (!cleanMsg || !user) return;
 
     try {
       let path = "global_chat";
@@ -625,7 +627,7 @@ const Chat = () => {
       const newMsgRef = push(chatRef);
 
       const messageData = {
-        text: newMessage,
+        text: cleanMsg,
         uid: user.uid,
         displayName: anonymousMode
           ? "Anonymous Student"

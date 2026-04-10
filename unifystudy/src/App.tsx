@@ -7,7 +7,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import { GamificationProvider } from "./context/GamificationContext";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
-
+import NotificationManager from "./components/notifications/NotificationManager";
 
 import { Toaster } from "sonner";
 
@@ -19,6 +19,7 @@ function App() {
           <NotificationProvider>
             <GamificationProvider>
               <UIProvider>
+                <NotificationManager />
                 <AppLayout />
                 <Toaster richColors position="bottom-right" />
               </UIProvider>

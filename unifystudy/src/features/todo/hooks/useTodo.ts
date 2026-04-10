@@ -11,6 +11,7 @@ import {
 } from "firebase/database";
 import { toast } from "sonner";
 import { useGamification } from "@/context/GamificationContext";
+import { sanitizeText } from "@/utils/sanitize";
 
 // Types
 export type ChecklistItem = { id: string; text: string; completed: boolean };
@@ -185,7 +186,8 @@ export function useTodo() {
 
   const addTask = async (text: string, folderId: string | null = null, extra: Partial<Task> = {}) => {
       if (!userId) return;
-      if (!text.trim()) {
+      const cleanText = sanitizeText(text, 500);
+      if (!cleanText) {
           toast.error("Task name required");
           return;
       }
@@ -223,7 +225,7 @@ export function useTodo() {
       const targetFolder = foldersFlat.find(f => f.id === targetId);
       
       const newTask = {
-          text: text.trim(),
+          text: cleanText,
           isActive: false, 
           status: 'backlog',
           order: Date.now(),
@@ -266,7 +268,11 @@ export function useTodo() {
 
   const updateTask = async (taskId: string, folderId: string, payload: Partial<Task>) => {
       if (!userId || !folderId) return;
-      await update(databaseRef(db, `users/${userId}/folders/${folderId}/tasks/${taskId}`), payload);
+      const cleanPayload = { ...payload };
+      if (cleanPayload.text !== undefined) cleanPayload.text = sanitizeText(cleanPayload.text, 500) || "";
+      if (cleanPayload.description !== undefined) cleanPayload.description = sanitizeText(cleanPayload.description, 5000) || "";
+      
+      await update(databaseRef(db, `users/${userId}/folders/${folderId}/tasks/${taskId}`), cleanPayload);
   };
 
   const updateFolder = async (folderId: string, payload: Partial<Folder>) => {
@@ -337,10 +343,11 @@ export function useTodo() {
 
   const addFolder = async (type: 'folder' | 'list' = 'folder', name: string = "New Folder", parentId: string | null = null) => {
       if (!userId) return;
+      const cleanName = sanitizeText(name, 100) || "New Folder";
       try {
           const foldersRef = databaseRef(db, `users/${userId}/folders`);
           const newFolderRef = await push(foldersRef, {
-              text: name,
+              text: cleanName,
               type: type,
               parentId: parentId,
               color: '#' + Math.floor(Math.random()*16777215).toString(16),
@@ -384,7 +391,9 @@ export function useTodo() {
 
   const addChecklistItem = async (taskId: string, folderId: string, text: string, currentList: ChecklistItem[] = []) => {
       if (!userId || !folderId) return;
-      const newItem: ChecklistItem = { id: Date.now().toString(), text, completed: false };
+      const cleanText = sanitizeText(text, 200);
+      if (!cleanText) return;
+      const newItem: ChecklistItem = { id: Date.now().toString(), text: cleanText, completed: false };
       const updatedList = [...currentList, newItem];
       await updateTask(taskId, folderId, { checklist: updatedList });
   };
@@ -398,10 +407,12 @@ export function useTodo() {
 
   const addComment = async (taskId: string, folderId: string, text: string, currentComments: Comment[] = []) => {
       if (!userId || !folderId) return;
+      const cleanText = sanitizeText(text, 500);
+      if (!cleanText) return;
       const newComment: Comment = { 
           id: Date.now().toString(), 
           userId, 
-          text, 
+          text: cleanText, 
           createdAt: Date.now() 
       };
       const updatedComments = [...currentComments, newComment];
